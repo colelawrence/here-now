@@ -43,8 +43,3 @@ Please open an issue introducing yourself or email me at cole@colelawrence.com
 I think people who have experienced Tandem.chat compared to Slack/Discord have a clearer understanding of the importance of this kind of tool for engineering teams.
 But, I think the market is very difficult to penetrate since this kind of application is very difficult to explain the nuances of. So, let's just make it in public, share ideas, and make this kind of application for ourselves.
 
-## Why not Tandem.chat ?
-
-Tandem is super awesome when you have a team that's all paid to show up to "the office" (Tandem.chat being your office). But, for friends and part-time co-workers and advisors, I find the pricing strategy of Tandem hard to adopt. And the resource usage of it's desktop application heavy enough that it's easy to want to close it so your computer can do more.
-
-Mainly, I experienced first hand that the pricing strategy of Tandem.chat was hard to justify for my use case, which is for small communities of friends ($50/mo for 10 people). As well, most people are not already using Tandem, so expecting people (especially devs and designers) to keep an electron app open just for fun, seems like a barrier.
