@@ -18,6 +18,7 @@ With Tandem.chat (the platform I have the most experience with), I think it was 
 
 **Back-end**
  * Axum: Rust web server framework for general web serving and websockets
+ * Considering: [LiveKit](https://github.com/livekit/livekit) for live-streaming infra (leveraging their Rust SDK)
 
 **Tooling**
  * TypeScript/Deno/Bun for code generation and general purpose repo maintenance
