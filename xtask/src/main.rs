@@ -1,8 +1,10 @@
+use std::{path::PathBuf, process::Command};
+
 use gumdrop::Options;
 mod dev;
 
 #[derive(Options)]
-enum Command {
+enum XtaskCommand {
     // Command names are generated from variant names.
     // By default, a CamelCase name will be converted into a lowercase,
     // hyphen-separated name; e.g. `FooBar` becomes `foo-bar`.
@@ -10,6 +12,8 @@ enum Command {
     // Names can be explicitly specified using `#[options(name = "...")]`
     #[options(help = "run app and server for development")]
     Dev(dev::SubOptions),
+
+    BuildServerStaticAssets(dev::SubOptions),
 }
 
 // Define options for the program.
@@ -25,7 +29,7 @@ struct MyOptions {
     // The `command` option will delegate option parsing to the command type,
     // starting at the first free argument.
     #[options(command)]
-    command: Option<Command>,
+    command: Option<XtaskCommand>,
 }
 
 fn main() {
@@ -42,6 +46,20 @@ fn main() {
     };
 
     match command {
-        Command::Dev(sub) => dev::run(sub),
+        XtaskCommand::Dev(sub) => dev::run(sub),
+        XtaskCommand::BuildServerStaticAssets(_) => build_server_static_assets(),
     }
+}
+
+fn build_server_static_assets() {
+    // let this_file_path = PathBuf::from(file!());
+    // let root_dir = this_file_path.parent().unwrap().parent().unwrap();
+    let root_dir = std::env::current_dir().unwrap();
+    let child = Command::new("npx")
+        .args("tailwindcss -i ./private-server.css -o ./dist/private-server.css --watch".split(' '))
+        .current_dir(root_dir.join("./hn-server"))
+        .spawn()
+        .expect("generating")
+        .wait_with_output()
+        .expect("finish");
 }

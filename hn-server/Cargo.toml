@@ -10,13 +10,15 @@ publish = false
 [dependencies]
 here-now-common.workspace = true
 serde.workspace = true
-bonsaidb = { version = "0.4.1", features = ["server", "server-instrument"] }
 actionable = "0.2.0"
-tracing = "0.1.37"
 axum = "0.6.18"
-tower-http = "0.4.1"
-clap = "4.3.11"
-futures = "0.3.28"
-tera = "1.19.0"
+bonsaidb = { version = "0.4.1", features = ["server", "server-instrument"] }
 env_logger = "0.10.0"
-maud = "0.25.0"
+futures = "0.3.28"
+maud = { version = "0.25.0", features = ["axum"] }
+tokio = { version = "1.29.1", features = ["full"] }
+tower-http = "0.4.1"
+tracing = "0.1.37"
+toml_edit = { version = "0.19.12", features = ["serde"] }
+anyhow.workspace = true
+minijinja = "1.0.3"
