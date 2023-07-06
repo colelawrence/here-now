@@ -1,0 +1,3 @@
+[submodule "vendor/derive-codegen"]
+	path = vendor/derive-codegen
+	url = https://github.com/colelawrence/derive-codegen.git

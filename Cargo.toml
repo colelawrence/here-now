@@ -1,2 +1,16 @@
 [workspace]
-members = ["xtask"]
+members = ["xtask", "hn-server", "hn-desktop", "hn-common"]
+
+[workspace.package]
+version = "0.0.1"
+edition = "2021"
+authors = ["Cole Lawrence <cole@colelawrence.com>"]
+license = "Apache-2.0 OR MIT"
+repository = "https://github.com/colelawrence/here-now"
+
+[workspace.dependencies]
+here-now-common = { path = "./hn-common", version = "*" }
+derive-codegen = { path = "vendor/derive-codegen", version = "*" }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+anyhow = "1.0"
