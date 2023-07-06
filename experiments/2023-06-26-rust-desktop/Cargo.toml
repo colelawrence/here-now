@@ -1,0 +1,18 @@
+[package]
+name = "here-now-app"
+version = "0.1.0"
+edition = "2021"
+build = "build.rs"
+
+resolver="2"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+cacao = "0.3.2"
+circulate = "0.4.0"
+slint = { version = "1.1.0", features = ["renderer-winit-skia"] }
+tokio = "1.28.2"
+
+[build-dependencies]
+slint-build = "1.0"

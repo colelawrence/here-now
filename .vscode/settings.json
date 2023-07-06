@@ -1,5 +1,2 @@
 {
-  "rust-analyzer.linkedProjects": [
-    "experiments/2023-05-live-kit/Cargo.toml"
-  ]
 }
