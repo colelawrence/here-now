@@ -1,7 +1,5 @@
 use std::{path::PathBuf, process::Command};
-
 use gumdrop::Options;
-mod dev;
 
 #[derive(Options)]
 enum XtaskCommand {
@@ -10,10 +8,8 @@ enum XtaskCommand {
     // hyphen-separated name; e.g. `FooBar` becomes `foo-bar`.
     //
     // Names can be explicitly specified using `#[options(name = "...")]`
-    #[options(help = "run app and server for development")]
-    Dev(dev::SubOptions),
-
-    BuildServerStaticAssets(dev::SubOptions),
+    #[options(help = "build web assets development")]
+    WebBuild(WebBuildOptions),
 }
 
 // Define options for the program.
@@ -46,20 +42,28 @@ fn main() {
     };
 
     match command {
-        XtaskCommand::Dev(sub) => dev::run(sub),
-        XtaskCommand::BuildServerStaticAssets(_) => build_server_static_assets(),
+        XtaskCommand::WebBuild(opts) => web_build(opts),
     }
 }
 
-fn build_server_static_assets() {
-    // let this_file_path = PathBuf::from(file!());
-    // let root_dir = this_file_path.parent().unwrap().parent().unwrap();
-    let root_dir = std::env::current_dir().unwrap();
-    let child = Command::new("npx")
+fn get_project_root_dir() -> PathBuf {
+    std::env::vars_os()
+        .into_iter()
+        .filter_map(|(key, value)| (key == "CARGO_MANIFEST_DIR").then_some(value))
+        .next()
+        .and_then(|value| PathBuf::from(value).parent().map(PathBuf::from))
+        .unwrap_or_else(|| std::env::current_dir().unwrap())
+}
+
+#[derive(Options)]
+struct WebBuildOptions {}
+fn web_build(_: WebBuildOptions) {
+    let root_dir = get_project_root_dir();
+    Command::new("npx")
         .args("tailwindcss -i ./private-server.css -o ./dist/private-server.css --watch".split(' '))
         .current_dir(root_dir.join("./hn-server"))
         .spawn()
         .expect("generating")
         .wait_with_output()
-        .expect("finish");
+        .expect("exiting");
 }
