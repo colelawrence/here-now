@@ -6,3 +6,4 @@ publish = false
 
 [dependencies]
 gumdrop = "0.8.1"
+jod-thread = "0.1.2"

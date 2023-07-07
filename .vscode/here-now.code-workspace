@@ -1,0 +1,20 @@
+{
+  "folders": [
+    {
+      "name": "generate",
+      "path": "../experiments/2023-06-26-rust-desktop/generate"
+    },
+    {
+      "name": "here-now",
+      "path": ".."
+    }
+  ],
+  "settings": {
+    "tailwindCSS.includeLanguages": {
+      "jinja-html": "html"
+    },
+    "emmet.includeLanguages": {
+      "jinja-html": "html"
+    }
+  }
+}

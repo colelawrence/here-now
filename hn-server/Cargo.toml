@@ -17,8 +17,13 @@ env_logger = "0.10.0"
 futures = "0.3.28"
 maud = { version = "0.25.0", features = ["axum"] }
 tokio = { version = "1.29.1", features = ["full"] }
-tower-http = "0.4.1"
+tower-http = { version = "0.4.1", features = ["fs", "trace"] }
 tracing = "0.1.37"
 toml_edit = { version = "0.19.12", features = ["serde"] }
 anyhow.workspace = true
-minijinja = "1.0.3"
+minijinja = { version = "1.0.3", features = ["loader"] }
+minijinja-autoreload = "1.0.3"
+async-trait = "0.1.71"
+http = "0.2.9"
+tower-layer = "0.3.2"
+tracing-subscriber = { version = "0.3.17", features = ["env-filter"] }

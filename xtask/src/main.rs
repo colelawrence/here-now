@@ -1,5 +1,8 @@
-use std::{path::PathBuf, process::Command};
 use gumdrop::Options;
+use std::{
+    path::PathBuf,
+    process::{self, Command},
+};
 
 #[derive(Options)]
 enum XtaskCommand {
@@ -10,6 +13,12 @@ enum XtaskCommand {
     // Names can be explicitly specified using `#[options(name = "...")]`
     #[options(help = "build web assets development")]
     WebBuild(WebBuildOptions),
+    #[options(help = "run server for development")]
+    Dev(DevOptions),
+    #[options(help = "lint fixes")]
+    Fix(FixOptions),
+    #[options(help = "generate and show docs")]
+    Docs(DocsOptions),
 }
 
 // Define options for the program.
@@ -43,6 +52,9 @@ fn main() {
 
     match command {
         XtaskCommand::WebBuild(opts) => web_build(opts),
+        XtaskCommand::Dev(opts) => dev(opts),
+        XtaskCommand::Fix(opts) => fix(opts),
+        XtaskCommand::Docs(opts) => docs(opts),
     }
 }
 
@@ -60,10 +72,75 @@ struct WebBuildOptions {}
 fn web_build(_: WebBuildOptions) {
     let root_dir = get_project_root_dir();
     Command::new("npx")
-        .args("tailwindcss -i ./private-server.css -o ./dist/private-server.css --watch".split(' '))
+        .args("tailwindcss -i ./config-html-server.css -o ./src/config_html_server/build/config-html-server.css --watch".split(' '))
         .current_dir(root_dir.join("./hn-server"))
         .spawn()
         .expect("generating")
         .wait_with_output()
         .expect("exiting");
+}
+
+#[derive(Options)]
+struct DevOptions {}
+fn dev(_: DevOptions) {
+    let root_dir = get_project_root_dir();
+    let server = Command::new("cargo")
+        .args("watch --watch ./src --ignore *.j2".split(' '))
+        .arg("--exec")
+        .arg("run ./here-now-config.toml")
+        .current_dir(root_dir.join("./hn-server"))
+        .spawn()
+        .expect("running server with watcher");
+
+    let web_assets = jod_thread::spawn(|| {
+        web_build(WebBuildOptions {});
+    });
+    let server = jod_thread::spawn(|| {
+        server.wait_with_output().expect("exiting");
+    });
+
+    web_assets.join();
+    server.join();
+}
+
+#[derive(Options)]
+struct FixOptions {}
+fn fix(_: FixOptions) {
+    let root_dir = get_project_root_dir();
+    let output = Command::new("cargo")
+        .args("fix --allow-dirty --allow-staged".split(' '))
+        .current_dir(&root_dir)
+        .spawn()
+        .expect("fixing code")
+        .wait_with_output()
+        .expect("exiting");
+
+    if !output.status.success() {
+        process::exit(output.status.code().unwrap_or(1))
+    }
+
+    let output = Command::new("cargo")
+        .args("fmt".split(' '))
+        .current_dir(root_dir)
+        .spawn()
+        .expect("formatting code")
+        .wait_with_output()
+        .expect("exiting");
+
+    process::exit(output.status.code().unwrap_or_default());
+}
+
+#[derive(Options)]
+struct DocsOptions {}
+fn docs(_: DocsOptions) {
+    let root_dir = get_project_root_dir();
+    let output = Command::new("cargo")
+        .args("+nightly doc --open".split(' '))
+        .current_dir(root_dir)
+        .spawn()
+        .expect("fixing code")
+        .wait_with_output()
+        .expect("exiting");
+
+    process::exit(output.status.code().unwrap_or_default());
 }

@@ -1,10 +1,7 @@
-use actionable::{Permissions, Statement};
 use anyhow::Context;
-use bonsaidb::{
-    core::permissions::bonsai::{BonsaiAction, ServerAction},
-    server::{CustomServer, ServerConfiguration},
-};
+
 use tokio;
+use tracing_subscriber::prelude::*;
 
 // mod schema;
 // mod webserver;
@@ -14,8 +11,8 @@ enum Game {}
 
 #[allow(unused)]
 mod prelude {
-
-    use std::fmt::Debug;
+    pub(crate) use async_trait::async_trait;
+    pub(crate) use std::fmt::Debug;
 
     pub(crate) use anyhow::{Context, Error, Result};
     pub(crate) use serde::{Deserialize, Serialize};
@@ -41,7 +38,8 @@ mod config {
         // /// e.g. http://localhost:8001
         // pub public_origins: Vec<String>,
         /// e.g. `"0.0.0.0:8001"`
-        pub private_bind_address: Option<String>,
+        pub config_server_bind_address: Option<String>,
+        pub dev_mode: Option<bool>,
     }
 
     #[derive(Clone, Debug)]
@@ -67,50 +65,18 @@ mod config {
     }
 }
 
-mod private_server {
-    use std::net::SocketAddr;
-
-    use crate::prelude::*;
-    use axum::{routing::get, Router};
-    use maud::{html, Markup};
-
-    async fn hello_world() -> Markup {
-        html! {
-            head {
-                style { r#"html, body { font-family: system-ui, sans-serif; } body { margin: 2rem auto; max-width: 500px; }"# }
-            }
-            body {
-                h1 { "Welcome to your new installation of the Here Now server" }
-                p { "You're now looking at the self-configuration page, where we'll set up your service."}
-            }
-        }
-    }
-
-    pub async fn start(config: crate::config::ConfigFile) -> Result<()> {
-        // build our application with a single route
-        let app = Router::new().route("/", get(hello_world));
-
-        let private_bind_address = config
-            .content
-            .private_bind_address
-            .clone()
-            .unwrap_or_else(|| "0.0.0.0:3001".to_string());
-
-        let addr: SocketAddr = private_bind_address
-            .parse()
-            .with_context(|| format!("parsing private_bind_address {private_bind_address:?}"))?;
-
-        println!("Private server starting on http://{addr}");
-        axum::Server::bind(&addr)
-            .serve(app.into_make_service())
-            .await?;
-
-        Ok(())
-    }
-}
+mod config_html_server;
 
 #[tokio::main]
 async fn main() {
+    tracing_subscriber::registry()
+        .with(
+            tracing_subscriber::EnvFilter::try_from_default_env()
+                .unwrap_or_else(|_| "server=debug,tower_http=debug".into()),
+        )
+        .with(tracing_subscriber::fmt::layer())
+        .init();
+
     let process_dir = std::env::current_dir().expect("getting current directory (pwd)");
     let config_file_path = std::env::args()
         .skip(1)
@@ -128,8 +94,8 @@ async fn main() {
     println!("{config_file:#?}");
 
     tokio::select! {
-        _ = private_server::start(config_file.clone()) => {
-            println!("Exited private server");
+        res = config_html_server::start(config_file.clone()) => {
+            println!("Exited private server: {res:#?}");
         }
     }
 

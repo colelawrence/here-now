@@ -1,2 +1,7 @@
 {
+  "[jinja-html]": {
+    "tailwindCSS.codeActions": true,
+    "tailwindCSS.hovers": true,
+    "tailwindCSS.experimental.classRegex": ["class=\"([^\"]+)\""]
+  }
 }
