@@ -12,18 +12,21 @@
 <body class="bg-blue-700 text-white font-sans h-full p-16">
   <h1 class="text-2xl font-bold">Here Now Configuration</h1>
   <p>You're now looking at the self-configuration page, where we'll set up your service.</p>
-
   <table>
     <thead>
-      <tr>
+      <tr class="text-blue-300 font-semibold">
         <td>Name</td>
         <td>Value</td>
       </tr>
     </thead>
     <tbody>
       <tr>
-        <td>dev_server_bind_address</td>
-        <td><code>{{ dev_server_bind_address }}</code></td>
+        <td class="pr-2">config_server_bind_address</td>
+        <td>
+          {% with name="config_server_bind_address", value=config_server_bind_address %}
+          {% include "edit-button-toml.html.j2" %}
+          {% endwith %}
+        </td>
       </tr>
     </tbody>
   </table>

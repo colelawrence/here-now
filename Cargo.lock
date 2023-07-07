@@ -2106,6 +2106,7 @@ dependencies = [
  "minijinja",
  "minijinja-autoreload",
  "serde",
+ "serde_json",
  "tokio",
  "toml_edit",
  "tower-http",

@@ -85,7 +85,8 @@ struct DevOptions {}
 fn dev(_: DevOptions) {
     let root_dir = get_project_root_dir();
     let server = Command::new("cargo")
-        .args("watch --watch ./src --ignore *.j2".split(' '))
+        .env("RUST_LOG", "debug,!hyper")
+        .args("watch --watch ./src --ignore *.j2 --ignore *.css".split(' '))
         .arg("--exec")
         .arg("run ./here-now-config.toml")
         .current_dir(root_dir.join("./hn-server"))

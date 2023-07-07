@@ -1,0 +1,12 @@
+{% block edit %}
+<label for="discord-client_id">Client ID</label>
+<input id="discord-client_id" type="text" name="client_id" value="{{client_id}}">
+<br>
+<label for="discord-api_key">API Key</label>
+<input id="discord-api_key" type="text" name="api_key" value="{{api_key}}" type="password">
+{% endblock %}
+
+{% block view %}
+Client ID: {{client_id}}
+API Key: {{api_key}}
+{% endblock %}

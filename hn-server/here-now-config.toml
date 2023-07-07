@@ -1,1 +1,2 @@
-config_server_bind_address = "0.0.0.0:8001"
+# The binding address, e.g. "127.0.0.1:8001"
+config_server_bind_address = "127.0.0.1:8001"
