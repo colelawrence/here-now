@@ -1,3 +1,3 @@
 use crate::prelude::*;
 
-mod input;
+pub mod input;

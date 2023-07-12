@@ -6,6 +6,9 @@
     },
     {
       "path": "../vendor/derive-codegen"
+    },
+    {
+      "path": "../hn-design-tools"
     }
   ],
   "settings": {

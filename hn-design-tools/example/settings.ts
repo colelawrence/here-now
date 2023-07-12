@@ -1,7 +1,7 @@
-import iBMPlexMonoMetrics from "@capsizecss/metrics/iBMPlexMono";
-import interMetrics from "@capsizecss/metrics/inter";
-import workSansMetrics from "@capsizecss/metrics/workSans";
-import * as input from "./input.gen.js";
+// import workSansMetrics from "@capsizecss/metrics/workSans";
+import * as input from "./input.gen.ts";
+import { iBMPlexMonoMetrics } from "./iBMPlexMonoMetrics.ts";
+import { interMetrics } from "./interMetrics.ts";
 
 const GOLDEN_RATIO = 1.61803398875;
 // 1.61803 (golden ratio) ^ 0.5
@@ -42,7 +42,7 @@ const figmaProseStyleGroup = input.FigmaTextStyleMatrixGroup({
   ],
 });
 
-input.Typography({
+const typography = input.Typography({
   Families: [
     {
       BaseName: "Inter",
@@ -66,7 +66,7 @@ input.Typography({
       BaseName: "IBM Plex",
       CSSFontFamilyName: "hnmono",
       CSSFontFamilyFallbacks: ["Source Code Pro", ...emojiFontFamilies, "monospace"],
-      Metrics: interMetrics,
+      Metrics: iBMPlexMonoMetrics,
       Weights: [
         { W100: { CSSRule: { FontWeight: 100 }, Suffix: "Thin" } },
         { W200: { CSSRule: { FontWeight: 200 }, Suffix: "ExtraLight" } },
@@ -172,7 +172,7 @@ input.Typography({
   ],
 });
 
-input.ColorPalette({
+const color_palette = input.ColorPalette({
   Primary: { Hex: "#AFD2E9" },
   Extensions: [
     { Token: "blue", Source: { SimilarTo: { Hex: "#1f108b" } } },
@@ -182,4 +182,9 @@ input.ColorPalette({
     { Token: "magenta", Source: { SimilarTo: { Hex: "#9c1a91" } } },
     { Token: "green", Source: { SimilarTo: { Hex: "#4be589" } } },
   ],
+});
+
+export const settings = input.SystemInput({
+  color_palette,
+  typography,
 });

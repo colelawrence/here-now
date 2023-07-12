@@ -139,6 +139,23 @@ export namespace InputColor {
 export type InputColor =
   | InputColor.Hex
 /**
+ * `#[codegen(tags = "input")]`
+ *
+ * [Source `hn-design-tools/src/main.rs:12`](../../hn-design-tools/src/main.rs)
+ */
+export type SystemInput = {
+  color_palette: ColorPalette;
+  typography: Typography;
+};
+/**
+ * `#[codegen(tags = "input")]`
+ *
+ * [Source `hn-design-tools/src/main.rs:12`](../../hn-design-tools/src/main.rs)
+ */
+export function SystemInput(inner: SystemInput): SystemInput {
+  return inner;
+}
+/**
  * `#[codegen(tags = "input,typography")]`
  *
  * [Source `hn-design-tools/src/typography/input.rs:3`](../../hn-design-tools/src/typography/input.rs)

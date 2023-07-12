@@ -4,16 +4,22 @@ use std::process::Command;
 pub(crate) mod prelude {
     pub use derive_codegen::Codegen;
     pub use serde::{Deserialize, Serialize};
+}
 
-    #[derive(Debug, Serialize, Deserialize)]
-    pub struct FromInput<T> {
-        debug_source_location: String,
-        // TODO: Source location
-        input: T,
+pub(crate) mod input {
+    use crate::prelude::*;
+
+    #[derive(Debug, Deserialize, Codegen)]
+    #[codegen(tags = "input")]
+    pub struct SystemInput {
+        color_palette: crate::color::input::ColorPalette,
+        typography: crate::typography::input::Typography,
     }
 }
 
 mod typography;
+
+mod cli;
 
 /// TODO
 pub mod lengths {
@@ -32,19 +38,5 @@ mod figma;
 
 fn main() {
     println!("Running at {:?} ({})", std::env::current_dir(), file!());
-    let current_directory =
-        std::env::var("CARGO_MANIFEST_DIR").expect("getting cargo manifest directory");
-
-    derive_codegen::Generation::for_tag("input")
-        .as_arg_of(
-            Command::new("deno")
-                .arg("run")
-                .arg("../vendor/derive-codegen/typescript-generator/generate-typescript.ts")
-                .arg("--includeLocationsRelativeTo=../../")
-                .arg("--fileName=input.gen.ts")
-                .current_dir(current_directory),
-        )
-        .with_output_path("./example")
-        .write()
-        .print();
+    cli::run();
 }
