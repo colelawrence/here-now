@@ -1,0 +1,16 @@
+{
+  "name": "Here Now Figma",
+  "id": "1260340944901815368",
+  "api": "1.0.0",
+  "main": "plugin.js",
+  "capabilities": [],
+  "enableProposedApi": false,
+  "editorType": [
+    "figma"
+  ],
+  "networkAccess": {
+    "allowedDomains": [
+      "none"
+    ]
+  }
+}

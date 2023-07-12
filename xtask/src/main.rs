@@ -1,7 +1,7 @@
 use gumdrop::Options;
 use std::{
     path::PathBuf,
-    process::{self, Command},
+    process::{self, Command, Output},
 };
 
 #[derive(Options)]
@@ -71,6 +71,34 @@ fn get_project_root_dir() -> PathBuf {
 struct WebBuildOptions {}
 fn web_build(_: WebBuildOptions) {
     let root_dir = get_project_root_dir();
+    let status = Command::new("cargo")
+        .args("run --bin hn-design-tools".split(' '))
+        .current_dir(&root_dir)
+        .spawn()
+        .expect("building design tool types")
+        .wait_with_output()
+        .expect("exiting");
+
+    expect_success(&status);
+
+    let watch_figma = Command::new("npm")
+        .args("run watch".split(' '))
+        .current_dir(&root_dir.join("design-tools/Here Now Figma"))
+        .spawn()
+        .expect("building design tool types");
+
+    let status = Command::new("npx")
+        .args("tsc -p ./design-tools/tsconfig.json".split(' '))
+        .current_dir(&root_dir)
+        .spawn()
+        .expect("building design tools")
+        .wait_with_output()
+        .expect("exiting");
+
+    expect_success(&status);
+
+    // hmm watch_figma
+
     Command::new("npx")
         .args("tailwindcss -i ./config-html-server.css -o ./src/config_html_server/build/config-html-server.css --watch".split(' '))
         .current_dir(root_dir.join("./hn-server"))
@@ -116,9 +144,7 @@ fn fix(_: FixOptions) {
         .wait_with_output()
         .expect("exiting");
 
-    if !output.status.success() {
-        process::exit(output.status.code().unwrap_or(1))
-    }
+    expect_success(&output);
 
     let output = Command::new("cargo")
         .args("fmt".split(' '))
@@ -128,7 +154,7 @@ fn fix(_: FixOptions) {
         .wait_with_output()
         .expect("exiting");
 
-    process::exit(output.status.code().unwrap_or_default());
+    expect_success(&output);
 }
 
 #[derive(Options)]
@@ -143,5 +169,11 @@ fn docs(_: DocsOptions) {
         .wait_with_output()
         .expect("exiting");
 
-    process::exit(output.status.code().unwrap_or_default());
+    expect_success(&output);
+}
+
+fn expect_success(output: &Output) {
+    if !output.status.success() {
+        process::exit(output.status.code().unwrap_or(1))
+    }
 }

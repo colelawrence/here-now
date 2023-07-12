@@ -1,12 +1,11 @@
 {
   "folders": [
     {
-      "name": "generate",
-      "path": "../experiments/2023-06-26-rust-desktop/generate"
-    },
-    {
       "name": "here-now",
       "path": ".."
+    },
+    {
+      "path": "../vendor/derive-codegen"
     }
   ],
   "settings": {
@@ -15,6 +14,17 @@
     },
     "emmet.includeLanguages": {
       "jinja-html": "html"
-    }
+    },
+    "editor.linkedEditing": true,
+    "explorer.fileNesting.patterns": {
+      "*.ts": "${capture}.spec.ts",
+      "*.tsx": "${capture}.tsx, ${capture}.css, ${capture}@*.png",
+      "*.type.ts": "create${capture}.ts",
+      "capacitor.config.json": "config.xml",
+      ".gitignore": ".git*",
+      "package.json": "pnpm-lock.yaml, package-lock.json, .prettier*, lint-staged*, .lintstaged*, .eslint*, postcss.config*, tailwind.*, vite.*, tsconfig.json, tsconfig.*.json",
+      "index.html": "global.css, index.css, manifest.json"
+    },
+    "explorer.fileNesting.enabled": true
   }
 }

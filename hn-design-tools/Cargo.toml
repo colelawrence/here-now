@@ -1,14 +1,13 @@
 [package]
-name = "here-now-common"
+name = "hn-design-tools"
 version = "0.1.0"
-edition.workspace = true
-license.workspace = true
+edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-serde.workspace = true
-anyhow.workspace = true
+palette = "0.7.2"
 derive-codegen.workspace = true
-actionable = "0.2.0"
-bonsaidb = "0.4.1"
+serde.workspace = true
+serde_json = { version = "1.0" }
+material-color-utilities-rs = "0.2.1"
