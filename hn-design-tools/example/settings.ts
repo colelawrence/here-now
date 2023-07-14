@@ -2,47 +2,19 @@
 import * as input from "./input.gen.ts";
 import { iBMPlexMonoMetrics } from "./iBMPlexMonoMetrics.ts";
 import { interMetrics } from "./interMetrics.ts";
+import { figmaTypographyExtension } from "./figma-typography-extension.ts";
 
 const GOLDEN_RATIO = 1.61803398875;
 // 1.61803 (golden ratio) ^ 0.5
-const tightLineHeight = 1.272;
-const spaciousLineHeight = 1.61803;
+const tightLineHeight = input.FontFamilyLineHeightRule.FontSizePxMultipler({ multiplier: Math.pow(GOLDEN_RATIO, 0.5) });
+const spaciousLineHeight = input.FontFamilyLineHeightRule.FontSizePxMultipler({ multiplier: GOLDEN_RATIO });
 
 const emojiFontFamilies = ["Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Arial"];
 
-const figmaWeightsGroup = input.FigmaTextStyleMatrixGroup({
-  Description: "Font weight",
-  Options: [
-    { Name: "Base", Tokens: "" },
-    { Name: "Thin", Tokens: "w100" },
-    { Name: "Extra Light", Tokens: "w200" },
-    { Name: "Light", Tokens: "w300" },
-    { Name: "Normal", Tokens: "w400" },
-    { Name: "Medium", Tokens: "w500" },
-    { Name: "Semi Bold", Tokens: "w600" },
-    { Name: "Bold", Tokens: "w700" },
-    { Name: "Extra Bold", Tokens: "w800" },
-    { Name: "Black", Tokens: "w900" },
-  ],
-});
-
-const figmaItalicGroup = input.FigmaTextStyleMatrixGroup({
-  Description: "Font italicized",
-  Options: [
-    { Name: "Base", Tokens: "" },
-    { Name: "Italic", Tokens: "italic" },
-  ],
-});
-
-const figmaProseStyleGroup = input.FigmaTextStyleMatrixGroup({
-  Description: "Prose stylization",
-  Options: [
-    { Name: "Base", Tokens: "" },
-    { Name: "Code", Tokens: "code" },
-  ],
-});
-
 const typography = input.Typography({
+  Extensions: {
+    figma: figmaTypographyExtension,
+  },
   Families: [
     {
       BaseName: "Inter",
@@ -50,17 +22,17 @@ const typography = input.Typography({
       CSSFontFamilyFallbacks: ["system-ui", ...emojiFontFamilies, "sans-serif"],
       Metrics: interMetrics,
       Weights: [
-        { W100: { CSSRule: { FontWeight: 100 }, Suffix: " Thin" } },
-        { W200: { CSSRule: { FontWeight: 200 }, Suffix: " Extra Light" } },
-        { W300: { CSSRule: { FontWeight: 300 }, Suffix: " Light" } },
-        { W400: { CSSRule: { FontWeight: 400 }, Suffix: " Normal" } },
-        { W500: { CSSRule: { FontWeight: 500 }, Suffix: " Medium" } },
-        { W600: { CSSRule: { FontWeight: 600 }, Suffix: " Semi Bold" } },
-        { W700: { CSSRule: { FontWeight: 700 }, Suffix: " Bold" } },
-        { W800: { CSSRule: { FontWeight: 800 }, Suffix: " Extra Bold" } },
-        { W900: { CSSRule: { FontWeight: 900 }, Suffix: " Black" } },
+        { Weight: 100, FontStyleRule: { CSS: { FontWeight: 100 }, Figma: { Suffix: " Thin" } } },
+        { Weight: 200, FontStyleRule: { CSS: { FontWeight: 200 }, Figma: { Suffix: " Extra Light" } } },
+        { Weight: 300, FontStyleRule: { CSS: { FontWeight: 300 }, Figma: { Suffix: " Light" } } },
+        { Weight: 400, FontStyleRule: { CSS: { FontWeight: 400 }, Figma: { Suffix: " Normal" } } },
+        { Weight: 500, FontStyleRule: { CSS: { FontWeight: 500 }, Figma: { Suffix: " Medium" } } },
+        { Weight: 600, FontStyleRule: { CSS: { FontWeight: 600 }, Figma: { Suffix: " Semi Bold" } } },
+        { Weight: 700, FontStyleRule: { CSS: { FontWeight: 700 }, Figma: { Suffix: " Bold" } } },
+        { Weight: 800, FontStyleRule: { CSS: { FontWeight: 800 }, Figma: { Suffix: " Extra Bold" } } },
+        { Weight: 900, FontStyleRule: { CSS: { FontWeight: 900 }, Figma: { Suffix: " Black" } } },
       ],
-      ItalicOption: { CSSRule: "FontStyleItalics", Suffix: " Italic" },
+      ItalicOption: { CSS: { FontStyle: "italic" }, Figma: { Suffix: " Italic" } },
     },
     {
       BaseName: "IBM Plex",
@@ -68,34 +40,34 @@ const typography = input.Typography({
       CSSFontFamilyFallbacks: ["Source Code Pro", ...emojiFontFamilies, "monospace"],
       Metrics: iBMPlexMonoMetrics,
       Weights: [
-        { W100: { CSSRule: { FontWeight: 100 }, Suffix: "Thin" } },
-        { W200: { CSSRule: { FontWeight: 200 }, Suffix: "ExtraLight" } },
-        { W300: { CSSRule: { FontWeight: 300 }, Suffix: "Light" } },
-        { W400: { CSSRule: { FontWeight: 400 }, Suffix: "Normal" } },
-        { W500: { CSSRule: { FontWeight: 500 }, Suffix: "Medium" } },
-        { W600: { CSSRule: { FontWeight: 600 }, Suffix: "SemiBold" } },
-        { W700: { CSSRule: { FontWeight: 700 }, Suffix: "Bold" } },
+        { Weight: 100, FontStyleRule: { CSS: { FontWeight: 100 }, Figma: { Suffix: " Thin" } } },
+        { Weight: 200, FontStyleRule: { CSS: { FontWeight: 200 }, Figma: { Suffix: " ExtraLight" } } },
+        { Weight: 300, FontStyleRule: { CSS: { FontWeight: 300 }, Figma: { Suffix: " Light" } } },
+        { Weight: 400, FontStyleRule: { CSS: { FontWeight: 400 }, Figma: { Suffix: " Normal" } } },
+        { Weight: 500, FontStyleRule: { CSS: { FontWeight: 500 }, Figma: { Suffix: " Medium" } } },
+        { Weight: 600, FontStyleRule: { CSS: { FontWeight: 600 }, Figma: { Suffix: " SemiBold" } } },
+        { Weight: 700, FontStyleRule: { CSS: { FontWeight: 700 }, Figma: { Suffix: " Bold" } } },
       ],
-      ItalicOption: { CSSRule: "FontStyleItalics", Suffix: " Italic" },
+      ItalicOption: { CSS: { FontStyle: "italic" }, Figma: { Suffix: " Italic" } },
     },
   ],
   TextRoles: [
     {
       Token: "content",
       FamilyBaseName: "Inter",
-      TargetRelativeLineHeight: spaciousLineHeight,
+      LineHeightRule: spaciousLineHeight,
       TrackingRule: { DynMetrics: { a: -0.005, b: 0.26, c: -0.17 } },
     },
     {
       Token: "ui",
       FamilyBaseName: "Inter",
-      TargetRelativeLineHeight: tightLineHeight,
+      LineHeightRule: tightLineHeight,
       TrackingRule: { DynMetrics: { a: -0.005, b: 0.26, c: -0.17 } },
     },
     {
       Token: "code",
       FamilyBaseName: "IBM Plex",
-      TargetRelativeLineHeight: tightLineHeight,
+      LineHeightRule: tightLineHeight,
       TrackingRule: { DynMetrics: { a: -0.005, b: 0.26, c: -0.17 } },
     },
   ],
@@ -120,56 +92,6 @@ const typography = input.Typography({
       { Token: "4xl", Rel: 5 },
     ],
   },
-  FigmaTextStyles: [
-    {
-      BaseName: "Content",
-      BaseTokens: "content",
-      Groups: [
-        {
-          Options: [
-            { Name: "Smaller", Tokens: "xs" },
-            { Name: "Small", Tokens: "sm" },
-            { Name: "Base", Tokens: "base" },
-            { Name: "Quote", Tokens: "lg w500" },
-            { Name: "Heading 3", Tokens: "lg w700", Description: "Use gray color" },
-            { Name: "Heading 2", Tokens: "xl w700" },
-            { Name: "Heading 1", Tokens: "2xl w700" },
-            { Name: "Hero Title (3XL)", Tokens: "3xl w700" },
-            { Name: "Hero Title (4XL)", Tokens: "4xl w700" },
-          ],
-        },
-        figmaWeightsGroup,
-        figmaProseStyleGroup,
-        figmaItalicGroup,
-      ],
-    },
-    {
-      BaseName: "UI",
-      BaseTokens: "ui",
-      Groups: [
-        {
-          Description: "text size",
-          Options: [
-            { Name: "Smaller", Tokens: "xs" },
-            { Name: "Small", Tokens: "sm" },
-            { Name: "Base", Tokens: "base" },
-            { Name: "Large", Tokens: "lg" },
-            { Name: "Larger", Tokens: "xl" },
-            // Add 2X if you like.
-            { Name: "3X Large", Tokens: "3xl" },
-          ],
-        },
-        figmaWeightsGroup,
-        figmaProseStyleGroup,
-        figmaItalicGroup,
-      ],
-    },
-    {
-      BaseName: "Mono",
-      BaseTokens: "code base",
-      Groups: [figmaWeightsGroup, figmaItalicGroup],
-    },
-  ],
 });
 
 const color_palette = input.ColorPalette({

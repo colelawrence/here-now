@@ -1256,6 +1256,7 @@ dependencies = [
 name = "hn-design-tools"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "clap",
  "derive-codegen",
  "material-color-utilities-rs",

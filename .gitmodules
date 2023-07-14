@@ -1,3 +1,6 @@
 [submodule "vendor/derive-codegen"]
 	path = vendor/derive-codegen
 	url = https://github.com/colelawrence/derive-codegen.git
+[submodule "design-tools/Figma-variables-import-export"]
+	path = design-tools/Figma-variables-import-export
+	url = https://github.com/jake-figma/variables-import-export.git

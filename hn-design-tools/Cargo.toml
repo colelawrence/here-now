@@ -12,3 +12,4 @@ serde.workspace = true
 serde_json = { version = "1.0" }
 material-color-utilities-rs = "0.2.1"
 clap = { version = "4.3.11", features = ["derive"] }
+anyhow.workspace = true

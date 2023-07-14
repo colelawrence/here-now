@@ -1,3 +1,5 @@
+//! Figma stuff that would be if we wanted to do more Figma related logic outside of Figma plugins.
+//! I think doing more logic outside of Figma is probably a bad idea, generally.
 use crate::prelude::*;
 #[derive(Codegen, Serialize)]
 #[codegen(tags = "figma")]

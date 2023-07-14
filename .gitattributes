@@ -1,5 +1,5 @@
 # ignore references
 hn-design-tools/references/* linguist-generated=true
 hn-design-tools/**/*.gen.* linguist-generated=true
-design-tools/Here Now Figma/gen/* linguist-generated=true
+design-tools/Here\ Now\ Figma/gen/* linguist-generated=true
 design-tools/out/*.gen.* linguist-generated=true

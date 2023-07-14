@@ -1,5 +1,5 @@
 //! See https://docs.rs/clap/latest/clap/_derive/_tutorial/index.html#subcommands
-use std::process::Command;
+use std::{os::unix::process, process::Command};
 
 use clap::{Parser, Subcommand};
 
@@ -35,7 +35,40 @@ pub(crate) fn run() {
                         .arg("../vendor/derive-codegen/typescript-generator/generate-typescript.ts")
                         .arg("--includeLocationsRelativeTo=../../")
                         .arg("--fileName=input.gen.ts")
-                        .current_dir(current_directory),
+                        .arg("--importScalarsFrom=./scalars.ts")
+                        .arg(r#"--prependText=type Value = unknown;"#)
+                        .current_dir(&current_directory),
+                )
+                .with_output_path("./example")
+                .write()
+                .print();
+
+            derive_codegen::Generation::for_tag("output")
+                .as_arg_of(
+                    Command::new("deno")
+                        .arg("run")
+                        .arg("../vendor/derive-codegen/typescript-generator/generate-typescript.ts")
+                        .arg("--includeLocationsRelativeTo=../../")
+                        .arg("--fileName=output.gen.ts")
+                        .arg("--importScalarsFrom=./scalars.ts")
+                        .arg(r#"--prependText=type Value = unknown;"#)
+                        .current_dir(&current_directory),
+                )
+                .with_output_path("./example")
+                .write()
+                .print();
+
+            derive_codegen::Generation::for_tag("figma")
+                .as_arg_of(
+                    Command::new("deno")
+                        .arg("run")
+                        .arg("../vendor/derive-codegen/typescript-generator/generate-typescript.ts")
+                        .arg("--includeLocationsRelativeTo=../../")
+                        .arg("--fileName=figma.gen.ts")
+                        .arg("--importScalarsFrom=./scalars.ts")
+                        .arg(r#"--prependText=import { TypographyProperty } from "./output.gen.ts";
+type Value = unknown;"#)
+                        .current_dir(&current_directory),
                 )
                 .with_output_path("./example")
                 .write()
@@ -45,7 +78,7 @@ pub(crate) fn run() {
             let child = Command::new("deno")
                 .arg("run")
                 .arg("./example/get-settings-json-to-stdout.ts")
-                .current_dir(current_directory)
+                .current_dir(&current_directory)
                 .stdout(std::process::Stdio::piped())
                 .spawn()
                 .expect("starting deno command");
@@ -63,6 +96,25 @@ pub(crate) fn run() {
             );
 
             println!("System settings: {found:#?}");
+
+            let all_tokens: crate::typography::output::TypographyExport =
+                crate::typography::output::generate_typography_all_tokens(&found.typography)
+                    .expect("generating all tokens")
+                    .into();
+
+            let output = Command::new("deno")
+                .arg("run")
+                .arg("./example/generate-tailwind-json-from-arg.ts")
+                .arg(serde_json::to_string(&all_tokens).unwrap())
+                .current_dir(&current_directory)
+                .spawn()
+                .expect("starting deno")
+                .wait_with_output()
+                .expect("exiting deno");
+
+            if !output.status.success() {
+                std::process::exit(output.status.code().unwrap_or_default());
+            }
         }
     }
 }

@@ -12,6 +12,9 @@
     }
   ],
   "settings": {
+    "files.exclude": {
+      "hn-design-tools/*": true
+    },
     "tailwindCSS.includeLanguages": {
       "jinja-html": "html"
     },
@@ -23,7 +26,6 @@
       "*.ts": "${capture}.spec.ts",
       "*.tsx": "${capture}.tsx, ${capture}.css, ${capture}@*.png",
       "*.type.ts": "create${capture}.ts",
-      "capacitor.config.json": "config.xml",
       ".gitignore": ".git*",
       "package.json": "pnpm-lock.yaml, package-lock.json, .prettier*, lint-staged*, .lintstaged*, .eslint*, postcss.config*, tailwind.*, vite.*, tsconfig.json, tsconfig.*.json",
       "index.html": "global.css, index.css, manifest.json"
