@@ -1,4 +1,4 @@
-import { figmaTypographyInput } from "./figma-typography-input.ts";
+import { figmaTypographyExtension } from "./figma-typography-extension.ts";
 import { allTokensSampleData } from "./sample-output-data.ts";
 import * as output from "./output.gen.ts";
 
@@ -7,9 +7,9 @@ import * as output from "./output.gen.ts";
 // Figma plugin, which require this querying logic to be executed in
 // the plugin itself.
 
-class AllTokens {
-  constructor(private tokens: output.TypographyAllTokens) {}
-  query(tokens: string[]): any {
+class TypographyTokenLookup {
+  constructor(private tokens: output.TypographyExport) {}
+  query(tokens: string[]): output.TypographyProperty[] {
     // precedence + props
     const found: [number, number[]][] = [];
     possible: for (const [reqs, propIdxs] of this.tokens.tokens) {
@@ -37,8 +37,8 @@ class AllTokens {
   }
 }
 
-function harness(tokens: output.TypographyAllTokens) {
-  const allTokens = new AllTokens(tokens);
+function harness(tokens: output.TypographyExport) {
+  const allTokens = new TypographyTokenLookup(tokens);
   return {
     query(tokens: TemplateStringsArray) {
       const tokensTrimmed = splitTokens(String.raw(tokens));
@@ -68,7 +68,7 @@ W100, text, content, W200, xs [
 ]
 */
 
-for (const textStyle of figmaTypographyInput.FigmaTextStyles) {
+for (const textStyle of figmaTypographyExtension.FigmaTextStyles) {
   let allTextStyles: {
     names: string[];
     /** split and flattened */
@@ -88,4 +88,19 @@ for (const textStyle of figmaTypographyInput.FigmaTextStyles) {
       }
     }
   }
+
+  // console.log(allTextStyles);
+
+  const len = allTextStyles.length;
+  const figmaTextStyles: any[] = new Array(len);
+  const lookup = new TypographyTokenLookup(allTokensSampleData);
+  for (let i = 0; i < len; i++) {
+    const textStyle = allTextStyles[i];
+    figmaTextStyles[i] = {
+      name: textStyle.names.join("/"),
+      props: lookup.query(textStyle.tokens),
+    };
+  }
+
+  // console.log(figmaTextStyles)
 }
