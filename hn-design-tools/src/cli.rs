@@ -15,9 +15,9 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    /// Generate from example
-    Example,
-    /// Generate code from example
+    /// Generate from example `cargo run -- test-typography`
+    TestTypography,
+    /// Generate code from example `cargo run -- example-codegen`
     ExampleCodegen,
 }
 
@@ -66,15 +66,17 @@ pub(crate) fn run() {
                         .arg("--includeLocationsRelativeTo=../../")
                         .arg("--fileName=figma.gen.ts")
                         .arg("--importScalarsFrom=./scalars.ts")
-                        .arg(r#"--prependText=import { TypographyProperty } from "./output.gen.ts";
-type Value = unknown;"#)
+                        .arg(
+                            r#"--prependText=import { TypographyProperty } from "./output.gen.ts";
+type Value = unknown;"#,
+                        )
                         .current_dir(&current_directory),
                 )
                 .with_output_path("./example")
                 .write()
                 .print();
         }
-        Commands::Example => {
+        Commands::TestTypo => {
             let child = Command::new("deno")
                 .arg("run")
                 .arg("./example/get-settings-json-to-stdout.ts")

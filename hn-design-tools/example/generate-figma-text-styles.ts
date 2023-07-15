@@ -38,11 +38,11 @@ class TypographyTokenLookup {
 }
 
 function harness(tokens: output.TypographyExport) {
-  const allTokens = new TypographyTokenLookup(tokens);
+  const lookup = new TypographyTokenLookup(tokens);
   return {
     query(tokens: TemplateStringsArray) {
       const tokensTrimmed = splitTokens(String.raw(tokens));
-      console.log(tokensTrimmed.join(", "), allTokens.query(tokensTrimmed));
+      console.log(tokensTrimmed.join(", "), lookup.query(tokensTrimmed));
     },
   };
 }
@@ -57,6 +57,7 @@ function splitTokens(x: string): string[] {
 const h = harness(allTokensSampleData);
 h.query`W100 mono`;
 h.query`W100 text content W200 xs`;
+h.query`text content base quote W800`;
 /*
 W100, text, content, W200, xs [
   { FontStyle: { CSS: null, Figma: null } },
@@ -68,39 +69,39 @@ W100, text, content, W200, xs [
 ]
 */
 
-for (const textStyle of figmaTypographyExtension.FigmaTextStyles) {
-  let allTextStyles: {
-    names: string[];
-    /** split and flattened */
-    tokens: string[];
-  }[] = [{ names: [textStyle.BaseName], tokens: splitTokens(textStyle.BaseTokens) }];
-  for (const group of textStyle.Groups) {
-    const originalTextStyles = allTextStyles;
-    allTextStyles = new Array(originalTextStyles.length * group.Options.length);
-    let i = 0;
-    for (const original of originalTextStyles) {
-      for (const option of group.Options) {
-        allTextStyles[i] = {
-          names: [...original.names, option.Name],
-          tokens: [...original.tokens, ...splitTokens(option.Tokens)],
-        };
-        i++;
-      }
-    }
-  }
+// for (const textStyle of figmaTypographyExtension.FigmaTextStyles) {
+//   let allTextStyles: {
+//     names: string[];
+//     /** split and flattened */
+//     tokens: string[];
+//   }[] = [{ names: [textStyle.BaseName], tokens: splitTokens(textStyle.BaseTokens) }];
+//   for (const group of textStyle.Groups) {
+//     const originalTextStyles = allTextStyles;
+//     allTextStyles = new Array(originalTextStyles.length * group.Options.length);
+//     let i = 0;
+//     for (const original of originalTextStyles) {
+//       for (const option of group.Options) {
+//         allTextStyles[i] = {
+//           names: [...original.names, option.Name],
+//           tokens: [...original.tokens, ...splitTokens(option.Tokens)],
+//         };
+//         i++;
+//       }
+//     }
+//   }
 
-  // console.log(allTextStyles);
+//   // console.log(allTextStyles);
 
-  const len = allTextStyles.length;
-  const figmaTextStyles: any[] = new Array(len);
-  const lookup = new TypographyTokenLookup(allTokensSampleData);
-  for (let i = 0; i < len; i++) {
-    const textStyle = allTextStyles[i];
-    figmaTextStyles[i] = {
-      name: textStyle.names.join("/"),
-      props: lookup.query(textStyle.tokens),
-    };
-  }
+//   const len = allTextStyles.length;
+//   const figmaTextStyles: any[] = new Array(len);
+//   const lookup = new TypographyTokenLookup(allTokensSampleData);
+//   for (let i = 0; i < len; i++) {
+//     const textStyle = allTextStyles[i];
+//     figmaTextStyles[i] = {
+//       name: textStyle.names.join("/"),
+//       props: lookup.query(textStyle.tokens),
+//     };
+//   }
 
-  // console.log(figmaTextStyles)
-}
+//   // console.log(figmaTextStyles)
+// }
