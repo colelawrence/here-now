@@ -4,3 +4,6 @@
 [submodule "design-tools/Figma-variables-import-export"]
 	path = design-tools/Figma-variables-import-export
 	url = https://github.com/jake-figma/variables-import-export.git
+[submodule "vendor/design-tokens"]
+	path = vendor/design-tokens
+	url = https://github.com/colelawrence/design-tokens

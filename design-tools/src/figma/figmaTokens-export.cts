@@ -10,7 +10,7 @@ import {
   designSystemTypographySettings,
   hexFromArgb,
 } from "../designSystem.cjs";
-import { getAllColorsKebab } from "src/color/getAllColorsKebab.cjs";
+import { getAllColorsKebab } from "../color/getAllColorsKebab.cjs";
 
 const _example = {
   Typography: {

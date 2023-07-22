@@ -1,5 +1,5 @@
 import type { CSSRuleObject } from "tailwindcss/types/config.js";
-import { TypographySettings } from "./typography/systemTypography.cjs";
+import { TypographySettings } from "../typography/systemTypography.cjs";
 
 // eslint-disable-next-line
 const plugin = require("tailwindcss/plugin") as typeof import("tailwindcss/plugin");

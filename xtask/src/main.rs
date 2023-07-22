@@ -1,60 +1,35 @@
-use gumdrop::Options;
+use devx_cmd::{run, Cmd};
+use clap::{self, Parser};
 use std::{
     path::PathBuf,
     process::{self, Command, Output},
 };
 
-#[derive(Options)]
-enum XtaskCommand {
+#[derive(Debug, Parser)]
+enum Args {
     // Command names are generated from variant names.
     // By default, a CamelCase name will be converted into a lowercase,
     // hyphen-separated name; e.g. `FooBar` becomes `foo-bar`.
     //
     // Names can be explicitly specified using `#[options(name = "...")]`
-    #[options(help = "build web assets development")]
-    WebBuild(WebBuildOptions),
-    #[options(help = "run server for development")]
-    Dev(DevOptions),
-    #[options(help = "lint fixes")]
-    Fix(FixOptions),
-    #[options(help = "generate and show docs")]
-    Docs(DocsOptions),
-}
-
-// Define options for the program.
-#[derive(Options)]
-struct MyOptions {
-    // Options here can be accepted with any command (or none at all),
-    // but they must come before the command name.
-    #[options(help = "print help message")]
-    help: bool,
-    // #[options(help = "be verbose")]
-    // verbose: bool,
-
-    // The `command` option will delegate option parsing to the command type,
-    // starting at the first free argument.
-    #[options(command)]
-    command: Option<XtaskCommand>,
+    // #[clap(info = "build web assets development")]
+    WebBuild,
+    // #[clap(help = "run server for development")]
+    Dev,
+    // #[clap(help = "lint fixes")]
+    Fix,
+    // #[options(help = "generate and show docs")]
+    Docs,
 }
 
 fn main() {
-    let opts = MyOptions::parse_args_default_or_exit();
-    if opts.help {
-        println!("{}", opts.self_usage());
-        std::process::exit(0);
-    }
-    let command = if let Some(command) = opts.command {
-        command
-    } else {
-        eprintln!("Sub-command required\n\n{}", opts.self_usage());
-        std::process::exit(1);
-    };
+    let args = Args::parse();
 
-    match command {
-        XtaskCommand::WebBuild(opts) => web_build(opts),
-        XtaskCommand::Dev(opts) => dev(opts),
-        XtaskCommand::Fix(opts) => fix(opts),
-        XtaskCommand::Docs(opts) => docs(opts),
+    match args {
+        Args::WebBuild => web_build(),
+        Args::Dev => dev(),
+        Args::Fix => fix(),
+        Args::Docs => docs(),
     }
 }
 
@@ -67,26 +42,10 @@ fn get_project_root_dir() -> PathBuf {
         .unwrap_or_else(|| std::env::current_dir().unwrap())
 }
 
-#[derive(Options)]
-struct WebBuildOptions {}
-fn web_build(_: WebBuildOptions) {
+fn web_build() {
     let root_dir = get_project_root_dir();
-    let status = Command::new("cargo")
-        .args("run --bin hn-design-tools".split(' '))
-        .current_dir(&root_dir)
-        .spawn()
-        .expect("building design tool types")
-        .wait_with_output()
-        .expect("exiting");
 
-    expect_success(&status);
-
-    let watch_figma = Command::new("npm")
-        .args("run watch".split(' '))
-        .current_dir(&root_dir.join("design-tools/Here Now Figma"))
-        .spawn()
-        .expect("building design tool types");
-
+    eprintln!("Building TypeScript");
     let status = Command::new("npx")
         .args("tsc -p ./design-tools/tsconfig.json".split(' '))
         .current_dir(&root_dir)
@@ -97,20 +56,16 @@ fn web_build(_: WebBuildOptions) {
 
     expect_success(&status);
 
-    // hmm watch_figma
-
     Command::new("npx")
-        .args("tailwindcss -i ./config-html-server.css -o ./src/config_html_server/build/config-html-server.css --watch".split(' '))
-        .current_dir(root_dir.join("./hn-server"))
+        .args("tailwindcss -i hn-server/config-html-server.css -o hn-server/src/config_html_server/build/config-html-server.css --watch".split(' '))
+        .current_dir(root_dir)
         .spawn()
         .expect("generating")
         .wait_with_output()
         .expect("exiting");
 }
 
-#[derive(Options)]
-struct DevOptions {}
-fn dev(_: DevOptions) {
+fn dev() {
     let root_dir = get_project_root_dir();
     let server = Command::new("cargo")
         .env("RUST_LOG", "debug,!hyper")
@@ -122,7 +77,7 @@ fn dev(_: DevOptions) {
         .expect("running server with watcher");
 
     let web_assets = jod_thread::spawn(|| {
-        web_build(WebBuildOptions {});
+        web_build();
     });
     let server = jod_thread::spawn(|| {
         server.wait_with_output().expect("exiting");
@@ -132,9 +87,7 @@ fn dev(_: DevOptions) {
     server.join();
 }
 
-#[derive(Options)]
-struct FixOptions {}
-fn fix(_: FixOptions) {
+fn fix() {
     let root_dir = get_project_root_dir();
     let output = Command::new("cargo")
         .args("fix --allow-dirty --allow-staged".split(' '))
@@ -157,9 +110,7 @@ fn fix(_: FixOptions) {
     expect_success(&output);
 }
 
-#[derive(Options)]
-struct DocsOptions {}
-fn docs(_: DocsOptions) {
+fn docs() {
     let root_dir = get_project_root_dir();
     let output = Command::new("cargo")
         .args("+nightly doc --open".split(' '))

@@ -1,5 +1,6 @@
 [workspace]
-members = ["xtask", "hn-server", "hn-desktop", "hn-common", "hn-design-tools"]
+members = ["xtask", "hn-server", "hn-desktop", "hn-common"]
+resolver = "2"
 
 [workspace.package]
 version = "0.0.1"

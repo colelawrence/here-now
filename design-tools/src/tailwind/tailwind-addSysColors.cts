@@ -1,7 +1,7 @@
 /* eslint-disable */
 
 import { getColorCSSPropertiesForTailwind } from "./getColorCSSPropertiesForTailwind.cjs";
-import { SystemColorSettings } from "./systemColors.cjs";
+import { SystemColorSettings } from "../color/systemColors.cjs";
 
 const plugin =
   require("tailwindcss/plugin") as typeof import("tailwindcss/plugin");

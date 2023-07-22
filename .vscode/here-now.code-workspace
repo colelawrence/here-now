@@ -8,13 +8,15 @@
       "path": "../vendor/derive-codegen"
     },
     {
-      "path": "../hn-design-tools"
+      "name": "⊙ design-tools",
+      "path": "../design-tools"
     }
   ],
   "settings": {
     "files.exclude": {
-      "hn-design-tools/*": true
+      "design-tools": true
     },
+    "tailwindCSS.emmetCompletions": true,
     "tailwindCSS.includeLanguages": {
       "jinja-html": "html"
     },
@@ -22,6 +24,13 @@
       "jinja-html": "html"
     },
     "editor.linkedEditing": true,
+    "search.exclude": {
+      "**/*.gen.*": true,
+      "**/out/**": true,
+      "**/node_modules": true,
+      "**/bower_components": true,
+      "**/*.code-search": true
+    },
     "explorer.fileNesting.patterns": {
       "*.ts": "${capture}.spec.ts",
       "*.tsx": "${capture}.tsx, ${capture}.css, ${capture}@*.png",

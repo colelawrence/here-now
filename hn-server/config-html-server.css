@@ -1,3 +1,11 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+html, body {
+  @apply h-full;
+}
+
+body {
+  @apply text-ui-base bg-sys-surface text-sys-on-surface;
+}

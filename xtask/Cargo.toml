@@ -4,6 +4,12 @@ version = "0.0.0"
 edition = "2021"
 publish = false
 
+[features]
+default = []
+docs = ["clap/unstable-doc"]
+
 [dependencies]
-gumdrop = "0.8.1"
+clap = { version = "4.3.18", features = ["derive"] }
+devx-cmd = "0.5.0"
+inquire = "0.6.2"
 jod-thread = "0.1.2"

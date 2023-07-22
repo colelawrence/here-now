@@ -7,8 +7,9 @@ exports.designSystemTypographySettings = exports.designSystemColorSettings = exp
 const iBMPlexMono_1 = __importDefault(require("@capsizecss/metrics/iBMPlexMono"));
 const inter_1 = __importDefault(require("@capsizecss/metrics/inter"));
 const workSans_1 = __importDefault(require("@capsizecss/metrics/workSans"));
-const systemColors_cjs_1 = require("./systemColors.cjs");
-const systemTypography_cjs_1 = require("./systemTypography.cjs");
+const systemColors_cjs_1 = require("./color/systemColors.cjs");
+const systemTypography_cjs_1 = require("./typography/systemTypography.cjs");
+const ratioInterval_cjs_1 = require("./numbers/ratioInterval.cjs");
 // Colors
 exports.artpromptExtendedColors = [
     { ID: "blue", Seed: { Hex: "#1f108b" } },
@@ -24,7 +25,7 @@ exports.designSystemColorSettings = (0, systemColors_cjs_1.generateColorSettings
 });
 // Typography
 const baseCapSize = 12;
-const fontSizeRel = (rel) => ratioInterval(baseCapSize, rel);
+const fontSizeRel = (rel) => (0, ratioInterval_cjs_1.ratioInterval)(baseCapSize, rel);
 // 1.61803 (golden ratio) ^ 0.5
 const tightLineHeight = 1.272;
 const spaciousLineHeight = 1.61803;
@@ -79,13 +80,4 @@ exports.designSystemTypographySettings = (0, systemTypography_cjs_1.generateTypo
         { ID: "4xl", CapHeight: fontSizeRel(5) },
     ],
 });
-/**
- * @param {number} base example `16`
- * @param {number} rel example `-1`, `0`, `1`
- */
-function ratioInterval(base, rel) {
-    const GOLDEN = 1.618033988749894;
-    const GOLDEN_INTERVAL = Math.sqrt(GOLDEN);
-    return Math.round(base * Math.pow(GOLDEN_INTERVAL, rel));
-}
 //# sourceMappingURL=design-system-settings.cjs.map

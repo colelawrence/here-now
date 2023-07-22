@@ -1,6 +1,6 @@
 import { blueFromArgb, greenFromArgb, hexFromArgb, redFromArgb } from "@artprompt/material-color-utilities";
 import type { SystemColorSettings } from "../color/systemColors.cjs";
-import { getAllColorsKebab } from "src/color/getAllColorsKebab.cjs";
+import { getAllColorsKebab } from "../color/getAllColorsKebab.cjs";
 
 
 export function getColorCSSPropertiesForTailwind(colorSettings: SystemColorSettings, options: { dark: boolean; }) {

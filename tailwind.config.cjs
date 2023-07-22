@@ -1,15 +1,15 @@
 // @ts-check
-const contentFileFilter = __dirname + "/**/*.{rs,html.j2}";
 /* eslint-disable */
+const contentFileFilter = __dirname + "/hn-server/**/*.{rs,html.j2}";
 const {
   addSysColors,
-} = require("./design-tools/out/tailwind-addSysColors.cjs");
+} = require("./design-tools/out/tailwind/tailwind-addSysColors.cjs");
 const {
   extendWithTextSizes,
-} = require("./design-tools/out/tailwind-apTypography.cjs");
+} = require("./design-tools/out/tailwind/tailwind-apTypography.cjs");
 const {
   addItemStateVariants,
-} = require("./design-tools/out/tailwind-addItemStateVariants.cjs");
+} = require("./design-tools/out/tailwind/tailwind-addItemStateVariants.cjs");
 const {
   designSystemTypographySettings,
   designSystemColorSettings,

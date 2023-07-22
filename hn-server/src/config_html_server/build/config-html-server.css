@@ -16,7 +16,7 @@
   /* 2 */
   border-style: solid;
   /* 2 */
-  border-color: #e5e7eb;
+  border-color: currentColor;
   /* 2 */
 }
 
@@ -520,4 +520,297 @@ video {
   --tw-backdrop-opacity:  ;
   --tw-backdrop-saturate:  ;
   --tw-backdrop-sepia:  ;
+}
+
+.text-ui-xs {
+  letter-spacing: 0.0456em;
+  line-height: 12px;
+  font-size: 9.6250px;
+  font-family: apui, system-ui, sans-serif, color-emoji;
+}
+
+.text-ui-sm {
+  letter-spacing: 0.0267em;
+  line-height: 16px;
+  font-size: 12.3750px;
+  font-family: apui, system-ui, sans-serif, color-emoji;
+}
+
+.text-ui-base {
+  letter-spacing: 0.0107em;
+  line-height: 20px;
+  font-size: 16.5000px;
+  font-family: apui, system-ui, sans-serif, color-emoji;
+}
+
+.text-ui-lg {
+  letter-spacing: 0.0028em;
+  line-height: 28px;
+  font-size: 20.6250px;
+  font-family: apui, system-ui, sans-serif, color-emoji;
+}
+
+.text-ui-xl {
+  letter-spacing: -0.0019em;
+  line-height: 32px;
+  font-size: 26.1250px;
+  font-family: apui, system-ui, sans-serif, color-emoji;
+}
+
+.text-ui-2xl {
+  letter-spacing: -0.0042em;
+  line-height: 44px;
+  font-size: 34.3750px;
+  font-family: apui, system-ui, sans-serif, color-emoji;
+}
+
+.text-ui-3xl {
+  letter-spacing: -0.0048em;
+  line-height: 56px;
+  font-size: 42.6250px;
+  font-family: apui, system-ui, sans-serif, color-emoji;
+}
+
+.text-ui-4xl {
+  letter-spacing: -0.0050em;
+  line-height: 68px;
+  font-size: 55px;
+  font-family: apui, system-ui, sans-serif, color-emoji;
+}
+
+.text-content-xs {
+  letter-spacing: 0.0456em;
+  line-height: 16px;
+  font-size: 9.6250px;
+  font-family: apcontent, system-ui, sans-serif, color-emoji;
+}
+
+.text-content-sm {
+  letter-spacing: 0.0267em;
+  line-height: 20px;
+  font-size: 12.3750px;
+  font-family: apcontent, system-ui, sans-serif, color-emoji;
+}
+
+.text-content-base {
+  letter-spacing: 0.0107em;
+  line-height: 28px;
+  font-size: 16.5000px;
+  font-family: apcontent, system-ui, sans-serif, color-emoji;
+}
+
+.text-content-lg {
+  letter-spacing: 0.0028em;
+  line-height: 32px;
+  font-size: 20.6250px;
+  font-family: apcontent, system-ui, sans-serif, color-emoji;
+}
+
+.text-content-xl {
+  letter-spacing: -0.0019em;
+  line-height: 44px;
+  font-size: 26.1250px;
+  font-family: apcontent, system-ui, sans-serif, color-emoji;
+}
+
+.text-content-2xl {
+  letter-spacing: -0.0042em;
+  line-height: 56px;
+  font-size: 34.3750px;
+  font-family: apcontent, system-ui, sans-serif, color-emoji;
+}
+
+.text-content-3xl {
+  letter-spacing: -0.0048em;
+  line-height: 68px;
+  font-size: 42.6250px;
+  font-family: apcontent, system-ui, sans-serif, color-emoji;
+}
+
+.text-content-4xl {
+  letter-spacing: -0.0050em;
+  line-height: 88px;
+  font-size: 55px;
+  font-family: apcontent, system-ui, sans-serif, color-emoji;
+}
+
+.text-title-xs {
+  letter-spacing: 0.0839em;
+  line-height: 12px;
+  font-size: 10.6061px;
+  font-family: aptitle, apui, system-ui, color-emoji;
+}
+
+.text-title-sm {
+  letter-spacing: 0.0567em;
+  line-height: 16px;
+  font-size: 13.6364px;
+  font-family: aptitle, apui, system-ui, color-emoji;
+}
+
+.text-title-base {
+  letter-spacing: 0.0287em;
+  line-height: 24px;
+  font-size: 18.1818px;
+  font-family: aptitle, apui, system-ui, color-emoji;
+}
+
+.text-title-lg {
+  letter-spacing: 0.0109em;
+  line-height: 28px;
+  font-size: 22.7273px;
+  font-family: aptitle, apui, system-ui, color-emoji;
+}
+
+.text-title-xl {
+  letter-spacing: -0.0031em;
+  line-height: 36px;
+  font-size: 28.7879px;
+  font-family: aptitle, apui, system-ui, color-emoji;
+}
+
+.text-title-2xl {
+  letter-spacing: -0.0132em;
+  line-height: 48px;
+  font-size: 37.8788px;
+  font-family: aptitle, apui, system-ui, color-emoji;
+}
+
+.text-title-3xl {
+  letter-spacing: -0.0173em;
+  line-height: 60px;
+  font-size: 46.9697px;
+  font-family: aptitle, apui, system-ui, color-emoji;
+}
+
+.text-title-4xl {
+  letter-spacing: -0.0193em;
+  line-height: 76px;
+  font-size: 60.6061px;
+  font-family: aptitle, apui, system-ui, color-emoji;
+}
+
+.text-mono-xs {
+  letter-spacing: 0.0423em;
+  line-height: 12px;
+  font-size: 10.0287px;
+  font-family: apmono, monospace, color-emoji;
+}
+
+.text-mono-sm {
+  letter-spacing: 0.0240em;
+  line-height: 16px;
+  font-size: 12.8940px;
+  font-family: apmono, monospace, color-emoji;
+}
+
+.text-mono-base {
+  letter-spacing: 0.0090em;
+  line-height: 20px;
+  font-size: 17.1920px;
+  font-family: apmono, monospace, color-emoji;
+}
+
+.text-mono-lg {
+  letter-spacing: 0.0017em;
+  line-height: 28px;
+  font-size: 21.4900px;
+  font-family: apmono, monospace, color-emoji;
+}
+
+.text-mono-xl {
+  letter-spacing: -0.0025em;
+  line-height: 36px;
+  font-size: 27.2206px;
+  font-family: apmono, monospace, color-emoji;
+}
+
+.text-mono-2xl {
+  letter-spacing: -0.0044em;
+  line-height: 44px;
+  font-size: 35.8166px;
+  font-family: apmono, monospace, color-emoji;
+}
+
+.text-mono-3xl {
+  letter-spacing: -0.0049em;
+  line-height: 56px;
+  font-size: 44.4126px;
+  font-family: apmono, monospace, color-emoji;
+}
+
+.text-mono-4xl {
+  letter-spacing: -0.0050em;
+  line-height: 72px;
+  font-size: 57.3066px;
+  font-family: apmono, monospace, color-emoji;
+}
+
+.static {
+  position: static;
+}
+
+.relative {
+  position: relative;
+}
+
+.block {
+  display: block;
+}
+
+.table {
+  display: table;
+}
+
+.contents {
+  display: contents;
+}
+
+.hidden {
+  display: none;
+}
+
+.h-full {
+  height: 100%;
+}
+
+.bg-sys-primary {
+  --tw-bg-opacity: 1;
+  background-color: rgb(var(--sys-color-primary, 0 102 132) / var(--tw-bg-opacity));
+}
+
+.p-16 {
+  padding: 4rem;
+}
+
+.pr-2 {
+  padding-right: 0.5rem;
+}
+
+.font-bold {
+  font-weight: 700;
+}
+
+.font-semibold {
+  font-weight: 600;
+}
+
+.text-sys-on-primary {
+  --tw-text-opacity: 1;
+  color: rgb(var(--sys-color-on-primary, 255 255 255) / var(--tw-text-opacity));
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  letter-spacing: 0.0107em;
+  line-height: 20px;
+  font-size: 16.5000px;
+  font-family: apui, system-ui, sans-serif, color-emoji;
+  --tw-bg-opacity: 1;
+  background-color: rgb(var(--sys-color-surface, 251 252 254) / var(--tw-bg-opacity));
+  --tw-text-opacity: 1;
+  color: rgb(var(--sys-color-on-surface, 25 28 30) / var(--tw-text-opacity));
 }

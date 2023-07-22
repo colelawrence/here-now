@@ -49,6 +49,8 @@ export function generateTypographySettings(config: TypographyConfig): Typography
   };
 
   for (const fam of config.families) {
+    if (!fam.Metrics) throw new TypeError(`Metrics is required, but not found for '${fam.ID}'`)
+
     values.FontFamilies.push({
       ID: fam.ID,
       HTMLFontFamilyName: fam.HTMLFontFamilyName,
