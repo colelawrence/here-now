@@ -1,111 +1,181 @@
-use std::str::FromStr;
-
 use serde::de::DeserializeOwned;
-use toml_edit::TableLike;
 
-use crate::{config_html_server::discord, prelude::*};
+use crate::prelude::*;
+use std::{path::PathBuf, str::FromStr};
 
-#[derive(Deserialize, Debug)]
-pub struct ConfigContent {
-    pub app: Option<AppConfiguration>,
-    pub discord: Option<discord::DiscordConfiguration>,
-}
-
-#[derive(Clone, Serialize, Deserialize, Debug)]
-pub struct AppConfiguration {
-    /// e.g. `"0.0.0.0:8000"`
-    pub public_bind_address: Option<String>,
-    // /// Where should we expect all connecting services to come from?
-    // /// e.g. http://localhost:8001
-    // pub public_origins: Vec<String>,
-    /// e.g. `"0.0.0.0:8001"`
-    pub config_server_bind_address: Option<String>,
-    pub dev_mode: Option<bool>,
-}
-
-impl Configurable for AppConfiguration {
-    type Saving = AppConfiguration;
-
-    fn template() -> HTMXPartial {
-        htmx_partial!("config/config-app.configurable.html.j2")
-    }
-
-    fn section_name() -> Cow<'static, str> {
-        "app".into()
-    }
-
-    fn view(section: &Option<Box<dyn toml_edit::TableLike>>) -> Result<Self> {
-        Err(anyhow::anyhow!("unimplemented view"))
-    }
-
-    fn save(saving: &Self::Saving, section: &mut Box<dyn toml_edit::TableLike>) -> Result<()> {
-        Err(anyhow::anyhow!("unimplemented save"))
-    }
-}
-
+/// The root settings container for all configurable things in the app.
 #[derive(Clone, Debug)]
-pub struct ConfigFile {
-    // TODO: I'd like each kind of configuration to be managed in a separate file.
-    pub config_file_path: std::path::PathBuf,
-    // pub configurables: BTreeMap<String, Box<dyn Configurable>>,
-    /// Initially loaded configuration
-    pub initial_app: Arc<AppConfiguration>,
+pub(crate) struct Settings {
+    config_files_directory: std::path::PathBuf,
+    configurables: Vec<Arc<Box<dyn Configurable>>>,
 }
 
-pub(crate) trait Configurable: Sized + DeserializeOwned + Serialize + Debug + Clone {
-    /// Used for registering the post endpoint
-    type Saving: DeserializeOwned + Send + Debug;
+impl Settings {
+    pub fn new(config_files_directory: PathBuf) -> Self {
+        Settings {
+            config_files_directory,
+            configurables: Vec::new(),
+        }
+    }
+
+    pub fn with<C: Configurable + 'static>(mut self, configurable: C) -> Self {
+        self.configurables.push(Arc::new(Box::new(configurable)));
+        self
+    }
+
+    #[deprecated = "use .entries()"]
+    pub fn configurables(&self) -> impl Iterator<Item = &Arc<Box<dyn Configurable>>> {
+        self.configurables.iter()
+    }
+    pub fn entries<'a>(&'a self) -> impl Iterator<Item = SettingEntry<'a, 'a>> {
+        self.configurables.iter().map(|c| SettingEntry {
+            settings: self,
+            section_name: c.section_name(),
+            configurable: c.as_ref().as_ref(),
+        })
+    }
+}
+
+pub mod config_directory_setup;
+
+pub(crate) trait Configurable: Send + Sync + Debug {
     // TODO: some way to embed into binaries automatically?
-    fn template() -> HTMXPartial;
+    fn template(&self) -> HTMXPartial;
+    /// Should this be separated out?
     /// The section in the configuration that the values get placed into
-    fn section_name() -> Cow<'static, str>;
-    // maybe a separate type for viewing?
-    fn view(section: &Option<Box<dyn toml_edit::TableLike>>) -> Result<Self>;
-    fn save(saving: &Self::Saving, section: &mut Box<dyn toml_edit::TableLike>) -> Result<()>;
+    fn section_name(&self) -> Cow<'static, str>;
+    /// variables passed into the template
+    fn vars(&self, section: &Box<dyn toml_edit::TableLike>) -> Result<serde_json::Value>;
+    /// Returned JSON will be passed back into the "view" as `ok` and into "edit" as `err`.
+    fn save(
+        &self,
+        fields: &serde_json::Value,
+        section: &mut dyn toml_edit::TableLike,
+    ) -> Result<JSON, JSON>;
 }
 
-impl ConfigFile {
-    pub async fn get_section_impulsively(
-        &self,
-        _section_name: &str,
-    ) -> Result<Option<Box<dyn toml_edit::TableLike>>> {
-        let file_path = &self.config_file_path;
-        let file = tokio::fs::read_to_string(file_path)
-            .await
-            .with_context(|| format!("reading config file from {file_path:?}"))?;
+pub struct SettingEntry<'a, 'b> {
+    settings: &'a Settings,
+    section_name: Cow<'b, str>,
+    pub(crate) configurable: &'a dyn Configurable,
+}
+
+impl<'a, 'b> SettingEntry<'a, 'b> {
+    /// Private
+    async fn read_toml_and_file(&self) -> Result<Option<(toml_edit::Document, String)>> {
+        let mut file_path = self
+            .settings
+            .config_files_directory
+            .join(self.section_name.as_ref());
+        file_path.set_extension("toml");
+        let file_path = &file_path;
+        let file_res = tokio::fs::read_to_string(file_path).await;
+        let file = match file_res {
+            Ok(file) => file,
+            Err(err) => match err.kind() {
+                std::io::ErrorKind::NotFound => return Ok(None),
+                _ => {
+                    return Err(err)
+                        .with_context(|| format!("reading config file from {file_path:?}"))
+                }
+            },
+        };
+
         let doc = toml_edit::Document::from_str(&file)
             .with_context(|| format!("parsing toml at {file_path:?}"))?;
 
         // TODO: break the configurations out into sections
         // TODO: caching & reloading?
-        Ok(Some(Box::new(doc.as_table().clone())))
+        Ok(Some((doc, file)))
     }
-    pub async fn update_section_impulsively(
-        &self,
-        _section_name: &str,
-        f: impl FnOnce(Box<&mut dyn toml_edit::TableLike>) -> Result<()>,
-    ) -> Result<bool> {
-        let file_path = &self.config_file_path;
-        let file = tokio::fs::read_to_string(file_path)
+
+    async fn write_file(&self, content: &str) -> Result<()> {
+        let mut file_path = self
+            .settings
+            .config_files_directory
+            .join(self.section_name.as_ref());
+        file_path.set_extension("toml");
+        let file_path = &file_path;
+        tokio::fs::write(file_path, content)
             .await
-            .with_context(|| format!("reading config file from {file_path:?}"))?;
-        let mut doc = toml_edit::Document::from_str(&file)
-            .with_context(|| format!("parsing toml at {file_path:?}"))?;
+            .with_context(|| format!("writing to {file_path:?}"))?;
+        // TODO: break the configurations out into sections
+        // TODO: caching & reloading?
+        Ok(())
+    }
 
-        f(Box::new(doc.as_table_mut()))?;
+    pub async fn get_toml_and_parse<T: DeserializeOwned>(&self) -> Result<Option<T>> {
+        let (document, _str) = match self.read_toml_and_file().await? {
+            Some(a) => a,
+            None => return Ok(None),
+        };
+        Ok(Some(
+            toml_edit::de::from_document::<T>(document).with_context(|| "parsing document")?,
+        ))
+    }
 
-        let updated_content = doc.to_string();
-        if file != updated_content {
+    pub async fn get_toml_or_empty(&self) -> Result<Box<dyn toml_edit::TableLike>> {
+        Ok(self
+            .read_toml_and_file()
+            .await?
+            .map(|a| a.0.as_table().to_owned())
+            .map(|a| Box::new(a) as Box<dyn toml_edit::TableLike>)
+            .unwrap_or_else(|| Box::new(toml_edit::Table::new()) as Box<dyn toml_edit::TableLike>))
+    }
+
+    pub async fn get_view_json(&self) -> Result<JSON> {
+        let toml = self.get_toml_or_empty().await?;
+        Ok(self.configurable.vars(&toml)?)
+    }
+
+    pub async fn save_with(&self, json: &JSON) -> Result<Result<(JSON, bool), JSON>> {
+        self.update_toml_with(|table_like| self.configurable.save(json, table_like))
+            .await
+    }
+
+    /// E would usually be a JSON passed up
+    pub async fn update_toml_with<T, E>(
+        &self,
+        f: impl FnOnce(&mut dyn toml_edit::TableLike) -> Result<T, E>,
+    ) -> Result<Result<(T, bool), E>> {
+        let (mut doc, file) = self
+            .read_toml_and_file()
+            .await
+            .with_context(|| format!("reading toml for updating"))?
+            .unwrap_or_default();
+
+        let original = doc.clone();
+        let ok = match f(doc.as_table_mut()) {
+            Err(inner) => return Ok(Err(inner)),
+            Ok(ok) => ok,
+        };
+
+        let updated_doc_str = doc.to_string();
+        if file != updated_doc_str {
             // TODO: break the configurations out into sections
             // TODO: caching & reloading?
-            tokio::fs::write(file_path, updated_content)
+            self.write_file(&updated_doc_str)
                 .await
-                .with_context(|| format!("writing updated config file to {file_path:?}"))?;
-            return Ok(true);
+                .with_context(|| format!("writing updated settings"))?;
+            return Ok(Ok((ok, true)));
         }
 
-        Ok(false)
+        Ok(Ok((ok, false)))
     }
+}
+
+impl Settings {
+    pub fn get_entry<'a, 'b: 'a>(&'a self, section_name: &'b str) -> Option<SettingEntry> {
+        self.configurables
+            .iter()
+            .find(|a| &a.section_name() == &section_name)
+            .map(|configurable| SettingEntry {
+                configurable: configurable.as_ref().as_ref(),
+                section_name: Cow::Borrowed(section_name),
+                settings: self,
+            })
+    }
+
     // pub fn get_value_str(&self, name: &str) -> Result<Option<String>> {
     //     Ok(match name {
     //         "public_bind_address" => self.content.public_bind_address.clone(),
@@ -164,24 +234,4 @@ impl ConfigFile {
     //         }
     //     })
     // }
-}
-
-/// Progress 0/10: Ewww... I'm not sure how configurables versus initial server launch should interact.
-/// We could make it so starting a server anywhere opens a magical tunnel through something like Cloudflare
-/// for the initial configuration server and troubleshooting.
-pub async fn load_config_from_path(path: impl Into<std::path::PathBuf>) -> Result<ConfigFile> {
-    let path_buf: std::path::PathBuf = path.into();
-    let path = &path_buf
-        .canonicalize()
-        .with_context(|| format!("finding configuration file"))?;
-    let content = tokio::fs::read(path)
-        .await
-        .with_context(|| format!("opening config file at {path:?}"))?;
-    // just double check that the configurations are well formed
-    let app_conf: AppConfiguration = toml_edit::de::from_slice(&content)
-        .with_context(|| format!("loading config from file at {path:?}"))?;
-    return Ok(ConfigFile {
-        config_file_path: path_buf,
-        initial_app: Arc::new(app_conf),
-    });
 }

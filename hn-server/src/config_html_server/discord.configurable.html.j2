@@ -1,12 +1,43 @@
 {% block edit %}
-<label for="discord-client_id">Client ID</label>
-<input id="discord-client_id" type="text" name="client_id" value="{{client_id}}">
-<br>
-<label for="discord-api_key">API Key</label>
-<input id="discord-api_key" type="text" name="api_key" value="{{api_key}}" type="password">
+<div class="flex flex-col gap-2">
+  <label class="flex justify-between">
+    <span>
+      Client ID
+    </span>
+    <input type="text" name="client_id" value="{{client_id}}">
+  </label>
+  <label class="flex justify-between">
+    <span>
+      API Key
+    </span>
+    <input type="text" name="api_key" value="{{api_key}}">
+  </label>
+  {% if err %}
+  <div class="bg-sys-error-container text-sys-on-error-container p-2 rounded-sm">
+    {{ err.message }}
+  </div>
+  {% endif %}
+</div>
 {% endblock %}
 
 {% block view %}
-Client ID: {{client_id}}
-API Key: {{api_key}}
+<div class="flex flex-col gap-2">
+  <label class="flex justify-between">
+    <span>
+      Client ID
+    </span>
+    <pre>{{client_id}}</pre>
+  </label>
+  <label class="flex justify-between">
+    <span>
+      API Key
+    </span>
+    <pre>{{api_key}}</pre>
+  </label>
+  {% if updated %}
+  <div class="bg-sys-primary-container text-sys-on-primary-container p-2 rounded-sm">
+    Updated!
+  </div>
+  {% endif %}
+</div>
 {% endblock %}

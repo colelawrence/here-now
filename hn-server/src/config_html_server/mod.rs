@@ -3,16 +3,16 @@ use std::{net::SocketAddr, sync::Arc};
 
 use axum::routing::post;
 use axum::{extract::State, response::Html, routing::get, Router};
-use futures::Future;
 use http::StatusCode;
 use minijinja::context;
 use tower_http::services::{ServeDir, ServeFile};
 
-use crate::config::{AppConfiguration, ConfigContent, ConfigFile, Configurable};
-use crate::config_html_server::discord::DiscordConfiguration;
+use crate::config::{Configurable, Settings};
 use crate::{config, prelude::*};
 
-use self::templates::Templates;
+pub(crate) mod app;
+pub(crate) mod discord;
+mod templates;
 
 trait OrInternalError<T> {
     fn err_500(self) -> Result<T, (StatusCode, String)>;
@@ -35,176 +35,173 @@ impl<T> OrInternalError<T> for Result<T> {
     }
 }
 
-// maud example
-// use maud::{html, Markup};
-// async fn hello_world2(
-//     templates: templates::Templates,
-//     config: State<config::ConfigContent>,
-// ) -> Markup {
-//     // templates.home(&config);
-//     html! {
-//         head {
-//             style { r#"html, body { font-family: system-ui, sans-serif; } body { margin: 2rem auto; max-width: 500px; }"# }
-//         }
-//         body {
-//             h1 { "Welcome to your new installation of the Here Now server" }
-//             p { "You're now looking at the self-configuration page, where we'll set up your service."}
-//         }
-//     }
-// }
-
-pub(crate) mod discord;
-mod templates;
-
 type Response = Result<Html<String>, (StatusCode, String)>;
 
 async fn hello_world(
     templates: templates::Templates,
-    config: State<Arc<config::ConfigFile>>,
+    config: State<Arc<config::Settings>>,
 ) -> Response {
-    let config_server_bind_address = &config.initial_app.config_server_bind_address;
+    // let config_server_bind_address = "home(config_server_bind_address) value"; // &initial_app.config_server_bind_address;
+    let mut confs = Vec::<minijinja::value::Value>::new();
+    for entry in config.entries() {
+        let section_name = entry.configurable.section_name();
+        let view_html = render_view_html(&templates, &entry, None).await?.0;
+
+        confs.push(context! {
+            section_name,
+            view_html,
+        });
+    }
 
     templates
-        .render("home.html.j2", context!(config_server_bind_address))
+        .render("home.html.j2", context!(confs))
         .err_500()
         .map(Html::from)
 }
 
-#[derive(Deserialize)]
-struct GetEditPartialParams {
-    name: String,
-}
+// pub(crate) struct ConfSaveResult {
+//     pub saved: Option<bool>,
+//     pub should_save: bool,
+//     /// Passed back into the template
+//     pub vars: JSON,
+// }
 
-fn setup<C: Configurable>(
-    router: Router<Arc<ConfigFile>>,
-    templates: &Templates,
-) -> Router<Arc<ConfigFile>> {
-    let section_name = C::section_name();
-    let template = C::template();
-    async fn get_handler(
-        templates: templates::Templates,
-        config: State<Arc<config::ConfigFile>>,
-    ) -> Response {
-        // template.render_block(templates, block_name, value);
-        templates
-            .render("home.html.j2", context!(value => "wwww"))
-            .err_500()
-            .map(Html::from)
-        // Ok(Html::from("Hello!".to_string()))
+async fn render_view_html(
+    templates: &templates::Templates,
+    entry: &config::SettingEntry<'_, '_>,
+    ok_updated: Option<(JSON, bool)>,
+) -> Response {
+    let section_name = entry.configurable.section_name();
+    let mut view_json = entry.get_view_json().await.err_500()?;
+
+    
+    if let Some((ok_data, updated)) = ok_updated {
+        let obj = view_json.as_object_mut().expect("object");
+        obj.insert("ok".to_string(), ok_data);
+        obj.insert("updated".to_string(), serde_json::Value::Bool(updated));
     }
 
+    dbg!(&view_json);
+
+    let configurable_html = templates
+        .render_block(&entry.configurable.template(), "view", view_json)
+        .with_context(|| format!("rendering view block for section {section_name:?} data"))
+        .err_500()?;
+
+    Ok(Html(
+        templates
+            .render(
+                "setting-section-view.html.j2",
+                context! {
+                    section_name,
+                    configurable_html,
+                },
+            )
+            .err_500()?,
+    ))
+}
+
+async fn render_edit_html(
+    templates: &templates::Templates,
+    entry: &config::SettingEntry<'_, '_>,
+    err_data: Option<JSON>,
+) -> Response {
+    let section_name = entry.configurable.section_name();
+    let mut view_json = entry.get_view_json().await.err_500()?;
+    if let Some(err) = err_data {
+        view_json.as_object_mut().expect("view json must be an object").insert("err".to_string(), err);
+    }
+
+    let configurable_html = templates
+        .render_block(&entry.configurable.template(), "edit", view_json)
+        .with_context(|| format!("rendering view block for section {section_name:?} data"))
+        .err_500()?;
+
+    Ok(Html(
+        templates
+            .render(
+                "setting-section-edit.html.j2",
+                context! {
+                    section_name,
+                    configurable_html,
+                },
+            )
+            .err_500()?,
+    ))
+}
+
+fn setup(router: Router<Arc<Settings>>, c: Arc<Box<dyn Configurable>>) -> Router<Arc<Settings>> {
+    let section_name = c.section_name();
+    let edit_path = &format!("/;edit-{section_name}");
+    let view_path = &format!("/;view-{section_name}");
+
     router
+        // GET edit form
         .route(
-            &format!("/;conf-{section_name}"),
+            edit_path,
             get({
+                let c = c.clone();
                 let section_name = section_name.clone();
-                move |templates: templates::Templates, config: State<Arc<config::ConfigFile>>| async move {
-                    let section = config
-                        .get_section_impulsively(&section_name)
-                        .await
-                        .err_500()?;
-                    let context = C::view(&section)
-                        .with_context(|| format!("creating view for section {section_name:?} data"))
-                        .err_500()?;
-
-                    let html = templates
-                        .render_block(&template, "edit", context)
-                        .with_context(|| {
-                            format!("rendering view block for section {section_name:?} data")
-                        })
-                        .err_500()?;
-
-                    let resp: Response = Ok(Html(
-                        format!("<form action=\";conf-{section_name}\" method=\"post\" hx-swap=\"outerHTML\">{html}<button>Submit</button></form>")
-                    ));
+                move |templates: templates::Templates, config: State<Arc<config::Settings>>| async move {
+                    let entry = config.get_entry(&section_name)
+                        .with_context(|| format!("section {section_name:?} not found"))
+                        .err_400()?;
+                    let resp: Response = render_edit_html(&templates, &entry, None).await;
                     resp
                 }
             }),
         )
+        // POST save values
         .route(
-            &format!("/;conf-{section_name}"),
+            edit_path,
             post({
                 let section_name = section_name.clone();
                 // TODO: make this configurable based on C
-                move |templates: templates::Templates, config: State<Arc<config::ConfigFile>>, params: axum::Form<serde_json::Value>| async move {
-                    let value = serde_json::from_value::<C::Saving>(params.0).with_context(|| format!("parsing update for {section_name} update")).err_400()?;
-                    tracing::debug!(?value, "submitting conf for update");
-                    let section = config
-                        .get_section_impulsively(&section_name)
-                        .await
-                        .err_500()?;
-                    let context = C::view(&section)
-                        .with_context(|| format!("creating view for section {section_name:?} data"))
-                        .err_500()?;
+                move |templates: templates::Templates, config: State<Arc<config::Settings>>, params: axum::Form<serde_json::Value>| async move {
+                    // let value = params.0; // .with_context(|| format!("parsing update for {section_name} update")).err_400()?;
+                    // tracing::debug!(?value, "submitting conf for update");
+                    let entry = config.get_entry(&section_name)
+                        .with_context(|| format!("section {section_name:?} not found"))
+                        .err_400()?;
+                    let fn_result = entry.save_with(&params.0).await.with_context(|| format!("proper error handling not supported for configurables")).err_500()?;
 
-                    let html = templates
-                        .render_block(&template, "view", context)
-                        .with_context(|| {
-                            format!("rendering view block for section {section_name:?} data")
-                        })
-                        .err_500()?;
-
-                    let resp: Response = Ok(Html(html));
+                    let resp: Response = match fn_result {
+                        Ok(ok_updated) => render_view_html(&templates, &entry, Some(ok_updated)).await,
+                        Err(err) => render_edit_html(&templates, &entry, Some(err)).await,
+                    };
+                    
+                    resp
+                }
+            }),
+        )
+        // GET updated values
+        .route(
+            view_path,
+            get({
+                let section_name = section_name.clone();
+                // TODO: make this configurable based on C
+                move |templates: templates::Templates, config: State<Arc<config::Settings>>, _params: axum::Form<serde_json::Value>| async move {
+                    let entry = config.get_entry(&section_name)
+                        .with_context(|| format!("section {section_name:?} not found"))
+                        .err_400()?;
+                    let resp: Response = render_view_html(&templates, &entry, None).await;
                     resp
                 }
             }),
         )
 }
 
-// async fn get_edit_partial(
-//     templates: templates::Templates,
-//     config: State<Arc<config::AppConfiguration>>,
-//     params: axum::Form<GetEditPartialParams>,
-// ) -> Response {
+pub(crate) async fn start(config: Arc<config::Settings>) -> Result<()> {
+    // TODO: Ask to set-up new configurations if not present?
+    let initial_app = &config
+        .get_entry("app")
+        .expect("required app settings")
+        .get_toml_and_parse::<app::AppConfiguration>()
+        .await
+        .expect("found app settings")
+        .unwrap_or_default();
 
-//     // let value = config
-//     //     .get_value_str(&params.name)
-//     //     .err_400()?
-//     //     .unwrap_or_default();
-
-//     templates
-//         .render(
-//             "edit-toml.html.j2",
-//             context!(
-//                 name => params.name,
-//                 value => value,
-//             ),
-//         )
-//         .err_500()
-//         .map(Html::from)
-// }
-
-// #[derive(Deserialize)]
-// struct SaveEditPartialParams {
-//     name: String,
-//     value: String,
-// }
-
-// async fn save_edit_partial(
-//     templates: templates::Templates,
-//     config: State<Arc<config::AppConfiguration>>,
-//     params: axum::Form<SaveEditPartialParams>,
-// ) -> Response {
-//     config
-//         .set_value_str(&params.name, &params.value)
-//         .await
-//         .err_500()?;
-
-//     templates
-//         .render(
-//             "edit-button-toml.html.j2",
-//             context!(
-//                 name => params.name,
-//                 value => params.value,
-//             ),
-//         )
-//         .err_500()
-//         .map(Html::from)
-// }
-
-pub async fn start(config: Arc<crate::config::ConfigFile>) -> Result<()> {
-    let config_server_bind_address = config
-        .initial_app
+    let config_server_bind_address = initial_app
         .config_server_bind_address
         .clone()
         .unwrap_or_else(|| "0.0.0.0:3001".to_string());
@@ -221,13 +218,14 @@ pub async fn start(config: Arc<crate::config::ConfigFile>) -> Result<()> {
     };
 
     // build our application with a single route
-    let app = Router::new().route("/", get(hello_world));
-    let templates =
-        templates::Templates::new(templates_dir, config.initial_app.dev_mode.unwrap_or(true));
+    let mut app = Router::new().route("/", get(hello_world));
+    let templates = templates::Templates::new(templates_dir, initial_app.dev_mode.unwrap_or(true));
 
-    let app = setup::<DiscordConfiguration>(app, &templates)
-        // .route("/;edit", get(get_edit_partial))
-        // .route("/;save", post(save_edit_partial))
+    for conf in config.configurables().cloned() {
+        app = setup(app, conf);
+    }
+
+    let app = app
         .fallback_service(
             ServeDir::new(templates_dir.join("./build"))
                 .not_found_service(ServeFile::new(templates_dir.join("./not-found.html"))),

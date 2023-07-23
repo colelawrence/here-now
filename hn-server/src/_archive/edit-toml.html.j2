@@ -1,4 +1,4 @@
-<form hx-post=";save-toml" hx-swap="outerHTML">
+<form hx-post=";save-toml" hx-swap="outerHTML" hx-target="closest [data-section]">
   <input name="name" value="{{name}}" hidden>
   <input name="value" value="{{value}}" class="bg-blue-500">
   <button type="submit">Save</button>

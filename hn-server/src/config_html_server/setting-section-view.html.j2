@@ -1,0 +1,11 @@
+<div class="px-8 py-4 flex flex-col" data-section="{{ section_name }}">
+  <div class="flex gap-2 flex-row-reverse">
+    <button hx-get=";edit-{{section_name}}" hx-swap="outerHTML" hx-target="closest [data-section]">
+      Edit
+    </button>
+  </div>
+  <div class="p-4">
+    {{ configurable_html }}
+  </div>
+  <pre class="text-mono-xs text-sys-on-surface-variant opacity-30">setting-section-view.html.j2</pre>
+</div>

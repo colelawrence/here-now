@@ -1,0 +1,15 @@
+<form hx-post=";edit-{{section_name}}" hx-swap="outerHTML" class="px-8 py-4 flex flex-col"
+  data-section="{{ section_name }}">
+  <div class="flex gap-2 flex-row-reverse">
+    <button type="submit">
+      Submit
+    </button>
+    <button hx-get=";view-{{section_name}}" hx-swap="outerHTML" hx-target="closest [data-section]">
+      Cancel
+    </button>
+  </div>
+  <div class="p-4">
+    {{ configurable_html }}
+  </div>
+  <pre class="text-mono-xs text-sys-on-surface-variant opacity-30">setting-section-edit.html.j2</pre>
+</form>

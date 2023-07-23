@@ -5,6 +5,8 @@ use anyhow::Context;
 use tokio;
 use tracing_subscriber::prelude::*;
 
+use crate::config::Settings;
+
 // mod schema;
 // mod webserver;
 
@@ -22,6 +24,9 @@ mod prelude {
     pub(crate) use anyhow::{Context, Error, Result};
     pub(crate) use serde::{Deserialize, Serialize};
 
+    pub type JSON = serde_json::Value;
+    pub type Cowstr = Cow<'static, str>;
+
     // Customizing the context behavior for Here Now app specific needs?
     // pub(crate) trait HereNowErrorContextualizer {
     //     fn with_hn_context(self, f: impl FnOnce() -> String) -> ;
@@ -29,7 +34,7 @@ mod prelude {
     // impl <C: anyhow::Context> HereNowErrorContextualizer for C {
     //     fn with_hn_context(self, f: impl FnOnce() -> String) -> Result<Ok>;
     // }
-    
+
     macro_rules! htmx_partial {
         ($name: expr) => {
             HTMXPartial {
@@ -100,19 +105,24 @@ async fn main() {
         .skip(1)
         .next()
         .expect("reading first argument for configuration file location");
-    let config_file = config::load_config_from_path(&config_file_path)
-        .await
-        .with_context(|| {
-            format!(
-                "loading config file at {config_file_path:?} relative to directory {process_dir:?}"
-            )
-        })
-        .expect("loading configuration");
+    // let mut config_file = config::load_config_from_path(&config_file_path)
+    //     .await
+    //     .with_context(|| {
+    //         format!(
+    //             "loading config file at {config_file_path:?} relative to directory {process_dir:?}"
+    //         )
+    //     })
+    //     .expect("loading configuration");
 
-    tracing::info!("loaded {config_file:#?}");
+    let config_dir = crate::config::config_directory_setup::init_config_directory();
+    let settings = Settings::new(config_dir)
+        .with(config_html_server::app::AppSettings)
+        .with(config_html_server::discord::DiscordSettings);
+
+    tracing::info!("loaded {settings:#?}");
 
     tokio::select! {
-        res = config_html_server::start(Arc::new(config_file)) => {
+        res = config_html_server::start(Arc::new(settings)) => {
             println!("Exited private server: {res:#?}");
         }
     }

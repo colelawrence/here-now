@@ -1,14 +1,15 @@
 {
   "folders": [
     {
-      "name": "here-now",
+      "name": "🌳 here-now",
       "path": ".."
     },
     {
+      "name": "🦀 derive-codegen",
       "path": "../vendor/derive-codegen"
     },
     {
-      "name": "⊙ design-tools",
+      "name": "🎨 design-tools",
       "path": "../design-tools"
     }
   ],

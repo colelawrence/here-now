@@ -2,10 +2,31 @@
 @tailwind components;
 @tailwind utilities;
 
-html, body {
+html,
+body {
   @apply h-full;
 }
 
 body {
   @apply text-ui-base bg-sys-surface text-sys-on-surface;
+}
+
+button {
+  @apply bg-sys-surface-variant border-sys-on-surface text-sys-on-surface;
+  @apply px-2 py-1;
+}
+button:hover {
+  @apply bg-sys-inverse-surface border-sys-inverse-on-surface text-sys-inverse-on-surface;
+  @apply px-2 py-1;
+}
+
+input, textarea {
+  border-bottom-width: 1px;
+  border-radius: 3px;
+  @apply p-1;
+  @apply border-ext-yellow-container;
+}
+input:focus, textarea:focus {
+  @apply text-ext-on-yellow-container;
+  @apply border-ext-on-yellow-container;
 }

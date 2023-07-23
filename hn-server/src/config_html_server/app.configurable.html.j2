@@ -1,0 +1,32 @@
+{% block edit %}
+<div class="flex flex-col">
+  <label class="flex">
+    <span>
+      Client ID
+    </span>
+    <input type="text" value="{{client_id}}" name="client_id">
+  </label>
+  <label class="flex">
+    <span>
+      API Key
+    </span>
+    <input type="text" value="{{api_key}}" name="api_key">
+  </label>
+  <p>API Key is the value over there</p>
+</div>
+{% if err %}
+{{ err.message }}
+{% endif %}
+
+{% endblock %}
+
+{% block view %}
+Client ID: <code>{{client_id}}</code>
+<br>
+API Key: <code>{{api_key}}</code>
+{% if updated %}
+<div class="bg-sys-primary-container text-sys-on-primary-container p-2 rounded-sm">
+  Updated!
+</div>
+{% endif %}
+{% endblock %}

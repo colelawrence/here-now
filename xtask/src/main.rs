@@ -1,4 +1,3 @@
-use devx_cmd::{run, Cmd};
 use clap::{self, Parser};
 use std::{
     path::PathBuf,

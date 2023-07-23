@@ -28,3 +28,9 @@ http = "0.2.9"
 tower-layer = "0.3.2"
 tracing-subscriber = { version = "0.3.17", features = ["env-filter"] }
 serde_json.workspace = true
+directories = "5.0.1"
+flashmap = "0.1.0"
+once_cell = "1.18.0"
+inquirer = "0.1.0"
+inquire = "0.6.2"
+clap = { version = "4.3.19", features = ["derive"] }
