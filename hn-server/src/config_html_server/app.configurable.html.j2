@@ -1,32 +1,46 @@
+{% from "macros.html.j2" import flashes, form_input, form_check_box %}
+{% macro conf(disabled) %}
+{{ form_input(
+disabled=disabled,
+name="public_bind_address",
+label="Public Bind Address",
+value=public_bind_address,
+help="This is where the server will bind to when it starts, like <code>127.0.0.1:8000</code>.",
+)
+}}
+{{ form_input(
+disabled=disabled,
+name="public_host_base_url",
+label="Public Host Base URL",
+value=public_host_base_url,
+help="This is where the server will be accessible for logging in, client calls, and where webhooks from Discord and Slack will access.",
+)
+}}
+{# help="This is where people will connect directly to your server to log in.") #}
+{{ form_input(
+disabled=disabled,
+name="config_server_bind_address",
+label="Config server bind address",
+value=config_server_bind_address,
+) }}
+{{ form_input(
+disabled=disabled,
+name="dev_mode",
+type="checkbox",
+label="Dev mode",
+value=dev_mode,
+) }}
+{% endmacro %}
 {% block edit %}
-<div class="flex flex-col">
-  <label class="flex">
-    <span>
-      Client ID
-    </span>
-    <input type="text" value="{{client_id}}" name="client_id">
-  </label>
-  <label class="flex">
-    <span>
-      API Key
-    </span>
-    <input type="text" value="{{api_key}}" name="api_key">
-  </label>
-  <p>API Key is the value over there</p>
+<div class="flex flex-col gap-2">
+  {{ conf(disabled=false) }}
+  {{ flashes(err=err) }}
 </div>
-{% if err %}
-{{ err.message }}
-{% endif %}
-
 {% endblock %}
 
 {% block view %}
-Client ID: <code>{{client_id}}</code>
-<br>
-API Key: <code>{{api_key}}</code>
-{% if updated %}
-<div class="bg-sys-primary-container text-sys-on-primary-container p-2 rounded-sm">
-  Updated!
+<div class="flex flex-col gap-2">
+  {{ conf(disabled=true) }}
+  {{ flashes(ok=("Updated!" if updated else none)) }}
 </div>
-{% endif %}
 {% endblock %}

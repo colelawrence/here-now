@@ -3,7 +3,7 @@ use toml_edit::{Formatted, Item, Value};
 
 use crate::prelude::*;
 
-use super::Configurable;
+use super::{edit, Configurable};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct DiscordConfiguration {
@@ -24,18 +24,29 @@ impl Configurable for DiscordSettings {
     }
 
     fn vars(&self, section: &Box<dyn toml_edit::TableLike>) -> Result<JSON> {
-        let api_key = section
-            .get("api_key")
-            .and_then(|i| i.as_str())
-            .unwrap_or_default();
         let client_id = section
             .get("client_id")
             .and_then(|i| i.as_str())
             .unwrap_or_default();
+        let client_secret = section
+            .get("client_secret")
+            .and_then(|i| i.as_str())
+            .unwrap_or_default()
+            .chars()
+            .map(|_| 'X')
+            .collect::<String>();
+        let bot_token = section
+            .get("bot_token")
+            .and_then(|i| i.as_str())
+            .unwrap_or_default()
+            .chars()
+            .map(|_| 'X')
+            .collect::<String>();
 
         Ok(json!({
-            "api_key": api_key,
             "client_id": client_id,
+            "client_secret": client_secret,
+            "bot_token": bot_token,
         }))
     }
 
@@ -44,19 +55,53 @@ impl Configurable for DiscordSettings {
             .get("client_id")
             .and_then(|a| a.as_str())
             .unwrap_or_default();
-        let api_key = data
-            .get("api_key")
+        let client_secret = data
+            .get("client_secret")
+            .and_then(|a| a.as_str())
+            .unwrap_or_default();
+        let bot_token = data
+            .get("bot_token")
             .and_then(|a| a.as_str())
             .unwrap_or_default();
 
-        toml.insert(
+        edit::update_toml_key(
+            toml,
             "client_id",
             Item::Value(Value::String(Formatted::new(client_id.into()))),
+            Some(
+                "Client ID of your application. It may look something like `1122223333333000000`."
+                    .to_string(),
+            ),
+            false,
         );
-        toml.insert(
-            "api_key",
-            Item::Value(Value::String(Formatted::new(api_key.into()))),
-        );
+
+        if !client_secret.is_empty()
+            && client_secret != "none"
+            && client_secret.chars().any(|a| a != 'X')
+        {
+            // changed client_secret
+            edit::update_toml_key(
+                toml,
+                "client_secret",
+                Item::Value(Value::String(Formatted::new(client_secret.into()))),
+                Some("Client Secret of your application. It may look something like `-eHs9Lp-3XzR-BVq5r8HWEXodJNNKGtx`.".to_string()),
+                false,
+            );
+        }
+
+        if !bot_token.is_empty()
+            && bot_token != "none"
+            && bot_token.chars().any(|a| a != 'X')
+        {
+            // changed bot_token
+            edit::update_toml_key(
+                toml,
+                "bot_token",
+                Item::Value(Value::String(Formatted::new(bot_token.into()))),
+                Some("Bot Token of your application. It may look something like `MTEzMjc3MzE2MTk4NTkwODc4Nw.G3rB1Z.P01iwhnwt6R-JtqixNb6nEp1bQr8ljzid6jiXc`.".to_string()),
+                false,
+            );
+        }
 
         Ok(json!({}))
     }

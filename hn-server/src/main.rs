@@ -100,11 +100,11 @@ async fn main() {
         .with(tracing_subscriber::fmt::layer())
         .init();
 
-    let process_dir = std::env::current_dir().expect("getting current directory (pwd)");
-    let config_file_path = std::env::args()
-        .skip(1)
-        .next()
-        .expect("reading first argument for configuration file location");
+    // let process_dir = std::env::current_dir().expect("getting current directory (pwd)");
+    // let config_file_path = std::env::args()
+    //     .skip(1)
+    //     .next()
+    //     .expect("reading first argument for configuration file location");
     // let mut config_file = config::load_config_from_path(&config_file_path)
     //     .await
     //     .with_context(|| {

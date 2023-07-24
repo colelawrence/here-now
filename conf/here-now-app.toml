@@ -1,0 +1,8 @@
+# Where the public interface binds like `127.0.0.1`.
+public_bind_address = "127.0.0.1:8080"
+# Where the public interface will be accessed on the internet.
+public_host_base_url = "https://here-now.colelawrence.com"
+# Where this interface binds.
+config_server_bind_address = "127.0.0.1:3001"
+# Whether or not to enable dev features of the server.
+dev_mode = true

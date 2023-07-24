@@ -68,9 +68,10 @@ fn dev() {
     let root_dir = get_project_root_dir();
     let server = Command::new("cargo")
         .env("RUST_LOG", "debug,!hyper")
+        .env("HERE_NOW_CONFIG_FOLDER", "../conf")
         .args("watch --watch ./src --ignore *.j2 --ignore *.css".split(' '))
         .arg("--exec")
-        .arg("run ./here-now-config.toml")
+        .arg("run")
         .current_dir(root_dir.join("./hn-server"))
         .spawn()
         .expect("running server with watcher");

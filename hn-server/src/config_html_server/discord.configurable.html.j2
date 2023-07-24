@@ -1,43 +1,38 @@
+{% from "macros.html.j2" import flashes, form_input %}
+{% macro conf(disabled) %}
+{% if client_id %}
+<h3 class="text-title-xl">OAuth 2 Settings</h3>
+{% set oauth2_url = "applications/" + client_id + "/oauth2/general" if client_id else "applications" %}
+<a class="text-sys-primary hover:underline" target="_blank" href="https://discord.com/developers/{{ oauth2_url }}">Open
+  OAuth 2 settings</a>
+{{ form_input(disabled=disabled, name="client_id", label="Client ID", value=client_id) }}
+{{ form_input(disabled=disabled, name="client_secret", label="Client Secret", value=client_secret, type="password") }}
+<h3 class="text-title-xl">Bot Settings</h3>
+{% set bot_url = "applications/" + client_id + "/bot" if client_id else 'applications' %}
+<a class="text-sys-primary hover:underline" target="_blank" href="https://discord.com/developers/{{ bot_url }}">Open bot
+  settings</a>
+{{ form_input(disabled=disabled, name="bot_token", label="Bot Token", value=bot_token, type="password") }}
+{% else %}
+<h3 class="text-title-xl">Getting started.</h3>
+<ol class="list-decimal pl-4">
+  <li>Create a Discord app at <a class="text-sys-primary hover:underline" target="_blank"
+      href="https://discord.com/developers/applications">discord.com/developers/applications</a></li>
+  <li>
+    Get the Application ID and Submit
+    {{ form_input(disabled=disabled, name="client_id", label="APPLICATION ID / Client ID", value=client_id) }}
+  </li>
+</ol>
+{% endif %}
+{% endmacro %}
 {% block edit %}
 <div class="flex flex-col gap-2">
-  <label class="flex justify-between">
-    <span>
-      Client ID
-    </span>
-    <input type="text" name="client_id" value="{{client_id}}">
-  </label>
-  <label class="flex justify-between">
-    <span>
-      API Key
-    </span>
-    <input type="text" name="api_key" value="{{api_key}}">
-  </label>
-  {% if err %}
-  <div class="bg-sys-error-container text-sys-on-error-container p-2 rounded-sm">
-    {{ err.message }}
-  </div>
-  {% endif %}
+  {{ conf(disabled=false) }}
+  {{ flashes(err=err) }}
 </div>
 {% endblock %}
-
 {% block view %}
 <div class="flex flex-col gap-2">
-  <label class="flex justify-between">
-    <span>
-      Client ID
-    </span>
-    <pre>{{client_id}}</pre>
-  </label>
-  <label class="flex justify-between">
-    <span>
-      API Key
-    </span>
-    <pre>{{api_key}}</pre>
-  </label>
-  {% if updated %}
-  <div class="bg-sys-primary-container text-sys-on-primary-container p-2 rounded-sm">
-    Updated!
-  </div>
-  {% endif %}
+  {{ conf(disabled=true) }}
+  {{ flashes(ok=("Updated!" if updated else none)) }}
 </div>
 {% endblock %}

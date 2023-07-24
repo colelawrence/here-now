@@ -1,0 +1,10 @@
+{% if err %}
+<div class="bg-sys-error-container text-sys-on-error-container p-2 rounded-sm">
+  {{ err }}
+</div>
+{% endif %}
+{% if ok %}
+<div class="bg-sys-primary-container text-sys-on-primary-container p-2 rounded-sm">
+  {{ ok }}
+</div>
+{% endif %}

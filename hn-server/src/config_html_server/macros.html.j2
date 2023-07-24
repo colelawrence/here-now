@@ -1,0 +1,34 @@
+{% macro form_input(name, label, disabled=false, value="", type="text", placeholder="...", help=none ) -%}
+<div class="flex flex-col justify-stretch">
+  <label for="{{name}}" class="block mb-2 text-sm font-medium text-sys-on-background">{{label}}</label>
+  <input id="{{name}}" name="{{name}}"
+  {% if type == "checkbox" %}
+  type="checkbox"
+  {% if value %}checked{% endif %}
+  {% else %}
+  type="{{type}}"
+  value="{{value}}"
+  {% endif %}
+  {% if help %}aria-describedby="{{name}}-helper-text-explanation" {% endif %}
+    class="bg-sys-surface border border-sys-on-secondary-container disabled:border-transparent text-on-secondary-container text-mono-base rounded-sm focus:ring-sys-primary focus:border-sys-primary block w-full p-2"
+    placeholder="{{placeholder}}" {% if disabled %}disabled{% endif %}>
+  {% if help %}
+  <p id="{{name}}-helper-text-explanation" class="mt-2 text-ui-sm text-sys-on-secondary-container text-opacity-70">
+    {{- help -}}
+  </p>
+  {%- endif -%}
+</div>
+{%- endmacro %}
+
+{% macro flashes(ok=none, err=none) -%}
+{% if ok %}
+<div class="bg-sys-primary-container text-sys-on-primary-container p-2 rounded-sm">
+  {{ ok }}
+</div>
+{% endif %}
+{% if err %}
+<div class="bg-sys-primary-container text-sys-on-primary-container p-2 rounded-sm">
+  {{ err }}
+</div>
+{% endif %}
+{%- endmacro %}

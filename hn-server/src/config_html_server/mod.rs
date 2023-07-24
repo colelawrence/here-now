@@ -13,6 +13,7 @@ use crate::{config, prelude::*};
 pub(crate) mod app;
 pub(crate) mod discord;
 mod templates;
+mod edit;
 
 trait OrInternalError<T> {
     fn err_500(self) -> Result<T, (StatusCode, String)>;
@@ -80,8 +81,6 @@ async fn render_view_html(
         obj.insert("ok".to_string(), ok_data);
         obj.insert("updated".to_string(), serde_json::Value::Bool(updated));
     }
-
-    dbg!(&view_json);
 
     let configurable_html = templates
         .render_block(&entry.configurable.template(), "view", view_json)
@@ -194,7 +193,7 @@ fn setup(router: Router<Arc<Settings>>, c: Arc<Box<dyn Configurable>>) -> Router
 pub(crate) async fn start(config: Arc<config::Settings>) -> Result<()> {
     // TODO: Ask to set-up new configurations if not present?
     let initial_app = &config
-        .get_entry("app")
+        .get_entry("here-now-app")
         .expect("required app settings")
         .get_toml_and_parse::<app::AppConfiguration>()
         .await
