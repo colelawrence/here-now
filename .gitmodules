@@ -7,3 +7,9 @@
 [submodule "vendor/design-tokens"]
 	path = vendor/design-tokens
 	url = https://github.com/colelawrence/design-tokens
+[submodule "vendor/shipyard_app"]
+	path = vendor/shipyard_app
+	url = https://github.com/colelawrence/shipyard_app
+[submodule "vendor/shipyard"]
+	path = vendor/shipyard
+	url = https://github.com/leudz/shipyard

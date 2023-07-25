@@ -10,22 +10,31 @@ use crate::config::Settings;
 // mod schema;
 // mod webserver;
 
+mod hmm;
+
 #[derive(Debug)]
 enum Game {}
 
 #[allow(unused)]
 mod prelude {
     pub(crate) use async_trait::async_trait;
+    pub(crate) use shipyard_app::prelude::*;
+    /// You might have meant to use [UniqueView]
+    pub(crate) struct Unique;
     pub(crate) use std::borrow::Cow;
     use std::fmt::format;
     pub(crate) use std::fmt::Debug;
     pub(crate) use std::sync::Arc;
+    pub(crate) use tracing::{error, error_span, info, info_span, warn, warn_span};
 
     pub(crate) use anyhow::{Context, Error, Result};
     pub(crate) use serde::{Deserialize, Serialize};
 
     pub type JSON = serde_json::Value;
     pub type Cowstr = Cow<'static, str>;
+
+    #[macro_use]
+    pub(crate) use std::format_args as f;
 
     // Customizing the context behavior for Here Now app specific needs?
     // pub(crate) trait HereNowErrorContextualizer {
@@ -85,6 +94,24 @@ mod prelude {
     //             .with_context(|| format!("rendering block {block_name:?}"))
     //     }
     // }
+
+    pub(crate) trait ResultExt<T, E> {
+        /// Use when you're not sure if we need to unwrap or ignore the error
+        /// ```ignore
+        /// // for example
+        /// .todo(f!("configuring watcher (dur: {:?})", self.polling_duration));
+        /// ```
+        fn todo<'a>(self, f: std::fmt::Arguments<'a>) -> T;
+    }
+
+    impl<T, E> ResultExt<T, E> for Result<T, E>
+    where
+        E: std::error::Error + Send + Sync + 'static,
+    {
+        fn todo<'a>(self, f: std::fmt::Arguments<'a>) -> T {
+            self.with_context(|| format!("{}", f)).unwrap()
+        }
+    }
 }
 
 mod config;
@@ -99,6 +126,9 @@ async fn main() {
         )
         .with(tracing_subscriber::fmt::layer())
         .init();
+
+    let sub = watchable::Watchable::new(());
+    let hmm_handle = tokio::spawn(hmm::start(sub.watch()));
 
     // let process_dir = std::env::current_dir().expect("getting current directory (pwd)");
     // let config_file_path = std::env::args()
@@ -124,6 +154,10 @@ async fn main() {
     tokio::select! {
         res = config_html_server::start(Arc::new(settings)) => {
             println!("Exited private server: {res:#?}");
+            sub.shutdown();
+        }
+        res = hmm_handle => {
+            println!("Hmm exited: {res:#?}");
         }
     }
 
