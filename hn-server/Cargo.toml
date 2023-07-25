@@ -38,3 +38,4 @@ clap = { version = "4.3.19", features = ["derive"] }
 watchable = "1.1.1"
 notify = "6.0.1"
 rxrust = { version = "0.15.0", features = ["tokio"] }
+rayon = "1.7.0"

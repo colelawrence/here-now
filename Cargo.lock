@@ -2860,6 +2860,7 @@ dependencies = [
  "minijinja-autoreload",
  "notify 6.0.1",
  "once_cell",
+ "rayon",
  "rxrust",
  "serde",
  "serde_json",

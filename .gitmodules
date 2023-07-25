@@ -12,4 +12,4 @@
 	url = https://github.com/colelawrence/shipyard_app
 [submodule "vendor/shipyard"]
 	path = vendor/shipyard
-	url = https://github.com/leudz/shipyard
+	url = https://github.com/colelawrence/shipyard

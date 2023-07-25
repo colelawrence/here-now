@@ -3,7 +3,7 @@ use std::sync::Arc;
 use anyhow::Context;
 
 use tokio;
-use tracing_subscriber::prelude::*;
+use tracing_subscriber::{prelude::*, util::SubscriberInitExt};
 
 use crate::config::Settings;
 
@@ -25,7 +25,7 @@ mod prelude {
     use std::fmt::format;
     pub(crate) use std::fmt::Debug;
     pub(crate) use std::sync::Arc;
-    pub(crate) use tracing::{error, error_span, info, info_span, warn, warn_span};
+    pub(crate) use tracing::{error, error_span, info, info_span, warn, warn_span, debug, debug_span};
 
     pub(crate) use anyhow::{Context, Error, Result};
     pub(crate) use serde::{Deserialize, Serialize};
@@ -60,40 +60,86 @@ mod prelude {
         pub(crate) template_file: &'static str,
     }
 
-    // /// Dev version with auto reloading from disk
-    // /// Future: use macro to replace with static versions
-    // pub(crate) struct HTMXRenderer {
-    //     pub(crate) reloader: Arc<minijinja_autoreload::AutoReloader>,
-    // }
+    /// Create an [App] with 0 plugins.
+    #[cfg(test)]
+    #[allow(unused)]
+    pub(crate) fn test_app0() -> App {
+        let app = App::new();
+        let mut builder = AppBuilder::new(&app);
+        builder.finish();
+        app
+    }
+    /// Create an [App] with 1 plugin.
+    #[cfg(test)]
+    pub(crate) fn test_app1<T>(z: T) -> App
+    where
+        T: Plugin,
+    {
+        test_app(move |builder| {
+            builder.add_plugin(z);
+        })
+    }
+    /// Create an [App] with 2 plugins.
+    #[cfg(test)]
+    pub(crate) fn test_app2<T, U>(y: T, z: U) -> App
+    where
+        T: Plugin,
+        U: Plugin,
+    {
+        test_app(move |builder| {
+            builder.add_plugin(y).add_plugin(z);
+        })
+    }
+    /// Create an [App] with 3 plugins.
+    #[cfg(test)]
+    #[allow(unused)]
+    pub(crate) fn test_app3<T, U, V>(x: T, y: U, z: V) -> App
+    where
+        T: Plugin,
+        U: Plugin,
+        V: Plugin,
+    {
+        test_app(move |builder| {
+            builder.add_plugin(x).add_plugin(y).add_plugin(z);
+        })
+    }
+    /// Create an [App] with 4 plugins.
+    #[cfg(test)]
+    #[allow(unused)]
+    pub(crate) fn test_app4<T, U, V, W>(x: T, y: U, z: V, q: W) -> App
+    where
+        T: Plugin,
+        U: Plugin,
+        V: Plugin,
+        W: Plugin,
+    {
+        test_app(move |builder| {
+            builder
+                .add_plugin(x)
+                .add_plugin(y)
+                .add_plugin(z)
+                .add_plugin(q);
+        })
+    }
+    /// Create an [App] with 3 plugins.
+    #[cfg(test)]
+    fn test_app<F>(builder_fn: F) -> App
+    where
+        F: FnOnce(&mut AppBuilder),
+    {
+        let app = App::new();
+        let mut builder = AppBuilder::new(&app);
+        builder_fn(&mut builder);
+        builder.finish();
+        app
+    }
 
-    // impl HTMXPartial {
-    //     pub fn render_block<T: Serialize>(
-    //         &self,
-    //         renderer: &HTMXRenderer,
-    //         block_name: &'static str,
-    //         value: T,
-    //     ) -> Result<String> {
-    //         let env = renderer
-    //             .reloader
-    //             .acquire_env()
-    //             .with_context(|| format!("acquiring reloader guard for HTMXPartial",))?;
-    //         let tmpl = env.get_template(self.template_file).with_context(|| {
-    //             format!(
-    //                 "getting template file {:?} for HTMXPartial",
-    //                 self.template_file
-    //             )
-    //         })?;
-    //         tmpl.eval_to_state(value)
-    //             .with_context(|| {
-    //                 format!(
-    //                     "evaluating state with value for template {:?}",
-    //                     self.template_file
-    //                 )
-    //             })?
-    //             .render_block(block_name)
-    //             .with_context(|| format!("rendering block {block_name:?}"))
-    //     }
-    // }
+    #[cfg(test)]
+    pub fn get_crate_path() -> std::path::PathBuf {
+        return std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .canonicalize()
+            .unwrap();
+    }
 
     pub(crate) trait ResultExt<T, E> {
         /// Use when you're not sure if we need to unwrap or ignore the error
@@ -117,16 +163,29 @@ mod prelude {
 mod config;
 mod config_html_server;
 
-#[tokio::main]
-async fn main() {
+fn expect_init_logger() {
     tracing_subscriber::registry()
         .with(
             tracing_subscriber::EnvFilter::try_from_default_env()
                 .unwrap_or_else(|_| "server=debug,tower_http=debug".into()),
         )
         .with(tracing_subscriber::fmt::layer())
-        .init();
+        .init()
+}
 
+pub(crate) fn test_logger() {
+    let _ = tracing_subscriber::registry()
+        .with(
+            tracing_subscriber::EnvFilter::try_from_default_env()
+                .unwrap_or_else(|_| "server=debug,tower_http=debug".into()),
+        )
+        .with(tracing_subscriber::fmt::layer())
+        .try_init();
+}
+
+#[tokio::main]
+async fn main() {
+    expect_init_logger();
     let sub = watchable::Watchable::new(());
     let hmm_handle = tokio::spawn(hmm::start(sub.watch()));
 
