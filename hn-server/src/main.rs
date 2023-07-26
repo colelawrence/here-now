@@ -1,7 +1,6 @@
 use std::sync::Arc;
 
 use tokio;
-use tracing_subscriber::{prelude::*, util::SubscriberInitExt};
 
 use crate::config::Settings;
 
@@ -17,11 +16,11 @@ mod prelude {
     pub(crate) use super::app_ctx::{AppCtx, AppCtxPlugin, AppSenderExt};
     pub(crate) use async_trait::async_trait;
     pub(crate) use shipyard_app::prelude::*;
+    pub(crate) use std::fmt::Debug;
     /// You might have meant to use [UniqueView]
     pub(crate) struct Unique;
     pub(crate) use std::borrow::Cow;
     use std::fmt::format;
-    pub(crate) use std::fmt::Debug;
     pub(crate) use std::sync::Arc;
     pub(crate) use tracing::{
         debug, debug_span, error, error_span, info, info_span, warn, warn_span,
@@ -29,6 +28,9 @@ mod prelude {
 
     pub(crate) use anyhow::{Context, Error, Result};
     pub(crate) use serde::{Deserialize, Serialize};
+
+    #[cfg(test)]
+    pub(crate) use crate::logging::test_logger;
 
     pub type JSON = serde_json::Value;
     pub type Cowstr = Cow<'static, str>;
@@ -163,31 +165,36 @@ mod prelude {
 mod config;
 mod config_html_server;
 
-fn expect_init_logger() {
-    tracing_subscriber::registry()
-        .with(
-            tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| "server=debug,tower_http=debug".into()),
-        )
-        .with(tracing_subscriber::fmt::layer())
-        .init()
-}
+mod logging {
+    use tracing_subscriber::prelude::*;
 
-pub(crate) fn test_logger() {
-    let _ = tracing_subscriber::registry()
-        .with(
-            tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| "server=debug,tower_http=debug".into()),
-        )
-        .with(tracing_subscriber::fmt::layer())
-        .try_init();
+    static DEFAULT_RUST_LOG_ENV: &'static str = "server=debug,tower_http=debug";
+
+    // sorry, I don't know how to make this a simple function
+    // without an insane return type
+    macro_rules! logger {
+        () => {{
+            use tracing_subscriber as ts;
+            let env_filter = ts::EnvFilter::try_from_default_env()
+                .unwrap_or_else(|_| DEFAULT_RUST_LOG_ENV.into());
+            ts::registry().with(env_filter).with(ts::fmt::layer())
+        }};
+    }
+
+    pub(super) fn expect_init_logger() {
+        logger!().init()
+    }
+
+    #[cfg(test)]
+    pub(crate) fn test_logger() {
+        // in case a test needs logging
+        let _ = logger!().try_init();
+    }
 }
 
 #[tokio::main]
 async fn main() {
-    expect_init_logger();
-    let sub = watchable::Watchable::new(());
-    let hmm_handle = tokio::spawn(hmm::start(sub.watch()));
+    logging::expect_init_logger();
 
     // let process_dir = std::env::current_dir().expect("getting current directory (pwd)");
     // let config_file_path = std::env::args()
@@ -213,11 +220,11 @@ async fn main() {
     tokio::select! {
         res = config_html_server::start(Arc::new(settings)) => {
             println!("Exited private server: {res:#?}");
-            sub.shutdown();
+            // sub.shutdown();
         }
-        res = hmm_handle => {
-            println!("Hmm exited: {res:#?}");
-        }
+        // res = hmm_handle => {
+        //     println!("Hmm exited: {res:#?}");
+        // }
     }
 
     // let server = CustomServer::<Game>::open(
