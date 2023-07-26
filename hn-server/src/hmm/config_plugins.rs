@@ -13,8 +13,6 @@ use std::{
     time::Duration,
 };
 
-mod commands;
-
 /// Required for your [ConfigFilePlugin] to work.
 /// Update the [ConfigDirectoryPath] unique to change the directory.
 #[derive(Default)]
@@ -38,7 +36,7 @@ pub struct ConfigFilesDirectory {
 /// Unique
 #[derive(Component)]
 #[track(All)]
-struct ConfigFileContentTracker {
+struct ConfigDirectoryFileContent {
     path_to_version_and_body: HashMap<PathBuf, (usize, Result<Vec<u8>, Arc<std::io::Error>>)>,
 }
 
@@ -117,13 +115,11 @@ impl<C, E> Debug for ConfigFileContentInner<C, E> {
 
 impl Plugin for ConfigDirectoryPlugin {
     fn build(&self, app: &mut shipyard_app::AppBuilder) {
-        let sender = app
-            .app
-            .run(|uv_sender: UniqueView<commands::SendCommands>| uv_sender.clone());
+        let ctx = app.ctx();
         app.add_tracked_value(ConfigFilesDirectory {
             path: self.default_path.clone(),
         });
-        app.add_tracked_value(ConfigFileContentTracker {
+        app.add_tracked_value(ConfigDirectoryFileContent {
             path_to_version_and_body: Default::default(),
         });
         use notify::Watcher;
@@ -131,26 +127,9 @@ impl Plugin for ConfigDirectoryPlugin {
             move |a: std::result::Result<notify::Event, notify::Error>| match a {
                 Ok(event) => {
                     warn!(?event.paths, "TODO: watcher got an okay event");
-                    sender.schedule_system(
-                        move |mut uvm_tracker: UniqueViewMut<ConfigFileContentTracker>| {
-                            let updated_files = event
-                                .paths
-                                .par_iter()
-                                .map(|path| ((path.clone(), std::fs::read(path).map_err(Arc::new))))
-                                .collect::<Vec<_>>();
-
-                            for (path, read_res) in updated_files {
-                                match uvm_tracker.path_to_version_and_body.entry(path) {
-                                    hash_map::Entry::Occupied(mut found) => {
-                                        let mut found_mut = found.get_mut();
-                                        found_mut.0 += 1;
-                                        found_mut.1 = read_res;
-                                    }
-                                    hash_map::Entry::Vacant(vacant) => {
-                                        vacant.insert((0, read_res));
-                                    }
-                                }
-                            }
+                    ctx.schedule_system(
+                        move |mut uvm_tracker: UniqueViewMut<ConfigDirectoryFileContent>| {
+                            load_the_file_contents(&event.paths, &mut uvm_tracker);
                         },
                     );
                 }
@@ -180,6 +159,29 @@ impl Plugin for ConfigDirectoryPlugin {
     }
 }
 
+fn load_the_file_contents(
+    paths: &[PathBuf],
+    uvm_dir_file_content: &mut UniqueViewMut<ConfigDirectoryFileContent>,
+) {
+    let updated_files = paths
+        .par_iter()
+        .map(|path| ((path.clone(), std::fs::read(path).map_err(Arc::new))))
+        .collect::<Vec<_>>();
+
+    for (path, read_res) in updated_files {
+        match uvm_dir_file_content.path_to_version_and_body.entry(path) {
+            hash_map::Entry::Occupied(mut found) => {
+                let mut found_mut = found.get_mut();
+                found_mut.0 += 1;
+                found_mut.1 = read_res;
+            }
+            hash_map::Entry::Vacant(vacant) => {
+                vacant.insert((0, read_res));
+            }
+        }
+    }
+}
+
 #[derive(Component)]
 struct ConfigFilesWatcher {
     // watch_list: HashMap<PathBuf, HashSet<EntityId>>,
@@ -202,10 +204,10 @@ fn load_system<C: ConfigFile>(
     uv_config: UniqueView<C>,
     uv_file_path: UniqueView<ConfigFileWatchPath<C>>,
     mut uvm_file_content: UniqueViewMut<ConfigFileContent<C>>,
-    uv_content_tracker: UniqueView<ConfigFileContentTracker>,
+    uv_dir_file_content: UniqueView<ConfigDirectoryFileContent>,
 ) {
     let _ = info_span!("load_system").entered();
-    if uv_content_tracker.is_inserted_or_modified() {
+    if uv_dir_file_content.is_inserted_or_modified() {
         let existing_opt = uvm_file_content
             .content_opt
             .as_ref()
@@ -213,7 +215,7 @@ fn load_system<C: ConfigFile>(
 
         let update = if let Some(ref path) = uv_file_path.watch_path {
             match (
-                uv_content_tracker.path_to_version_and_body.get(path),
+                uv_dir_file_content.path_to_version_and_body.get(path),
                 existing_opt,
             ) {
                 (Some((version, read_res)), Some((existing_path, existing_version))) => {
@@ -261,7 +263,7 @@ fn watch_system<C: ConfigFile>(
     mut uvm_watcher: UniqueViewMut<ConfigFilesWatcher>,
     uv_config: UniqueView<C>,
     mut uvm_file_path: UniqueViewMut<ConfigFileWatchPath<C>>,
-    mut uvm_file_content: UniqueViewMut<ConfigFileContent<C>>,
+    mut uvm_dir_file_content: UniqueViewMut<ConfigDirectoryFileContent>,
 ) {
     let _ = info_span!("watch_system").entered();
     use notify::Watcher;
@@ -290,6 +292,8 @@ fn watch_system<C: ConfigFile>(
             }
         }
 
+        // we must update watchers and count
+
         let ConfigFilesWatcher {
             ref mut watcher,
             ref mut watch_count,
@@ -298,12 +302,17 @@ fn watch_system<C: ConfigFile>(
         if let Some(watch_path) = uvm_file_path.watch_path.as_ref() {
             let watchers = watch_count
                 .entry(watch_path.clone())
-                .and_modify(|c| *c -= 1)
+                .and_modify(|c| {
+                    if *c > 0 {
+                        *c -= 1
+                    }
+                })
                 .or_default();
-            // TODO: unwatch
-            // if *watchers == 0 {
-            //     watcher.unwatch(&watch_path).expect("unwatching");
-            // }
+
+            if *watchers == 0 {
+                watch_count.remove(watch_path);
+                let _ = watcher.unwatch(watch_path);
+            }
         }
 
         if let Some(ref base_dir) = uv_dir.path {
@@ -319,19 +328,23 @@ fn watch_system<C: ConfigFile>(
                 watcher
                     .watch(&watch_path, notify::RecursiveMode::NonRecursive)
                     .todo(f!("watching file"));
+
+                // notify on first load
+                load_the_file_contents(&[watch_path], &mut uvm_dir_file_content)
             }
 
             *cur += 1;
         } else {
             // no linked path
-            uvm_file_content.content_opt = None;
+            // hmm: this will happen for every config file plugin, but maybe that's fine...
+            uvm_dir_file_content.path_to_version_and_body.clear();
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use std::{str::FromStr, time::Duration};
+    use std::str::FromStr;
 
     use crate::prelude::*;
 
@@ -374,18 +387,28 @@ mod tests {
         }
     }
 
+    struct TestPlugin;
+
+    impl Plugin for TestPlugin {
+        fn build(&self, app: &mut AppBuilder) {
+            app.tracks::<super::ConfigFileContent<TestConfig>>("track changes to my configuration");
+            app.add_system(update_config_system);
+        }
+    }
+
     #[tokio::test]
     async fn test() {
         crate::test_logger();
         let default_conf_folder = get_crate_path().join("../conf");
         let (sender, mut recv) = tokio::sync::mpsc::unbounded_channel();
-        let app = test_app3(
-            super::commands::CommandsPlugin(sender),
+        let app = test_app4(
+            AppCtxPlugin(sender),
             super::ConfigDirectoryPlugin {
                 default_path: Some(default_conf_folder),
                 polling_duration: None,
             },
             super::ConfigFilePlugin(TestConfig),
+            TestPlugin,
         );
 
         app.run(
@@ -394,7 +417,7 @@ mod tests {
                     match uv_text_toml.get_content() {
                         Some(content) => match content.content {
                             Ok(ref doc) => {
-                                dbg!(doc);
+                                info!(?doc, "found doc");
                             }
                             _ => {}
                         },

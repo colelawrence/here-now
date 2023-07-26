@@ -1,15 +1,12 @@
 use std::sync::Arc;
 
-use anyhow::Context;
-
 use tokio;
 use tracing_subscriber::{prelude::*, util::SubscriberInitExt};
 
 use crate::config::Settings;
 
 // mod schema;
-// mod webserver;
-
+mod app_ctx;
 mod hmm;
 
 #[derive(Debug)]
@@ -17,6 +14,7 @@ enum Game {}
 
 #[allow(unused)]
 mod prelude {
+    pub(crate) use super::app_ctx::{AppCtx, AppCtxPlugin, AppSenderExt};
     pub(crate) use async_trait::async_trait;
     pub(crate) use shipyard_app::prelude::*;
     /// You might have meant to use [UniqueView]
@@ -25,7 +23,9 @@ mod prelude {
     use std::fmt::format;
     pub(crate) use std::fmt::Debug;
     pub(crate) use std::sync::Arc;
-    pub(crate) use tracing::{error, error_span, info, info_span, warn, warn_span, debug, debug_span};
+    pub(crate) use tracing::{
+        debug, debug_span, error, error_span, info, info_span, warn, warn_span,
+    };
 
     pub(crate) use anyhow::{Context, Error, Result};
     pub(crate) use serde::{Deserialize, Serialize};

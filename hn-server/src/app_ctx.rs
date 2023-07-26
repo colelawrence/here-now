@@ -1,5 +1,17 @@
 use crate::prelude::*;
 
+pub trait AppSenderExt {
+    fn ctx(&self) -> AppCtx;
+}
+
+impl AppSenderExt for AppBuilder<'_> {
+    fn ctx(&self) -> AppCtx {
+        self.app
+            .world
+            .run(|uv_sender: UniqueView<AppCtx>| uv_sender.clone())
+    }
+}
+
 pub trait Command: Sized + Send + Sync + 'static {
     fn add(self, to: WorkloadBuilder) -> WorkloadBuilder;
 }
@@ -11,12 +23,13 @@ impl Command for WorkloadSystem {
 }
 
 // pub struct CommandsPlugin(pub tokio::sync::mpsc::UnboundedSender<Box<dyn Command>>);
-pub struct CommandsPlugin(pub tokio::sync::mpsc::UnboundedSender<WorkloadSystem>);
+pub struct AppCtxPlugin(pub tokio::sync::mpsc::UnboundedSender<WorkloadSystem>);
 
 #[derive(Component, Clone)]
-pub struct SendCommands(tokio::sync::mpsc::UnboundedSender<WorkloadSystem>);
+pub struct AppCtx(tokio::sync::mpsc::UnboundedSender<WorkloadSystem>);
 
-impl SendCommands {
+impl AppCtx {
+    /// TODO: Figure out how to allow for FnOnce
     pub fn schedule_system<B, R, S>(&self, cmd: S)
     where
         S: IntoWorkloadSystem<B, R>,
@@ -30,8 +43,8 @@ impl SendCommands {
     }
 }
 
-impl Plugin for CommandsPlugin {
+impl Plugin for AppCtxPlugin {
     fn build(&self, app: &mut AppBuilder) {
-        app.add_unique(SendCommands(self.0.clone()));
+        app.add_unique(AppCtx(self.0.clone()));
     }
 }
