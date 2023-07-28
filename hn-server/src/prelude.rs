@@ -109,7 +109,7 @@ where
             .add_plugin(q);
     })
 }
-/// Create an [App] with 3 plugins.
+/// Create an [App] with a provided function.
 #[cfg(test)]
 fn test_app<F>(builder_fn: F) -> App
 where

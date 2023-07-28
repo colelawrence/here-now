@@ -1,4 +1,13 @@
+use futures::Future;
+
 use crate::prelude::*;
+
+pub type CommandSender = tokio::sync::mpsc::UnboundedSender<Command>;
+
+pub struct Command {
+    pub reason: &'static str,
+    pub system: WorkloadSystem,
+}
 
 pub trait AppSenderExt {
     fn ctx(&self) -> AppCtx;
@@ -12,39 +21,46 @@ impl AppSenderExt for AppBuilder<'_> {
     }
 }
 
-pub trait Command: Sized + Send + Sync + 'static {
-    fn add(self, to: WorkloadBuilder) -> WorkloadBuilder;
-}
-
-impl Command for WorkloadSystem {
-    fn add(self, to: WorkloadBuilder) -> WorkloadBuilder {
-        to.with_system(self)
-    }
-}
-
-// pub struct CommandsPlugin(pub tokio::sync::mpsc::UnboundedSender<Box<dyn Command>>);
-pub struct AppCtxPlugin(pub tokio::sync::mpsc::UnboundedSender<WorkloadSystem>);
+pub struct AppCtxPlugin(pub CommandSender);
 
 #[derive(Component, Clone)]
-pub struct AppCtx(tokio::sync::mpsc::UnboundedSender<WorkloadSystem>);
+pub struct AppCtx {
+    commands: CommandSender,
+}
 
 impl AppCtx {
     /// TODO: Figure out how to allow for FnOnce
-    pub fn schedule_system<B, R, S>(&self, cmd: S)
+    pub fn schedule_system<B, R, S>(&self, reason: &'static str, cmd: S)
     where
         S: IntoWorkloadSystem<B, R>,
     {
-        self.0
-            .send(
-                cmd.into_workload_system()
+        self.commands
+            .send(Command {
+                reason,
+                system: cmd
+                    .into_workload_system()
                     .todo(f!("expecting valid system")),
-            )
+            })
             .todo(f!("attempting to schedule"));
+    }
+    /// TODO: hook the result error into sending a command?
+    pub fn spawn<F>(&self, fut: F)
+    where
+        F: Send + Future<Output = Result<()>> + 'static,
+    {
+        tokio::spawn(async {
+            match fut.await {
+                Ok(()) => {}
+                Err(err) => error!(?err, "error for spawned future"),
+            }
+        });
     }
 }
 
 impl Plugin for AppCtxPlugin {
     fn build(&self, app: &mut AppBuilder) {
-        app.add_unique(AppCtx(self.0.clone()));
+        app.add_unique(AppCtx {
+            commands: self.0.clone(),
+        });
     }
 }

@@ -784,10 +784,6 @@ video {
   position: static;
 }
 
-.relative {
-  position: relative;
-}
-
 .mb-2 {
   margin-bottom: 0.5rem;
 }

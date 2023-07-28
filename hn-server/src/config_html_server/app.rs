@@ -1,5 +1,5 @@
 use serde_json::json;
-use toml_edit::{Decor, Formatted, Item, Value};
+use toml_edit::{Formatted, Item, Value};
 
 use super::{edit, Configurable};
 use crate::prelude::*;

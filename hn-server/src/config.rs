@@ -74,9 +74,10 @@ impl<'a, 'b> SettingEntry<'a, 'b> {
             Ok(file) => file,
             Err(err) => match err.kind() {
                 std::io::ErrorKind::NotFound => return Ok(None),
-                _ => {
-                    return Err(err)
-                        .with_context(|| format!("reading config file from {file_path:?}"))
+                other => {
+                    return Err(err).with_context(|| {
+                        format!("reading config file from {file_path:?} ({other:?})")
+                    })
                 }
             },
         };

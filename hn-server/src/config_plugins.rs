@@ -149,6 +149,7 @@ impl Plugin for ConfigDirectoryPlugin {
                 Ok(event) => {
                     warn!(?event.paths, "TODO: watcher got an okay event");
                     ctx.schedule_system(
+                        "load file contents for directory",
                         move |mut uvm_tracker: UniqueViewMut<
                             internal::ConfigDirectoryFileContent,
                         >| {
@@ -369,7 +370,7 @@ mod config_file_plugin {
 mod tests {
     use std::str::FromStr;
 
-    use crate::prelude::*;
+    use crate::{prelude::*, app_ctx};
 
     #[derive(Component, Clone)]
     #[track(All)]
@@ -458,14 +459,14 @@ mod tests {
         tokio::spawn(async move {
             let mut i = 0usize;
             loop {
-                if let Some(cmd) = recv.recv().await {
+                if let Some(app_ctx::Command { reason: _, system }) = recv.recv().await {
                     // let mut systems = Vec::new();
                     // recv.try_recv()
                     i += 1;
 
                     let name = format!("command-{i}");
                     let info = WorkloadBuilder::new(name.clone())
-                        .with_system(cmd)
+                        .with_system(system)
                         .add_to_world(&app_arc.world)
                         .expect("adding workload");
 
@@ -482,10 +483,5 @@ mod tests {
         })
         .await
         .expect("...");
-
-        // loop {
-        //     app.update();
-        //     std::thread::sleep(Duration::from_secs(1));
-        // }
     }
 }
