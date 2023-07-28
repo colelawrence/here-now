@@ -125,7 +125,7 @@ pub struct ConfigFileContentInner<C, E> {
     pub version: usize,
     pub is_unlinked: bool,
     pub full_path: PathBuf,
-    pub content: Result<C, ConfigFileContentError<E>>,
+    pub content: Arc<Result<C, ConfigFileContentError<E>>>,
 }
 
 #[derive(Debug)]
@@ -133,6 +133,21 @@ pub enum ConfigFileContentError<E> {
     LoaderError(E),
     ReadError(Arc<std::io::Error>),
 }
+
+impl<E: std::fmt::Display> std::fmt::Display for ConfigFileContentError<E> {
+    fn fmt(&self, mut f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ConfigFileContentError::LoaderError(err) => {
+                write!(&mut f, "Error while loading: {err}")
+            }
+            ConfigFileContentError::ReadError(err) => {
+                write!(&mut f, "Error while reading file: {err}")
+            }
+        }
+    }
+}
+
+impl<E: std::fmt::Display + std::fmt::Debug> std::error::Error for ConfigFileContentError<E> {}
 
 impl Plugin for ConfigDirectoryPlugin {
     fn build(&self, app: &mut shipyard_app::AppBuilder) {
@@ -147,7 +162,7 @@ impl Plugin for ConfigDirectoryPlugin {
         let mut watcher = notify::recommended_watcher(
             move |a: std::result::Result<notify::Event, notify::Error>| match a {
                 Ok(event) => {
-                    warn!(?event.paths, "TODO: watcher got an okay event");
+                    debug!(?event.paths, "TODO: watcher got an okay event");
                     ctx.schedule_system(
                         "load file contents for directory",
                         move |mut uvm_tracker: UniqueViewMut<
@@ -193,9 +208,7 @@ struct ConfigFilesWatcher {
 pub use config_file_plugin::ConfigFilePlugin;
 
 mod config_file_plugin {
-    use std::{collections::hash_map, path::PathBuf};
-
-    use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
+    use std::any::type_name;
 
     use crate::prelude::*;
 
@@ -226,7 +239,8 @@ mod config_file_plugin {
         uv_dir_file_content: UniqueView<internal::ConfigDirectoryFileContent>,
         mut uvm_file_content: UniqueViewMut<ConfigFileContent<C>>,
     ) {
-        let _ = info_span!("load_system").entered();
+        let name = type_name::<C>();
+        let _ = info_span!("load_system", ?name).entered();
         if uv_dir_file_content.is_inserted_or_modified() {
             let existing_opt = uvm_file_content
                 .content_opt
@@ -254,7 +268,7 @@ mod config_file_plugin {
             } else if existing_opt.is_some() {
                 Some(None)
             } else {
-                warn!(?uv_file_path.watch_path, "no existing watch path");
+                warn!(?uv_file_path.watch_path, ?name, "no existing watch path");
                 None
             };
 
@@ -264,19 +278,21 @@ mod config_file_plugin {
                     update_with.map(|(version, full_path, read_res)| ConfigFileContentInner {
                         is_unlinked: false,
                         version,
-                        content: read_res
-                            .as_ref()
-                            .map_err(|e| ConfigFileContentError::ReadError(e.clone()))
-                            .and_then(|bytes| {
-                                debug!("loading bytes from content tracker");
-                                uv_config
-                                    .load(&bytes)
-                                    .map_err(ConfigFileContentError::LoaderError)
-                            }),
+                        content: Arc::new(
+                            read_res
+                                .as_ref()
+                                .map_err(|e| ConfigFileContentError::ReadError(e.clone()))
+                                .and_then(|bytes| {
+                                    debug!("loading bytes from content tracker");
+                                    uv_config
+                                        .load(&bytes)
+                                        .map_err(ConfigFileContentError::LoaderError)
+                                }),
+                        ),
                         full_path,
                     });
 
-                debug!(?target.content_opt, "load updated");
+                debug!("load updated");
             }
         }
     }
@@ -288,9 +304,11 @@ mod config_file_plugin {
         mut uvm_file_path: UniqueViewMut<internal::ConfigFileWatchPath<C>>,
         mut uvm_dir_file_content: UniqueViewMut<internal::ConfigDirectoryFileContent>,
     ) {
-        let _ = info_span!("watch_system").entered();
+        let for_confg_file = type_name::<C>();
+        let _ = info_span!("watch_system", ?for_confg_file).entered();
         use notify::Watcher;
         if uv_dir.is_inserted_or_modified() || uv_config.is_inserted_or_modified() {
+            debug!(?for_confg_file, "detected config change");
             match &uv_dir.path {
                 Some(dir) => {
                     let joined = dir.join(uv_config.relative_path());
@@ -370,7 +388,7 @@ mod config_file_plugin {
 mod tests {
     use std::str::FromStr;
 
-    use crate::{prelude::*, app_ctx};
+    use crate::{app_ctx, prelude::*};
 
     #[derive(Component, Clone)]
     #[track(All)]
@@ -440,7 +458,7 @@ mod tests {
             |uv_text_toml: UniqueView<super::ConfigFileContent<TestConfig>>| {
                 if uv_text_toml.is_inserted_or_modified() {
                     match uv_text_toml.get_content() {
-                        Some(content) => match content.content {
+                        Some(content) => match content.content.as_ref() {
                             Ok(ref doc) => {
                                 info!(?doc, "found doc");
                             }

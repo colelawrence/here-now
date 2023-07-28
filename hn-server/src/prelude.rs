@@ -6,11 +6,9 @@ pub(crate) use std::fmt::Debug;
 /// You might have meant to use [UniqueView]
 pub(crate) struct Unique;
 pub(crate) use std::borrow::Cow;
-use std::fmt::format;
+use std::fmt::{format, Display};
 pub(crate) use std::sync::Arc;
-pub(crate) use tracing::{
-    debug, debug_span, error, error_span, info, info_span, warn, warn_span,
-};
+pub(crate) use tracing::{debug, debug_span, error, error_span, info, info_span, warn, warn_span};
 
 pub(crate) use anyhow::{Context as AnyhowContext, Error, Result};
 pub(crate) use serde::{Deserialize, Serialize};
@@ -142,7 +140,54 @@ impl<T, E> ResultExt<T, E> for Result<T, E>
 where
     E: std::error::Error + Send + Sync + 'static,
 {
+    #[track_caller]
     fn todo<'a>(self, f: std::fmt::Arguments<'a>) -> T {
         self.with_context(|| format!("{}", f)).unwrap()
+    }
+}
+
+pub(crate) trait AsErrArcRefExt<T, E> {
+    /// Use when you need to send an owned error around
+    /// ```ignore
+    /// // for example
+    /// .todo(f!("configuring watcher (dur: {:?})", self.polling_duration));
+    /// ```
+    fn as_err_arc_ref(&self) -> Result<&T, Error>;
+}
+
+impl<T: 'static, E: std::error::Error + Debug + Display + Send + Sync + 'static>
+    AsErrArcRefExt<T, E> for Arc<Result<T, E>>
+{
+    fn as_err_arc_ref(&self) -> Result<&T, Error> {
+        let arc = self.clone();
+        match self.as_ref() {
+            Ok(val) => Ok(val),
+            Err(_) => Err(Error::new(ArcError(arc))),
+        }
+    }
+}
+
+struct ArcError<T, E>(pub Arc<Result<T, E>>);
+
+unsafe impl<E: Sync, T> Sync for ArcError<T, E> {}
+unsafe impl<E: Send, T> Send for ArcError<T, E> {}
+
+impl<T, E: std::error::Error + Debug + Display> std::error::Error for ArcError<T, E> {}
+
+impl<T, E: Display> Display for ArcError<T, E> {
+    fn fmt(&self, mut f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self.0.as_ref() {
+            Ok(_) => unreachable!(),
+            Err(err) => write!(&mut f, "{err}"),
+        }
+    }
+}
+
+impl<T, E: Debug> Debug for ArcError<T, E> {
+    fn fmt(&self, mut f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self.0.as_ref() {
+            Ok(_) => unreachable!(),
+            Err(err) => Debug::fmt(err, &mut f),
+        }
     }
 }

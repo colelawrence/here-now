@@ -18,9 +18,12 @@ async fn main() {
     let mut app = shipyard_app::App::new();
     let (sender, mut recv) = tokio::sync::mpsc::unbounded_channel();
     let main_plugin = MainPlugin(sender);
-    let (_, workload_info) = app.add_plugin_workload_with_info(main_plugin);
+    let workload = app.add_plugin_workload(main_plugin);
     let main_loop = tokio::spawn(async move {
         use crate::prelude::*;
+
+        // initial kick off
+        workload.run(&app);
 
         let mut i = 0usize;
         loop {
@@ -39,9 +42,7 @@ async fn main() {
                     .run_workload(name)
                     .todo(f!("run workload {:?}", info));
 
-                app.world
-                    .run_workload(workload_info.name.clone())
-                    .todo(f!("run update workload {:?}", workload_info.name));
+                workload.run(&app);
             } else {
                 debug!("closed");
             }
@@ -56,34 +57,32 @@ struct MainPlugin(app_ctx::CommandSender);
 
 impl shipyard_app::Plugin for MainPlugin {
     fn build(&self, app: &mut AppBuilder) {
+        let config_dir = crate::config::config_directory_setup::init_config_directory();
+
         app.add_plugin(app_ctx::AppCtxPlugin(self.0.clone()))
-            .add_plugin(config_plugins::ConfigDirectoryPlugin::default())
+            .add_plugin(config_plugins::ConfigDirectoryPlugin {
+                default_path: Some(config_dir.clone()),
+                ..Default::default()
+            })
             .add_plugin(app_server_plugins::AppServerPlugin::default())
-            .add_plugin(config_html_server_plugins::ConfigHtmlServerPlugin::default());
+            .add_plugin(config_html_server_plugins::ConfigHtmlServerPlugin {
+                config_dir,
+            });
     }
 }
 
+mod app_server_plugins;
 mod config;
 mod config_html_server;
 
-mod app_server_plugins {
-    use crate::prelude::*;
-
-    #[derive(Default)]
-    pub struct AppServerPlugin(());
-
-    impl Plugin for AppServerPlugin {
-        fn build(&self, app: &mut AppBuilder) {
-            info!("Setting up app server plugin");
-        }
-    }
-}
-
 mod config_html_server_plugins {
+    use std::path::PathBuf;
+
     use crate::{config::Settings, config_html_server, prelude::*};
 
-    #[derive(Default)]
-    pub struct ConfigHtmlServerPlugin(());
+    pub struct ConfigHtmlServerPlugin {
+        pub config_dir: PathBuf,
+    }
 
     /// Unique for other plugins to access settings.
     /// This cannot be tracked, but the underlying settings do change as there are changes

@@ -30,6 +30,11 @@ pub struct AppCtx {
 
 impl AppCtx {
     /// TODO: Figure out how to allow for FnOnce
+    ///
+    /// Future: Create a run_system_with_data version:
+    /// Allow for returning a Future with custom return value
+    /// don't accept a future, but return the future so we ca wait on
+    /// shipyard to become available and run the system.
     pub fn schedule_system<B, R, S>(&self, reason: &'static str, cmd: S)
     where
         S: IntoWorkloadSystem<B, R>,

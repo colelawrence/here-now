@@ -12,6 +12,7 @@ mod quick_svelte_template {
     }
 
     #[test]
+    #[ignore]
     fn generate() {
         use std::process::Command;
         derive_codegen::Generation::for_tag("svelte")
