@@ -1,6 +1,6 @@
 [workspace]
 members = ["xtask", "hn-server", "hn-desktop", "hn-common"]
-exclude = ["vendor/shipyard"]
+exclude = ["vendor/shipyard", "vendor/quickjs-rs"]
 resolver = "2"
 
 [workspace.package]

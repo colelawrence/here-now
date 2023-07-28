@@ -421,7 +421,7 @@ mod tests {
 
     #[tokio::test]
     async fn test() {
-        crate::test_logger();
+        test_logger();
         let default_conf_folder = get_crate_path().join("../conf");
         let (sender, mut recv) = tokio::sync::mpsc::unbounded_channel();
         let app = test_app4(

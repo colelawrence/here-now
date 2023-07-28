@@ -11,11 +11,16 @@
     {
       "name": "🎨 design-tools",
       "path": "../design-tools"
+    },
+    {
+      "name": "📎 svelte-tools",
+      "path": "../svelte-tools"
     }
   ],
   "settings": {
     "files.exclude": {
-      "design-tools": true
+      "design-tools": true,
+      "svelte-tools": true
     },
     "tailwindCSS.emmetCompletions": true,
     "tailwindCSS.includeLanguages": {

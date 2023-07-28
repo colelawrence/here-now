@@ -1,0 +1,11 @@
+{
+  "printWidth": 120,
+  "overrides": [
+    {
+      "files": "*.html.j2",
+      "options": {
+        "parser": "hubl"
+      }
+    }
+  ]
+}

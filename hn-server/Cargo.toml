@@ -9,6 +9,7 @@ publish = false
 
 [dependencies]
 here-now-common.workspace = true
+derive-codegen.workspace = true
 serde.workspace = true
 shipyard.workspace = true
 shipyard_app.workspace = true
@@ -17,9 +18,10 @@ serde_json.workspace = true
 actionable = "0.2.0"
 axum = "0.6.18"
 bonsaidb = { version = "0.4.1", features = ["server", "server-instrument"] }
+quick-js = { version = "0.4.2-alpha.0", path = "../vendor/quickjs-rs" }
 env_logger = "0.10.0"
 futures = "0.3.28"
-# maud = { version = "0.25.0", features = ["axum"] }
+maud = { version = "0.25.0", features = ["axum"] }
 tokio = { version = "1.29.1", features = ["full"] }
 tower-http = { version = "0.4.1", features = ["fs", "trace"] }
 tracing = "0.1.37"

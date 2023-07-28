@@ -1,0 +1,35 @@
+{
+  "compilerOptions": {
+    "pretty": true,
+    "lib": [
+      "ES2020"
+    ],
+    "target": "ES2020",
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "rootDir": ".",
+    "esModuleInterop": true,
+    "declaration": true,
+    "declarationMap": true,
+    "stripInternal": true,
+    "sourceMap": true,
+    "composite": true,
+    "noEmitOnError": true,
+    "strict": true,
+    "strictNullChecks": true,
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "strictPropertyInitialization": true,
+    "skipLibCheck": true,
+    "alwaysStrict": true,
+    "preserveConstEnums": true,
+    "resolveJsonModule": true,
+    "newLine": "lf",
+    "types": []
+  },
+  "exclude": [
+    "**/_todo",
+    "**/node_modules",
+    "**/dist"
+  ]
+}

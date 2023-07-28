@@ -26,7 +26,7 @@ mod prelude {
         debug, debug_span, error, error_span, info, info_span, warn, warn_span,
     };
 
-    pub(crate) use anyhow::{Context, Error, Result};
+    pub(crate) use anyhow::{Context as AnyhowContext, Error, Result};
     pub(crate) use serde::{Deserialize, Serialize};
 
     #[cfg(test)]

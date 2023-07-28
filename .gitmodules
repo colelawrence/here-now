@@ -13,3 +13,6 @@
 [submodule "vendor/shipyard"]
 	path = vendor/shipyard
 	url = https://github.com/colelawrence/shipyard
+[submodule "vendor/quickjs-rs"]
+	path = vendor/quickjs-rs
+	url = https://github.com/colelawrence/quickjs-rs
