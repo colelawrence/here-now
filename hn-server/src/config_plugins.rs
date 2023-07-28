@@ -420,6 +420,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[ignore = "this test doesn't stop, it's just for testing"]
     async fn test() {
         test_logger();
         let default_conf_folder = get_crate_path().join("../conf");

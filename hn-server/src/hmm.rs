@@ -1,5 +1,3 @@
-mod config_plugins;
-
 mod quick_svelte_template {
     use crate::prelude::*;
     use derive_codegen::Codegen;

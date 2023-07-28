@@ -60,13 +60,6 @@ async fn hello_world(
         .map(Html::from)
 }
 
-// pub(crate) struct ConfSaveResult {
-//     pub saved: Option<bool>,
-//     pub should_save: bool,
-//     /// Passed back into the template
-//     pub vars: JSON,
-// }
-
 async fn render_view_html(
     templates: &templates::Templates,
     entry: &config::SettingEntry<'_, '_>,

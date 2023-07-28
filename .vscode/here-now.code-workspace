@@ -32,6 +32,8 @@
     "editor.linkedEditing": true,
     "search.exclude": {
       "**/*.gen.*": true,
+      "**/design-tokens/references/**": true,
+      "**/vendor/quickjs-rs/**": true,
       "**/out/**": true,
       "**/node_modules": true,
       "**/bower_components": true,
