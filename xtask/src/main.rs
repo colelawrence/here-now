@@ -18,7 +18,7 @@ enum Args {
     // #[clap(help = "lint fixes")]
     Fix,
     // #[options(help = "generate and show docs")]
-    Docs,
+    Doc,
 }
 
 fn main() {
@@ -28,17 +28,14 @@ fn main() {
         Args::WebBuild => web_build(),
         Args::Dev => dev(),
         Args::Fix => fix(),
-        Args::Docs => docs(),
+        Args::Doc => doc(),
     }
 }
 
 fn get_project_root_dir() -> PathBuf {
-    std::env::vars_os()
-        .into_iter()
-        .filter_map(|(key, value)| (key == "CARGO_MANIFEST_DIR").then_some(value))
-        .next()
+    std::env::var_os("CARGO_MANIFEST_DIR")
         .and_then(|value| PathBuf::from(value).parent().map(PathBuf::from))
-        .unwrap_or_else(|| std::env::current_dir().unwrap())
+        .expect("CARGO_MANIFEST_DIR was defined")
 }
 
 fn web_build() {
@@ -110,10 +107,13 @@ fn fix() {
     expect_success(&output);
 }
 
-fn docs() {
+fn doc() {
     let root_dir = get_project_root_dir();
     let output = Command::new("cargo")
-        .args("+nightly doc --open".split(' '))
+        .args("+nightly doc --workspace --open --target aarch64-apple-darwin".split(' '))
+        // ensure not to get wasm bindgen stuff
+        // the server and the desktop should work on this architecture
+        .args("--target aarch64-apple-darwin".split(' '))
         .current_dir(root_dir)
         .spawn()
         .expect("fixing code")
