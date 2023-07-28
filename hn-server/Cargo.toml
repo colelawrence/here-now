@@ -17,7 +17,7 @@ anyhow.workspace = true
 serde_json.workspace = true
 actionable = "0.2.0"
 axum = "0.6.18"
-bonsaidb = { version = "0.4.1", features = ["server", "server-instrument"] }
+bonsaidb = { version = "0.4.1", default-features = false, features = ["server", "server-instrument"] }
 quick-js = { version = "0.4.2-alpha.0", path = "../vendor/quickjs-rs" }
 env_logger = "0.10.0"
 futures = "0.3.28"
@@ -38,6 +38,7 @@ clap = { version = "4.3.19", features = ["derive"] }
 notify = "6.0.1"
 rayon = "1.7.0"
 inquire = "0.6.2"
+axum-server = "0.5.1"
 # flashmap = "0.1.0"
 # watchable = "1.1.1"
 # derive_more = { version = "1.0.0-beta.2", features = ["debug"] }
