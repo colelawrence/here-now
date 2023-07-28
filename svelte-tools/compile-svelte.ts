@@ -1,3 +1,4 @@
+import { isAbsolute, join } from "https://deno.land/std/path/mod.ts";
 import { glob } from "npm:glob";
 import { OutputChunk, rollup } from "npm:rollup";
 import _typescript from "npm:rollup-plugin-esbuild";
@@ -8,6 +9,9 @@ import _sveltePreprocess from "npm:svelte-preprocess";
 const sveltePreprocess: typeof import("npm:svelte-preprocess").default = _sveltePreprocess as any;
 import _resolve from "npm:@rollup/plugin-node-resolve";
 const resolve: typeof import("npm:svelte-preprocess").default = _resolve as any;
+
+const firstArg = Deno.args[0];
+const folder = !firstArg ? Deno.cwd() : isAbsolute(firstArg) ? firstArg : join(Deno.cwd(), firstArg);
 
 /**
  * Svelte component bundler
@@ -26,16 +30,22 @@ const resolve: typeof import("npm:svelte-preprocess").default = _resolve as any;
  * Meaning, the .ts files (for example) are going to be treated as external. They
  * are going to be part of the module resolution, but not the bundling.
  */
-glob.glob("**/*.template.svelte", {}).then(async (files: string[]) => {
-  await Promise.allSettled(files.map(compileSvelteFile)).then((results) => {
-    const rejects = results.filter((a) => a.status === "rejected");
-    if (rejects.length > 0) {
-      console.error("Failed to compile all svelte files:");
-      rejects.forEach((rej) => console.error(rej));
-      Deno.exit(1);
-    }
+glob
+  .glob("**/*.template.svelte", {
+    cwd: folder,
+  })
+  .then(async (files: string[]) => {
+    await Promise.allSettled(files.map((path) => join(folder, path)).map(compileSvelteFile)).then((results) => {
+      const rejects = results.filter((a) => a.status === "rejected");
+      if (rejects.length > 0) {
+        console.error("Failed to compile all svelte files:");
+        rejects.forEach((rej) => console.error(rej));
+        Deno.exit(1);
+      }
+    });
+
+    console.error(`Compiled ${files.length} svelte files found in "${folder}"`);
   });
-});
 
 async function compileSvelteFile(file: string) {
   const bundle = await rollup({
@@ -91,16 +101,19 @@ async function compileSvelteFile(file: string) {
   // For each .svelte file, we rename the filename and target them in the proper dist directory
   // const cwd = process.cwd();
   const cwd = Deno.cwd();
-  const tsconfig = JSON.parse(await Deno.readTextFile(cwd + "/tsconfig.json")) as {
-    compilerOptions: { outDir: string; rootDir: string };
+  const tsconfigImport = (await import(import.meta.resolve("./tsconfig.json"), { assert: { type: "json" } })) as {
+    default: {
+      compilerOptions: { outDir: string; rootDir: string };
+    };
   };
+  const tsconfig = tsconfigImport.default;
   const { rootDir, outDir } = tsconfig.compilerOptions;
   for (const f of bundledSvelteFiles) {
     const { facadeModuleId, fileName, code } = f;
 
     assert(facadeModuleId, "Missing facadeModuleId", f);
     // pwd + (orignal path, stripped of pwd, targetted to dist) + (filename stripped of ext + '.svelte-preview-component.js')
-    const bundleFileName = fileName.replace(".js", ".gen.cjs");
+    const bundleFileName = fileName.replace(".js", ".compiled.cjs");
     const bundleDir = `${cwd}/${facadeModuleId
       .replace(cwd, "")
       .split("/")

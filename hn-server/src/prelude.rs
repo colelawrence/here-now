@@ -16,6 +16,10 @@ pub(crate) use serde::{Deserialize, Serialize};
 #[cfg(test)]
 pub(crate) use crate::logging::test_logger;
 
+// http
+pub type HttpResult<T = axum::response::Html<String>> =
+    core::result::Result<T, (http::StatusCode, String)>;
+
 pub type JSON = serde_json::Value;
 pub type Cowstr = Cow<'static, str>;
 
@@ -29,6 +33,28 @@ pub(crate) use std::format_args as f;
 // impl <C: anyhow::Context> HereNowErrorContextualizer for C {
 //     fn with_hn_context(self, f: impl FnOnce() -> String) -> Result<Ok>;
 // }
+
+macro_rules! svelte_template {
+    ($name: expr) => {
+        SvelteTemplate {
+            template_file: $name,
+        }
+    };
+}
+pub(crate) use svelte_template;
+
+/// Dev version with auto reloading from disk
+/// Future: use macro to replace with static versions
+#[derive(Copy, Clone)]
+pub(crate) struct SvelteTemplate {
+    pub(crate) template_file: &'static str,
+}
+
+impl SvelteTemplate {
+    pub fn read_cjs(&self, full_path: &std::path::Path) -> Result<String> {
+        std::fs::read_to_string(&full_path).with_context(|| format!("reading {full_path:?}"))
+    }
+}
 
 macro_rules! htmx_partial {
     ($name: expr) => {
@@ -120,7 +146,6 @@ where
     app
 }
 
-#[cfg(test)]
 pub fn get_crate_path() -> std::path::PathBuf {
     return std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .canonicalize()

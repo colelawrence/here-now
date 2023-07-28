@@ -1,4 +1,5 @@
 use clap::{self, Parser};
+use devx_cmd::Cmd;
 use std::{
     path::PathBuf,
     process::{self, Command, Output},
@@ -51,6 +52,13 @@ fn web_build() {
         .expect("exiting");
 
     expect_success(&status);
+
+    // make this a watch thing, too
+    Cmd::new("deno")
+        .args("run -A ./svelte-tools/compile-svelte.ts ./hn-server/templates".split(' '))
+        .current_dir(&root_dir)
+        .run()
+        .expect("built templates");
 
     Command::new("npx")
         .args("tailwindcss -i hn-server/config-html-server.css -o hn-server/src/config_html_server/build/config-html-server.css --watch".split(' '))

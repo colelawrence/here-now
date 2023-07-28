@@ -1,4 +1,5 @@
 <script lang="ts">
+  // import {DiscordSettings} from "./discord.ts"
   import Input from "./Input.svelte";
 </script>
 

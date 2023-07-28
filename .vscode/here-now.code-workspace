@@ -31,6 +31,7 @@
     },
     "editor.linkedEditing": true,
     "search.exclude": {
+      "**/*.compiled.*": true,
       "**/*.gen.*": true,
       "**/design-tokens/references/**": true,
       "**/vendor/quickjs-rs/**": true,
@@ -40,6 +41,7 @@
       "**/*.code-search": true
     },
     "explorer.fileNesting.patterns": {
+      "*.template.svelte": "${capture}.template.*.cjs",
       "*.ts": "${capture}.spec.ts",
       "*.tsx": "${capture}.tsx, ${capture}.css, ${capture}@*.png",
       "*.type.ts": "create${capture}.ts",

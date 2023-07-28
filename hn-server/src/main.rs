@@ -9,6 +9,8 @@ mod logging;
 mod prelude;
 
 mod config_plugins;
+pub(crate) mod http;
+pub(crate) mod quickjs;
 
 #[tokio::main]
 async fn main() {
@@ -65,9 +67,7 @@ impl shipyard_app::Plugin for MainPlugin {
                 ..Default::default()
             })
             .add_plugin(app_server_plugins::AppServerPlugin::default())
-            .add_plugin(config_html_server_plugins::ConfigHtmlServerPlugin {
-                config_dir,
-            });
+            .add_plugin(config_html_server_plugins::ConfigHtmlServerPlugin { config_dir });
     }
 }
 

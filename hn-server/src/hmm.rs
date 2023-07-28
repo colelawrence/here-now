@@ -26,27 +26,9 @@ mod quick_svelte_template {
     }
 }
 mod quick {
-    use crate::prelude::*;
+    use crate::{prelude::*, quickjs::serialize_to_js_value};
     use quick_js::{Context, JsValue};
     use serde::{ser::SerializeStruct, Serializer};
-
-    fn serialize_to_js_value<S: Serialize>(a: S) -> Result<JsValue> {
-        let json_with_parens = {
-            let mut vec = Vec::with_capacity(128);
-            vec.push(b'(');
-            // This could be a lot faster if we directly serialized into the libsysquickjs types.
-            // but that seems like it would be more for the fun of it
-            let mut json = serde_json::to_writer(&mut vec, &a).context("stringifying value")?;
-            vec.push(b')');
-            unsafe {
-                // We do not emit invalid UTF-8.
-                String::from_utf8_unchecked(vec)
-            }
-        };
-
-        let ctx = Context::new().context("creating JS context")?;
-        ctx.eval(&json_with_parens).context("evaluating json")
-    }
 
     #[derive(Serialize)]
     struct Data {
@@ -64,7 +46,7 @@ mod quick {
         test_logger();
         let ctx = Context::new().unwrap();
         let test_svelte_output =
-            get_crate_path().join("../svelte-tools/tests/json_printer.template.gen.cjs");
+            get_crate_path().join("../svelte-tools/tests/json_printer.template.compiled.cjs");
         // get_crate_path().join("../svelte-tools/tests/increment.svelte-preview-component.cjs");
         let code = tokio::fs::read_to_string(&test_svelte_output)
             .await

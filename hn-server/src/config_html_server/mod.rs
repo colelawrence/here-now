@@ -3,11 +3,11 @@ use std::{net::SocketAddr, sync::Arc};
 
 use axum::routing::post;
 use axum::{extract::State, response::Html, routing::get, Router};
-use http::StatusCode;
 use minijinja::context;
 use tower_http::services::{ServeDir, ServeFile};
 
 use crate::config::{Configurable, Settings};
+use crate::http::{OrInternalError, Response};
 use crate::{config, prelude::*};
 
 pub(crate) mod app;
@@ -15,28 +15,6 @@ pub(crate) mod discord;
 mod templates;
 mod edit;
 
-trait OrInternalError<T> {
-    fn err_500(self) -> Result<T, (StatusCode, String)>;
-    fn err_400(self) -> Result<T, (StatusCode, String)>;
-}
-
-impl<T> OrInternalError<T> for Result<T> {
-    fn err_500(self) -> Result<T, (StatusCode, String)> {
-        self.map_err(|err| {
-            // redundant?
-            tracing::error!(err=?err, "internal service error");
-            (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                format!("INTERNAL ERROR:\n{:#?}", err),
-            )
-        })
-    }
-    fn err_400(self) -> Result<T, (StatusCode, String)> {
-        self.map_err(|err| (StatusCode::BAD_REQUEST, format!("BAD REQUEST:\n{}", err)))
-    }
-}
-
-type Response = Result<Html<String>, (StatusCode, String)>;
 
 async fn hello_world(
     templates: templates::Templates,
