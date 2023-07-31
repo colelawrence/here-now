@@ -3,6 +3,6 @@ public_bind_address = "0.0.0.0:9000"
 # Where the public interface will be accessed on the internet.
 public_host_base_url = "https://here-now.colelawrence.com"
 # Where this interface binds.
-config_server_bind_address = "0.0.0.0:3001"
+config_server_bind_address = "0.0.0.0:3000"
 # Whether or not to enable dev features of the server.
 dev_mode = true

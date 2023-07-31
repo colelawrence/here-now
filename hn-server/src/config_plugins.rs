@@ -162,9 +162,10 @@ impl Plugin for ConfigDirectoryPlugin {
         let mut watcher = notify::recommended_watcher(
             move |a: std::result::Result<notify::Event, notify::Error>| match a {
                 Ok(event) => {
-                    debug!(?event.paths, "TODO: watcher got an okay event");
-                    ctx.schedule_system(
+                    debug!(?event.paths, "watcher got an event, so we're scheduling a system");
+                    ctx.schedule_system_dedup(
                         "load file contents for directory",
+                        format!("{:?}", event.paths),
                         move |mut uvm_tracker: UniqueViewMut<
                             internal::ConfigDirectoryFileContent,
                         >| {
@@ -283,7 +284,7 @@ mod config_file_plugin {
                                 .as_ref()
                                 .map_err(|e| ConfigFileContentError::ReadError(e.clone()))
                                 .and_then(|bytes| {
-                                    debug!("loading bytes from content tracker");
+                                    debug!(?name, "loading bytes from content tracker");
                                     uv_config
                                         .load(&bytes)
                                         .map_err(ConfigFileContentError::LoaderError)
@@ -292,7 +293,7 @@ mod config_file_plugin {
                         full_path,
                     });
 
-                debug!("load updated");
+                debug!(?name, "load updated");
             }
         }
     }
@@ -477,7 +478,12 @@ mod tests {
         tokio::spawn(async move {
             let mut i = 0usize;
             loop {
-                if let Some(app_ctx::Command { reason: _, system }) = recv.recv().await {
+                if let Some(app_ctx::Command {
+                    reason: _,
+                    dedup: _,
+                    system,
+                }) = recv.recv().await
+                {
                     // let mut systems = Vec::new();
                     // recv.try_recv()
                     i += 1;

@@ -3,6 +3,7 @@ pub(crate) use super::app_ctx::{AppCtx, AppCtxPlugin, AppSenderExt};
 pub(crate) use async_trait::async_trait;
 pub(crate) use shipyard_app::prelude::*;
 pub(crate) use std::fmt::Debug;
+pub(crate) use std::hash::Hash;
 /// You might have meant to use [UniqueView]
 pub(crate) struct Unique;
 pub(crate) use std::borrow::Cow;

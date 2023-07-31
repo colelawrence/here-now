@@ -1,3 +1,5 @@
+use std::{collections::BTreeSet, time::Duration};
+
 use prelude::ResultExt;
 use shipyard_app::AppBuilder;
 use tokio;
@@ -29,24 +31,57 @@ async fn main() {
 
         let mut i = 0usize;
         loop {
-            if let Some(app_ctx::Command { reason, system }) = recv.recv().await {
+            if let Some(app_ctx::Command {
+                reason,
+                system,
+                dedup,
+            }) = recv.recv().await
+            {
                 i += 1;
 
-                debug!(?reason, "running command");
+                debug!(?i, ?reason, "running command");
+                let mut seen = BTreeSet::<(String, &'static str)>::new();
+                seen.extend(dedup.map(|s| (s, reason)));
 
                 let name = format!("command-{i}");
-                let info = WorkloadBuilder::new(name.clone())
-                    .with_system(system)
-                    .add_to_world(&app.world)
-                    .expect("adding workload");
+                let mut builder = WorkloadBuilder::new(name.clone());
+                builder = builder.with_system(system);
 
+                // channel might continue growing?
+                tokio::time::sleep(Duration::from_millis(100)).await;
+
+                while let Ok(app_ctx::Command {
+                    reason,
+                    system,
+                    dedup,
+                }) = recv.try_recv()
+                {
+                    if let Some(dedup_str) = dedup {
+                        let val = (dedup_str, reason);
+                        if seen.contains(&val) {
+                            debug!(i, reason, dedup = val.0, "skipping duplicate command");
+                            continue;
+                        }
+
+                        seen.insert(val);
+                    }
+
+                    debug!(?i, ?reason, "adding command");
+                    builder = builder.with_system(system);
+                }
+
+                let info = builder.add_to_world(&app.world).expect("adding workload");
+
+                debug!(?i, "running command loop");
                 app.world
                     .run_workload(name)
                     .todo(f!("run workload {:?}", info));
 
+                debug!(?i, "running main loop");
                 workload.run(&app);
+                debug!(?i, "running main loop done");
             } else {
-                debug!("closed");
+                debug!(?i, "closed");
             }
         }
     });

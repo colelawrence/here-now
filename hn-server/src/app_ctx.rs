@@ -6,6 +6,7 @@ pub type CommandSender = tokio::sync::mpsc::UnboundedSender<Command>;
 
 pub struct Command {
     pub reason: &'static str,
+    pub dedup: Option<String>,
     pub system: WorkloadSystem,
 }
 
@@ -26,9 +27,11 @@ pub struct AppCtxPlugin(pub CommandSender);
 #[derive(Component, Clone)]
 pub struct AppCtx {
     commands: CommandSender,
+    handle: tokio::runtime::Handle,
 }
 
 impl AppCtx {
+    #[allow(unused)]
     /// TODO: Figure out how to allow for FnOnce
     ///
     /// Future: Create a run_system_with_data version:
@@ -42,6 +45,22 @@ impl AppCtx {
         self.commands
             .send(Command {
                 reason,
+                dedup: None,
+                system: cmd
+                    .into_workload_system()
+                    .todo(f!("expecting valid system")),
+            })
+            .todo(f!("attempting to schedule"));
+    }
+    /// See [AppCtx::schedule_system]
+    pub fn schedule_system_dedup<B, R, S>(&self, reason: &'static str, dedup: String, cmd: S)
+    where
+        S: IntoWorkloadSystem<B, R>,
+    {
+        self.commands
+            .send(Command {
+                reason,
+                dedup: Some(dedup),
                 system: cmd
                     .into_workload_system()
                     .todo(f!("expecting valid system")),
@@ -49,11 +68,12 @@ impl AppCtx {
             .todo(f!("attempting to schedule"));
     }
     /// TODO: hook the result error into sending a command?
+    #[track_caller]
     pub fn spawn<F>(&self, fut: F)
     where
         F: Send + Future<Output = Result<()>> + 'static,
     {
-        tokio::spawn(async {
+        self.handle.spawn(async {
             match fut.await {
                 Ok(()) => {}
                 Err(err) => error!(?err, "error for spawned future"),
@@ -64,8 +84,12 @@ impl AppCtx {
 
 impl Plugin for AppCtxPlugin {
     fn build(&self, app: &mut AppBuilder) {
+        let handle =
+            tokio::runtime::Handle::try_current().expect("expect a tokio runtime is ready");
+
         app.add_unique(AppCtx {
             commands: self.0.clone(),
+            handle,
         });
     }
 }
