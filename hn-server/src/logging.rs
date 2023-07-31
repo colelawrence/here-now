@@ -7,8 +7,8 @@ static DEFAULT_RUST_LOG_ENV: &'static str = "server=debug,tower_http=debug";
 macro_rules! logger {
     () => {{
         use tracing_subscriber as ts;
-        let env_filter = ts::EnvFilter::try_from_default_env()
-            .unwrap_or_else(|_| DEFAULT_RUST_LOG_ENV.into());
+        let env_filter =
+            ts::EnvFilter::try_from_default_env().unwrap_or_else(|_| DEFAULT_RUST_LOG_ENV.into());
         ts::registry().with(env_filter).with(ts::fmt::layer())
     }};
 }

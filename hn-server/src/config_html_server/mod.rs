@@ -12,9 +12,8 @@ use crate::{config, prelude::*};
 
 pub(crate) mod app;
 pub(crate) mod discord;
-mod templates;
 mod edit;
-
+mod templates;
 
 async fn hello_world(
     templates: templates::Templates,
@@ -46,7 +45,6 @@ async fn render_view_html(
     let section_name = entry.configurable.section_name();
     let mut view_json = entry.get_view_json().await.err_500()?;
 
-    
     if let Some((ok_data, updated)) = ok_updated {
         let obj = view_json.as_object_mut().expect("object");
         obj.insert("ok".to_string(), ok_data);
@@ -79,7 +77,10 @@ async fn render_edit_html(
     let section_name = entry.configurable.section_name();
     let mut view_json = entry.get_view_json().await.err_500()?;
     if let Some(err) = err_data {
-        view_json.as_object_mut().expect("view json must be an object").insert("err".to_string(), err);
+        view_json
+            .as_object_mut()
+            .expect("view json must be an object")
+            .insert("err".to_string(), err);
     }
 
     let configurable_html = templates
@@ -110,7 +111,6 @@ fn setup(router: Router<Arc<Settings>>, c: Arc<Box<dyn Configurable>>) -> Router
         .route(
             edit_path,
             get({
-                let c = c.clone();
                 let section_name = section_name.clone();
                 move |templates: templates::Templates, config: State<Arc<config::Settings>>| async move {
                     let entry = config.get_entry(&section_name)
@@ -139,7 +139,7 @@ fn setup(router: Router<Arc<Settings>>, c: Arc<Box<dyn Configurable>>) -> Router
                         Ok(ok_updated) => render_view_html(&templates, &entry, Some(ok_updated)).await,
                         Err(err) => render_edit_html(&templates, &entry, Some(err)).await,
                     };
-                    
+
                     resp
                 }
             }),

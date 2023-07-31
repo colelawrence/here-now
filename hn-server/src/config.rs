@@ -145,7 +145,7 @@ impl<'a, 'b> SettingEntry<'a, 'b> {
             .with_context(|| format!("reading toml for updating"))?
             .unwrap_or_default();
 
-        let original = doc.clone();
+        let _original = doc.clone();
         let ok = match f(doc.as_table_mut()) {
             Err(inner) => return Ok(Err(inner)),
             Ok(ok) => ok,

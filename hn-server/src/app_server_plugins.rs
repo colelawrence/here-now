@@ -1,16 +1,13 @@
 use std::{path::PathBuf, str::FromStr, time::Duration};
 
-use axum::{
-    response::{Html, IntoResponse},
-    routing::get,
-    Extension, Router,
-};
+use axum::{response::Html, routing::get, Extension, Router};
+use derive_codegen::Codegen;
 use quick_js::JsValue;
 use tower_http::trace::TraceLayer;
 
 use crate::{
     config_plugins::{self, ReadConfigFile},
-    http::{OrInternalError, Response},
+    http::OrInternalError,
     prelude::*,
     quickjs::serialize_to_js_value,
 };
@@ -173,10 +170,55 @@ fn start_server_from_tcp_listener(
     handle
 }
 
+#[derive(Serialize, Codegen)]
+#[codegen(tags = "login-page")]
+#[allow(non_snake_case)]
+pub struct LoginProps {
+    loginURLs: Vec<LoginURL>,
+}
+
+/// What kind of login URL?
+#[derive(Serialize, Codegen)]
+#[codegen(tags = "login-page")]
+#[codegen(svelte_enum)]
+pub struct LoginURL {
+    label: String,
+    url: String,
+}
+
+#[test]
+fn generate() {
+    derive_codegen::Generation::for_tag("login-page")
+        .as_arg_of(
+            std::process::Command::new("deno")
+                .args("run ./generator/generate-typescript.ts".split(' '))
+                .args("--sharedFileName=login-page.ts".split(' '))
+                .current_dir(get_crate_path().join("templates")),
+        )
+        .write()
+        .print();
+}
+
 async fn login_page(Extension(templates): Extension<SvelteTemplates>) -> HttpResult {
+    let props = LoginProps {
+        loginURLs: vec![
+            LoginURL {
+                label: "Discord".to_string(),
+                url: "login-discord".to_string(),
+            },
+            LoginURL {
+                label: "Slack".to_string(),
+                url: "login-slack".to_string(),
+            },
+            LoginURL {
+                label: "Google Workspace".to_string(),
+                url: "login-google-workspace".to_string(),
+            },
+        ],
+    };
     let template = svelte_template!("login.template.compiled.cjs");
     templates
-        .render_svelte_into_html_page(&template, ())
+        .render_svelte_into_html_page(&template, props)
         .context("rendering login page")
         .err_500()
         .map(Html)
@@ -239,7 +281,7 @@ impl SvelteTemplates {
         )
         .context("setting global in context")?;
         match ctx
-            .eval("module.exports.render({ value: _input_ })")
+            .eval("module.exports.render(_input_)")
             .context("rendered template quick")?
         {
             JsValue::Object(obj) => {

@@ -6,12 +6,20 @@ export type LoginProps = {
 export function LoginProps(inner: LoginProps): LoginProps {
   return inner;
 }
-/** `#[codegen(tags = "login-page")]` */
+/**
+ * What kind of login URL?
+ *
+ * `#[codegen(svelte_enum, tags = "login-page")]`
+ */
 export type LoginURL = {
   label: string;
   url: string;
 };
-/** `#[codegen(tags = "login-page")]` */
+/**
+ * What kind of login URL?
+ *
+ * `#[codegen(svelte_enum, tags = "login-page")]`
+ */
 export function LoginURL(inner: LoginURL): LoginURL {
   return inner;
 }

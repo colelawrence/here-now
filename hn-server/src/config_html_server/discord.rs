@@ -89,10 +89,7 @@ impl Configurable for DiscordSettings {
             );
         }
 
-        if !bot_token.is_empty()
-            && bot_token != "none"
-            && bot_token.chars().any(|a| a != 'X')
-        {
+        if !bot_token.is_empty() && bot_token != "none" && bot_token.chars().any(|a| a != 'X') {
             // changed bot_token
             edit::update_toml_key(
                 toml,

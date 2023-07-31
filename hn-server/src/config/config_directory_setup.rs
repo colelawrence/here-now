@@ -39,8 +39,7 @@ fn expect_config_directory_at(found: PathBuf) -> AppConfigFolder {
                 .prompt_skippable()
                 .expect("selecting option for creating the directory");
                 if let Some(true) = create {
-                    std::fs::create_dir_all(&found)
-                        .expect("creating directory for config files");
+                    std::fs::create_dir_all(&found).expect("creating directory for config files");
                     return AppConfigFolder(
                         found
                             .canonicalize()

@@ -1,4 +1,4 @@
-use toml_edit::{Decor, Formatted, Item, Key, RawString, Value};
+use toml_edit::{Decor, Item, Value};
 
 pub(crate) fn update_toml_key(
     toml: &mut dyn toml_edit::TableLike,

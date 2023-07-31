@@ -3,6 +3,7 @@ import { Code } from "./Code.ts";
 import { gen } from "./gen.ts";
 
 const args = parseArgs({
+  sharedFileName: "What name for the shared file?",
   prependText: "Prepend this to the top of the file",
   importScalarsFrom: "Relative file path to import all scalars from",
   includeLocationsRelativeTo: "Include links to the original source with this prefix",
@@ -112,6 +113,10 @@ function convert(input: gen.Input): gen.Output {
         ]);
 
         // TODO: handle different representations properly
+
+        if (decl.codegen_flags?.svelte_enum) {
+          console.error("This is a svelte enum", decl)
+        }
 
         for (const variant of variants) {
           const variantIdent = ident(variant.id);
@@ -272,7 +277,7 @@ function convert(input: gen.Input): gen.Output {
     generated.lines.unshift(args.prependText);
   }
 
-  const sharedOutputFile = "_shared.gen.ts";
+  const sharedOutputFile = args.sharedFileName ?? "_shared.gen.ts";
 
   return {
     errors: [],

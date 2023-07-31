@@ -1,13 +1,14 @@
-<script>
-  export const loginURLs = [
-    { label: "Discord", url: "login-discord" },
-    { label: "Slack", url: "login-slack" },
-    { label: "Google Workspace", url: "login-google-workspace" },
+<script lang="ts">
+  import { LoginURL } from "./login-page.ts"
+  export let loginURLs = [
+    LoginURL({ label: "Discord", url: "#login-discord" }),
+    LoginURL({ label: "Slack", url: "#login-slack" }),
+    LoginURL({ label: "Google Workspace", url: "#login-google-workspace" }),
   ];
 </script>
 
 <h1><span class="wave">👋</span>&nbsp;Here Now</h1>
-{#each loginURLs as { label, url }}
+{#each loginURLs as { url, label }}
   <a href={url} class="login-btn">Continue with {label}</a>
 {/each}
 

@@ -6,7 +6,7 @@ pub(crate) fn serialize_to_js_value<S: serde::Serialize>(a: S) -> Result<quick_j
         vec.push(b'(');
         // This could be a lot faster if we directly serialized into the libsysquickjs types.
         // but that seems like it would be more for the fun of it
-        let mut json = serde_json::to_writer(&mut vec, &a).context("stringifying value")?;
+        let _json = serde_json::to_writer(&mut vec, &a).context("stringifying value")?;
         vec.push(b')');
         unsafe {
             // We do not emit invalid UTF-8.

@@ -26,9 +26,7 @@ mod quick_svelte_template {
     }
 }
 mod quick {
-    use crate::{prelude::*, quickjs::serialize_to_js_value};
-    use quick_js::{Context, JsValue};
-    use serde::{ser::SerializeStruct, Serializer};
+    use crate::prelude::*;
 
     #[derive(Serialize)]
     struct Data {
@@ -44,14 +42,14 @@ mod quick {
     #[tokio::test]
     async fn test_quick() {
         test_logger();
-        let ctx = Context::new().unwrap();
+        let ctx = quick_js::Context::new().unwrap();
         let test_svelte_output =
             get_crate_path().join("../svelte-tools/tests/json_printer.template.compiled.cjs");
         // get_crate_path().join("../svelte-tools/tests/increment.svelte-preview-component.cjs");
         let code = tokio::fs::read_to_string(&test_svelte_output)
             .await
             .unwrap();
-        ctx.set_global("module", JsValue::Object(Default::default()))
+        ctx.set_global("module", quick_js::JsValue::Object(Default::default()))
             .unwrap();
         ctx.eval(&code).expect("success");
 
