@@ -1,24 +1,18 @@
 use clap::{self, Parser};
-use devx_cmd::Cmd;
-use std::{
-    path::PathBuf,
-    process::{self, Command, Output},
-};
+use std::{path::PathBuf, process::Command};
+
+use command_ext::CommandExt;
+mod command_ext;
 
 #[derive(Debug, Parser)]
 enum Args {
-    // Command names are generated from variant names.
-    // By default, a CamelCase name will be converted into a lowercase,
-    // hyphen-separated name; e.g. `FooBar` becomes `foo-bar`.
-    //
-    // Names can be explicitly specified using `#[options(name = "...")]`
-    // #[clap(info = "build web assets development")]
-    WebBuild,
-    // #[clap(help = "run server for development")]
+    /// Build web assets for development
+    WebBuild { watch: bool },
+    /// Run server for development
     Dev,
-    // #[clap(help = "lint fixes")]
+    /// Assorted lint fixes
     Fix,
-    // #[options(help = "generate and show docs")]
+    /// Generate and show docs
     Doc,
 }
 
@@ -26,7 +20,7 @@ fn main() {
     let args = Args::parse();
 
     match args {
-        Args::WebBuild => web_build(),
+        Args::WebBuild { watch } => web_build(watch),
         Args::Dev => dev(),
         Args::Fix => fix(),
         Args::Doc => doc(),
@@ -39,53 +33,42 @@ fn get_project_root_dir() -> PathBuf {
         .expect("CARGO_MANIFEST_DIR was defined")
 }
 
-fn web_build() {
+fn web_build(watch: bool) {
     let root_dir = get_project_root_dir();
 
     eprintln!("Building TypeScript");
-    let status = Command::new("npx")
-        .args("tsc -p ./design-tools/tsconfig.json".split(' '))
-        .current_dir(&root_dir)
-        .spawn()
-        .expect("building design tools")
-        .wait_with_output()
-        .expect("exiting");
-
-    expect_success(&status);
-
-    // make this a watch thing, too
-    Cmd::new("deno")
-        .args("run -A ./svelte-tools/compile-svelte.ts ./hn-server/templates".split(' '))
-        .current_dir(&root_dir)
-        .run()
-        .expect("built templates");
 
     Command::new("npx")
-        .args("tailwindcss -i hn-server/config-html-server.css -o hn-server/src/config_html_server/build/config-html-server.css --watch".split(' '))
+        .args("tsc -p ./design-tools/tsconfig.json".split(' '))
+        .current_dir(&root_dir)
+        .run("build design tools like TailwindCSS settings");
+
+    // make this a watch thing, too
+    Command::new("deno")
+        .args("run -A ./svelte-tools/compile-svelte.ts ./hn-server/templates".split(' '))
+        .arg_if(watch, "--watch")
+        .current_dir(&root_dir)
+        .run("built svelte templates");
+
+    Command::new("npx")
+        .args("tailwindcss -i hn-server/config-html-server.css -o hn-server/src/config_html_server/build/config-html-server.css".split(' '))
+        .arg_if(watch, "--watch")
         .current_dir(root_dir)
-        .spawn()
-        .expect("generating")
-        .wait_with_output()
-        .expect("exiting");
+        .run("tailwindcss compilation");
 }
 
 fn dev() {
-    let root_dir = get_project_root_dir();
     let server = Command::new("cargo")
         .env("RUST_LOG", "debug,!hyper")
         .env("HERE_NOW_CONFIG_FOLDER", "../conf")
         .args("watch --watch ./src --ignore *.j2 --ignore *.css".split(' '))
         .arg("--exec")
         .arg("run")
-        .current_dir(root_dir.join("./hn-server"))
-        .spawn()
-        .expect("running server with watcher");
+        .root_dir("./hn-server")
+        .run_in_thread("watch and run hn-server Rust program");
 
     let web_assets = jod_thread::spawn(|| {
-        web_build();
-    });
-    let server = jod_thread::spawn(|| {
-        server.wait_with_output().expect("exiting");
+        web_build(true);
     });
 
     web_assets.join();
@@ -93,46 +76,23 @@ fn dev() {
 }
 
 fn fix() {
-    let root_dir = get_project_root_dir();
-    let output = Command::new("cargo")
+    Command::new("cargo")
         .args("fix --allow-dirty --allow-staged".split(' '))
-        .current_dir(&root_dir)
-        .spawn()
-        .expect("fixing code")
-        .wait_with_output()
-        .expect("exiting");
+        .root_dir(".")
+        .run("fixing rust code in workspace");
 
-    expect_success(&output);
-
-    let output = Command::new("cargo")
+    Command::new("cargo")
         .args("fmt".split(' '))
-        .current_dir(root_dir)
-        .spawn()
-        .expect("formatting code")
-        .wait_with_output()
-        .expect("exiting");
-
-    expect_success(&output);
+        .root_dir(".")
+        .run("format rust files in workspace");
 }
 
 fn doc() {
-    let root_dir = get_project_root_dir();
-    let output = Command::new("cargo")
+    Command::new("cargo")
         .args("+nightly doc --workspace --open --target aarch64-apple-darwin".split(' '))
         // ensure not to get wasm bindgen stuff
         // the server and the desktop should work on this architecture
         .args("--target aarch64-apple-darwin".split(' '))
-        .current_dir(root_dir)
-        .spawn()
-        .expect("fixing code")
-        .wait_with_output()
-        .expect("exiting");
-
-    expect_success(&output);
-}
-
-fn expect_success(output: &Output) {
-    if !output.status.success() {
-        process::exit(output.status.code().unwrap_or(1))
-    }
+        .root_dir(".")
+        .run("geenrate and open docs");
 }
