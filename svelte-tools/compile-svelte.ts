@@ -1,4 +1,4 @@
-import { isAbsolute, join } from "https://deno.land/std/path/mod.ts";
+import { isAbsolute, join } from "https://deno.land/std@0.196.0/path/mod.ts";
 import { glob } from "npm:glob";
 import { OutputChunk, rollup } from "npm:rollup";
 import _typescript from "npm:rollup-plugin-esbuild";

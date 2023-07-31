@@ -70,7 +70,7 @@ mod quick {
             ],
         };
 
-        let input = serialize_to_js_value(&values).expect("serialized");
+        let input = crate::quickjs::serialize_to_js_value(&values).expect("serialized");
         ctx.set_global("_input_", input).unwrap();
         let val = ctx
             .eval("module.exports.render({ value: _input_ })")

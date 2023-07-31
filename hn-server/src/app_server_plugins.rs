@@ -187,7 +187,7 @@ pub struct LoginURL {
 }
 
 #[test]
-fn generate() {
+fn generate_svelte_templates() {
     derive_codegen::Generation::for_tag("login-page")
         .as_arg_of(
             std::process::Command::new("deno")

@@ -12,9 +12,6 @@ With Tandem.chat (the platform I have the most experience with), I think it was 
  * Slint-UI: Cross-platform desktop front-end with an innovative "Slint markup language"
     * As they are constantly improving slint, we'll probably talk with them some and contribute features like https://github.com/slint-ui/slint/pull/2557
  * Rust for desktop app state management and binding to Slint-UI
- * (Considering) GStreamer for
-    * Rendering incoming streamed videos and audio
-    * Streaming desktop application windows for screen share
 
 **Back-end**
  * Axum: Rust web server framework for general web serving and websockets
@@ -32,8 +29,6 @@ Anti-tech:
 
 ## Who can help the most
 
- * GStreamer knowledgeable advisors / enthusiasts
- * WebRTC video implementors for advice
  * Anyone interested in designing and building UI interfaces in Figma & slint-ui (I can help teach you slint markup language, it's awesome!)
  
 Are you interested in playing with slint-ui or very basic webservices for direct notifications?
@@ -43,4 +38,11 @@ Please open an issue introducing yourself or email me at cole@colelawrence.com
 
 I think people who have experienced Tandem.chat compared to Slack/Discord have a clearer understanding of the importance of this kind of tool for engineering teams.
 But, I think the market is very difficult to penetrate since this kind of application is very difficult to explain the nuances of. So, let's just make it in public, share ideas, and make this kind of application for ourselves.
+
+## Getting started
+
+Install watchexec for watch commands like `cargo xtask dev` and `cargo xtask web-build --watch`.
+```sh
+cargo install watchexec-cli
+```
 

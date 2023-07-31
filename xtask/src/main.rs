@@ -1,5 +1,5 @@
 use clap::{self, Parser};
-use std::{path::PathBuf, process::Command};
+use devx_cmd::Cmd;
 
 use command_ext::CommandExt;
 mod command_ext;
@@ -7,7 +7,10 @@ mod command_ext;
 #[derive(Debug, Parser)]
 enum Args {
     /// Build web assets for development
-    WebBuild { watch: bool },
+    WebBuild {
+        #[clap(long)]
+        watch: bool,
+    },
     /// Run server for development
     Dev,
     /// Assorted lint fixes
@@ -27,38 +30,48 @@ fn main() {
     }
 }
 
-fn get_project_root_dir() -> PathBuf {
-    std::env::var_os("CARGO_MANIFEST_DIR")
-        .and_then(|value| PathBuf::from(value).parent().map(PathBuf::from))
-        .expect("CARGO_MANIFEST_DIR was defined")
-}
-
 fn web_build(watch: bool) {
-    let root_dir = get_project_root_dir();
+    eprintln!("Building web dependencies, watch={watch:?}");
 
-    eprintln!("Building TypeScript");
-
-    Command::new("npx")
+    let typescript = Cmd::new("npx")
         .args("tsc -p ./design-tools/tsconfig.json".split(' '))
-        .current_dir(&root_dir)
-        .run("build design tools like TailwindCSS settings");
+        .arg_if(watch, "--watch")
+        .arg_if(watch, "--preserveWatchOutput")
+        .root_dir(".")
+        .run_in_thread("build design tool typescript like TailwindCSS settings");
 
-    // make this a watch thing, too
-    Command::new("deno")
+    let svelte_generator = Cmd::new("cargo")
+        .args("test --bin server -- app_server_plugins::generate_svelte_templates --exact --nocapture".split(' '))
+        .root_dir(".")
+        .run_watchable(
+            "built svelte template generated code",
+            watch,
+            "-w hn-server/templates/generator -e ts,rs -w hn-server/src/app_server_plugins.rs",
+        );
+
+    let svelte = Cmd::new("deno")
         .args("run -A ./svelte-tools/compile-svelte.ts ./hn-server/templates".split(' '))
-        .arg_if(watch, "--watch")
-        .current_dir(&root_dir)
-        .run("built svelte templates");
+        .root_dir(".")
+        .run_watchable(
+            "built svelte templates",
+            watch,
+            "-w ./hn-server/templates -e svelte,ts --ignore ./hn-server/templates/generator",
+        );
 
-    Command::new("npx")
+    let tailwind = Cmd::new("npx")
         .args("tailwindcss -i hn-server/config-html-server.css -o hn-server/src/config_html_server/build/config-html-server.css".split(' '))
+        .root_dir(".")
         .arg_if(watch, "--watch")
-        .current_dir(root_dir)
-        .run("tailwindcss compilation");
+        .run_in_thread("tailwindcss compilation");
+
+    typescript.join();
+    svelte.join();
+    tailwind.join();
+    svelte_generator.join();
 }
 
 fn dev() {
-    let server = Command::new("cargo")
+    let server = Cmd::new("cargo")
         .env("RUST_LOG", "debug,!hyper")
         .env("HERE_NOW_CONFIG_FOLDER", "../conf")
         .args("watch --watch ./src --ignore *.j2 --ignore *.css".split(' '))
@@ -76,23 +89,23 @@ fn dev() {
 }
 
 fn fix() {
-    Command::new("cargo")
+    Cmd::new("cargo")
         .args("fix --allow-dirty --allow-staged".split(' '))
         .root_dir(".")
-        .run("fixing rust code in workspace");
+        .run_it("fixing rust code in workspace");
 
-    Command::new("cargo")
+    Cmd::new("cargo")
         .args("fmt".split(' '))
         .root_dir(".")
-        .run("format rust files in workspace");
+        .run_it("format rust files in workspace");
 }
 
 fn doc() {
-    Command::new("cargo")
+    Cmd::new("cargo")
         .args("+nightly doc --workspace --open --target aarch64-apple-darwin".split(' '))
         // ensure not to get wasm bindgen stuff
         // the server and the desktop should work on this architecture
         .args("--target aarch64-apple-darwin".split(' '))
         .root_dir(".")
-        .run("geenrate and open docs");
+        .run_it("geenrate and open docs");
 }

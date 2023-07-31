@@ -10,4 +10,6 @@ docs = ["clap/unstable-doc"]
 
 [dependencies]
 clap = { version = "4.3.18", features = ["derive"] }
+# devx-cmd properly cleans up child processes for us
+devx-cmd = "0.5.0"
 jod-thread = "0.1.2"
