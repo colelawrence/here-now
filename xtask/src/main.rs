@@ -12,11 +12,20 @@ enum Args {
         watch: bool,
     },
     /// Run server for development
-    Dev,
+    Dev {
+        /// Connect to jaeger
+        #[clap(long)]
+        jaeger: bool,
+    },
     /// Assorted lint fixes
     Fix,
     /// Generate and show docs
     Doc,
+    /// Run Jaeger
+    Jaeger {
+        #[clap(long)]
+        docker: bool,
+    },
 }
 
 fn main() {
@@ -24,9 +33,28 @@ fn main() {
 
     match args {
         Args::WebBuild { watch } => web_build(watch),
-        Args::Dev => dev(),
+        Args::Jaeger { docker } => jaeger(docker).join(),
+        Args::Dev { jaeger } => dev(jaeger),
         Args::Fix => fix(),
         Args::Doc => doc(),
+    }
+}
+
+fn jaeger(docker: bool) -> jod_thread::JoinHandle {
+    if docker {
+        Cmd::new("docker")
+            .args("run --name jaeger".split(' '))
+            .arg("--rm") // remove container when it exits
+            .arg("-p16686:16686") // open port for web ui
+            .arg("-p14268:14268") // open port for trace collector http
+            .arg("jaegertracing/all-in-one:latest")
+            .root_dir(".")
+            .run_in_thread("starting jaeger in docker")
+    } else {
+        eprintln!("Starting jaeger locally. You can download jaeger binaries from https://github.com/jaegertracing/jaeger/releases/");
+        Cmd::new("jaeger-all-in-one")
+            .root_dir(".")
+            .run_in_thread("starting jaeger locally")
     }
 }
 
@@ -70,10 +98,15 @@ fn web_build(watch: bool) {
     svelte_generator.join();
 }
 
-fn dev() {
+fn dev(jaeger: bool) {
     let server = Cmd::new("cargo")
         .env("RUST_LOG", "debug,!hyper")
         .env("HERE_NOW_CONFIG_FOLDER", "../conf")
+        .env_if(
+            jaeger,
+            "JAEGER_COLLECTOR_ENDPOINT",
+            "http://localhost:14268/api/traces",
+        )
         .args("watch --watch ./src --ignore *.j2 --ignore *.css".split(' '))
         .arg("--exec")
         .arg("run")

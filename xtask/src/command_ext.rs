@@ -12,6 +12,7 @@ pub trait CommandExt {
     fn run_it(&mut self, reason: &str);
     fn run_in_thread(&mut self, reason: &'static str) -> JoinHandle;
     fn arg_if(&mut self, cond: bool, arg: &str) -> &mut Self;
+    fn env_if(&mut self, cond: bool, key: &str, value: &str) -> &mut Self;
     fn run_watchable(
         &mut self,
         reason: &'static str,
@@ -31,7 +32,10 @@ impl CommandExt for devx_cmd::Cmd {
     }
     #[track_caller]
     fn run_in_thread(&mut self, reason: &'static str) -> JoinHandle {
-        let mut child = self.spawn().expect("spawned child");
+        let mut child = self
+            .spawn()
+            .map_err(|err| format!("Command for {reason:?} failed to start: {self:?}\n{err:#?}"))
+            .unwrap();
         let self_debug = format!("{self:?}");
         jod_thread::spawn(move || {
             child.wait().map_err(|err| {
@@ -43,6 +47,14 @@ impl CommandExt for devx_cmd::Cmd {
     fn arg_if(&mut self, cond: bool, arg: &str) -> &mut Self {
         if cond {
             self.arg(arg)
+        } else {
+            self
+        }
+    }
+
+    fn env_if(&mut self, cond: bool, key: &str, value: &str) -> &mut Self {
+        if cond {
+            self.env(key, value)
         } else {
             self
         }

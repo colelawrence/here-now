@@ -191,6 +191,7 @@ pub(crate) async fn start(config: Arc<config::Settings>) -> Result<()> {
     let mut app = Router::new().route("/", get(hello_world));
     let templates = templates::Templates::new(templates_dir, initial_app.dev_mode.unwrap_or(true));
 
+    #[allow(deprecated)]
     for conf in config.configurables().cloned() {
         app = setup(app, conf);
     }

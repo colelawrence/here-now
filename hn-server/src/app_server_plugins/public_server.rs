@@ -188,7 +188,6 @@ async fn callback_discord(
         .await;
     let public_server_base_url = public_server_base_url.0.as_err_arc_ref().err_500()?;
 
-    // query.code.ok_or_else(|| anyhow!("Code not provided"))
     let text = if let Some(code) = query.code.as_ref() {
         let redirect_uri = format!("{public_server_base_url}/callback-discord");
 
@@ -214,7 +213,8 @@ async fn callback_discord(
             .await
             .context("reading text from discord code excange")
             .and_then(|text| {
-                serde_json::from_str::<DiscordToken>(&text).with_context(|| format!("deserializing discord token: `{text}`"))
+                serde_json::from_str::<DiscordToken>(&text)
+                    .with_context(|| format!("deserializing discord token: `{text}`"))
             })
             .err_400()?;
 
@@ -232,6 +232,7 @@ async fn callback_discord(
     } else {
         String::from("No code from login")
     };
+
     let template = svelte_template!("discord-callback.template.compiled.cjs");
     templates
         .render_svelte_into_html_page(
@@ -257,6 +258,7 @@ async fn callback_discord(
 /// }
 /// ```
 #[derive(Deserialize)]
+#[allow(unused)]
 struct DiscordToken {
     token_type: String,
     access_token: String,

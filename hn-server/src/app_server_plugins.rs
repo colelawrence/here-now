@@ -72,6 +72,7 @@ struct PublicServer {
     current_handle: Option<axum_server::Handle>,
 }
 
+#[tracing::instrument(skip_all)]
 fn index_bind_address_system(
     uv_config: UniqueView<config_plugins::ConfigFileContent<AppServerConfigFile>>,
     mut uvm_public_bind_address: UniqueViewMut<PublicServerBindAddress>,
@@ -122,6 +123,7 @@ fn index_bind_address_system(
     }
 }
 
+#[tracing::instrument(skip_all)]
 fn maintain_public_server_system(
     uv_app_ctx: UniqueView<AppCtx>,
     uv_public_bind_address: UniqueView<PublicServerBindAddress>,

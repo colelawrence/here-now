@@ -16,3 +16,6 @@
 [submodule "vendor/quickjs-rs"]
 	path = vendor/quickjs-rs
 	url = https://github.com/colelawrence/quickjs-rs
+[submodule "vendor/tracing-opentelemetry"]
+	path = vendor/tracing-opentelemetry
+	url = https://github.com/ymgyt/tracing-opentelemetry.git

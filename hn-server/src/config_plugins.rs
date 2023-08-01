@@ -81,9 +81,13 @@ mod internal {
         paths: &[PathBuf],
         uvm_dir_file_content: &mut UniqueViewMut<internal::ConfigDirectoryFileContent>,
     ) {
+        let _span = info_span!("load_the_file_contents", ?paths).entered();
         let updated_files = paths
             .par_iter()
-            .map(|path| ((path.clone(), std::fs::read(path).map_err(Arc::new))))
+            .map(|path| {
+                let _span = info_span!("read file content", ?path).entered();
+                (path.clone(), std::fs::read(path).map_err(Arc::new))
+            })
             .collect::<Vec<_>>();
 
         for (path, read_res) in updated_files {
@@ -241,7 +245,7 @@ mod config_file_plugin {
         mut uvm_file_content: UniqueViewMut<ConfigFileContent<C>>,
     ) {
         let name = type_name::<C>();
-        let _ = info_span!("load_system", ?name).entered();
+        let _span = info_span!("load_system", ?name).entered();
         if uv_dir_file_content.is_inserted_or_modified() {
             let existing_opt = uvm_file_content
                 .content_opt
@@ -306,7 +310,7 @@ mod config_file_plugin {
         mut uvm_dir_file_content: UniqueViewMut<internal::ConfigDirectoryFileContent>,
     ) {
         let for_confg_file = type_name::<C>();
-        let _ = info_span!("watch_system", ?for_confg_file).entered();
+        let _span = info_span!("watch_system", ?for_confg_file).entered();
         use notify::Watcher;
         if uv_dir.is_inserted_or_modified() || uv_config.is_inserted_or_modified() {
             debug!(?for_confg_file, "detected config change");
@@ -342,22 +346,21 @@ mod config_file_plugin {
             } = uvm_watcher.as_mut();
 
             if let Some(watch_path) = uvm_file_path.watch_path.as_ref() {
-                let watchers = watch_count
-                    .entry(watch_path.clone())
-                    .and_modify(|c| {
+                let _span = debug_span!("removing old watch path", ?watch_path).entered();
+                if let Some(1) = watch_count.get(watch_path) {
+                    watch_count.remove(watch_path);
+                    let _ = watcher.unwatch(watch_path);
+                } else {
+                    watch_count.entry(watch_path.clone()).and_modify(|c| {
                         if *c > 0 {
                             *c -= 1
                         }
-                    })
-                    .or_default();
-
-                if *watchers == 0 {
-                    watch_count.remove(watch_path);
-                    let _ = watcher.unwatch(watch_path);
+                    });
                 }
             }
 
             if let Some(ref base_dir) = uv_dir.path {
+                debug!(?base_dir, "loading config file paths via directory");
                 let watch_path = base_dir.join(uv_config.relative_path());
                 let watch_path = watch_path
                     .canonicalize()
@@ -367,9 +370,11 @@ mod config_file_plugin {
 
                 let cur = watch_count.entry(watch_path.clone()).or_default();
                 if *cur == 0 {
-                    watcher
-                        .watch(&watch_path, notify::RecursiveMode::NonRecursive)
-                        .todo(f!("watching file"));
+                    debug_span!("watcher add watched file", ?watch_path).in_scope(|| {
+                        watcher
+                            .watch(&watch_path, notify::RecursiveMode::NonRecursive)
+                            .todo(f!("watching file"))
+                    });
 
                     // notify on first load
                     internal::load_the_file_contents(&[watch_path], &mut uvm_dir_file_content)

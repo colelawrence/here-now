@@ -1,4 +1,4 @@
-use toml_edit::{Decor, Item, Value};
+use toml_edit::Item;
 
 pub(crate) fn update_toml_key(
     toml: &mut dyn toml_edit::TableLike,
@@ -37,30 +37,5 @@ pub(crate) fn update_toml_key(
     if let Some(dec) = toml.key_decor_mut(key) {
         dec.set_prefix(commented_key);
         dec.set_suffix(" ");
-    }
-}
-
-fn get_item_suffix(item: &Item) -> Option<&str> {
-    get_item_decor(item)
-        .and_then(|a| a.suffix())
-        .and_then(|a| a.as_str())
-}
-fn get_item_decor(item: &Item) -> Option<&Decor> {
-    match item {
-        Item::None => None,
-        Item::ArrayOfTables(_) => None,
-        Item::Value(v) => Some(get_decor(v)),
-        Item::Table(t) => Some(t.decor()),
-    }
-}
-fn get_decor(value: &Value) -> &Decor {
-    match value {
-        Value::String(a) => a.decor(),
-        Value::Integer(a) => a.decor(),
-        Value::Float(a) => a.decor(),
-        Value::Boolean(a) => a.decor(),
-        Value::Datetime(a) => a.decor(),
-        Value::Array(a) => a.decor(),
-        Value::InlineTable(a) => a.decor(),
     }
 }

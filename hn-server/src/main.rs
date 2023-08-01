@@ -140,12 +140,6 @@ mod config_html_server_plugins {
     #[derive(Component)]
     pub(crate) struct ConfigSettings(Arc<Settings>);
 
-    impl ConfigSettings {
-        pub fn settings(&self) -> &Arc<Settings> {
-            &self.0
-        }
-    }
-
     impl Plugin for ConfigHtmlServerPlugin {
         fn build(&self, app: &mut AppBuilder) {
             let config_dir = crate::config::config_directory_setup::init_config_directory();
