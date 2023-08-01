@@ -2,7 +2,7 @@ use std::{collections::BTreeSet, time::Duration};
 
 use prelude::ResultExt;
 use shipyard_app::AppBuilder;
-use tokio;
+use tokio::{self, sync::Mutex};
 
 mod app_ctx;
 mod hmm;
@@ -25,9 +25,19 @@ async fn main() {
     let workload = app.add_plugin_workload(main_plugin);
     let main_loop = tokio::spawn(async move {
         use crate::prelude::*;
+        let app: Arc<Mutex<App>> = Arc::new(Mutex::new(app));
 
-        // initial kick off
-        workload.run(&app);
+        {
+            let app_clone = app.clone();
+            let app = app.lock().await;
+            // re-insert app into world so it can be referenced
+            app.run(|mut uvm_app_ctx: UniqueViewMut<AppCtx>| {
+                uvm_app_ctx.as_mut().set_app(app_clone);
+            });
+
+            // initial kick off
+            workload.run(&app);
+        }
 
         let mut i = 0usize;
         loop {
@@ -70,15 +80,20 @@ async fn main() {
                     builder = builder.with_system(system);
                 }
 
-                let info = builder.add_to_world(&app.world).expect("adding workload");
-
                 debug!(?i, "running command loop");
-                app.world
-                    .run_workload(name)
-                    .todo(f!("run workload {:?}", info));
+                {
+                    let app = app.lock().await;
+                    let info = builder.add_to_world(&app.world).expect("adding workload");
+                    app.world
+                        .run_workload(name)
+                        .todo(f!("run workload {:?}", info));
+                }
 
                 debug!(?i, "running main loop");
-                workload.run(&app);
+                {
+                    let app = app.lock().await;
+                    workload.run(&app);
+                }
                 debug!(?i, "running main loop done");
             } else {
                 debug!(?i, "closed");

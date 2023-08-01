@@ -41,7 +41,7 @@
       "**/*.code-search": true
     },
     "explorer.fileNesting.patterns": {
-      "*.template.svelte": "${capture}.template.*.cjs",
+      "*.template.svelte": "${capture}.template.*.cjs, ${capture}.props.ts",
       "*.ts": "${capture}.spec.ts",
       "*.tsx": "${capture}.tsx, ${capture}.css, ${capture}@*.png",
       "*.type.ts": "create${capture}.ts",

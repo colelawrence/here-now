@@ -10,26 +10,26 @@ pub struct DiscordSettingsPlugin(());
 
 impl Plugin for DiscordSettingsPlugin {
     fn build(&self, app: &mut AppBuilder) {
-        app.add_tracked_value(DiscordClientID(Err(anyhow::anyhow!(
+        app.add_tracked_value(DiscordClientID(Arc::new(Err(anyhow::anyhow!(
             "Discord settings not set, yet"
-        ))));
-        app.add_tracked_value(DiscordClientSecret(Err(anyhow::anyhow!(
+        )))));
+        app.add_tracked_value(DiscordClientSecret(Arc::new(Err(anyhow::anyhow!(
             "Discord settings not set, yet"
-        ))));
+        )))));
         app.add_plugin(config_plugins::ConfigFilePlugin(DiscordConfigFile(())));
         app.add_system(index_discord_settings_system);
     }
 }
 
 /// Unique
-#[derive(Component)]
+#[derive(Debug, Component, Clone)]
 #[track(All)]
-pub struct DiscordClientID(pub Result<String>);
+pub struct DiscordClientID(pub ArcResult<String>);
 
 /// Unique
-#[derive(Component)]
+#[derive(Debug, Component, Clone)]
 #[track(All)]
-pub struct DiscordClientSecret(pub Result<String>);
+pub struct DiscordClientSecret(pub ArcResult<String>);
 
 #[derive(Component, Clone)]
 #[track(All)]
@@ -83,15 +83,15 @@ fn index_discord_settings_system(
                     .map(String::from)
             });
 
-        if uvm_client_id.0.as_ref().ok() != new_client_id_res.as_ref().ok() {
+        if uvm_client_id.0.as_ref().as_ref().ok() != new_client_id_res.as_ref().ok() {
             // as_mut marks it for modified
-            uvm_client_id.as_mut().0 = new_client_id_res;
+            uvm_client_id.as_mut().0 = Arc::new(new_client_id_res);
             info!("updated Discord client_id");
         }
 
-        if uvm_client_secret.0.as_ref().ok() != new_client_secret_res.as_ref().ok() {
+        if uvm_client_secret.0.as_ref().as_ref().ok() != new_client_secret_res.as_ref().ok() {
             // as_mut marks it for modified
-            uvm_client_secret.as_mut().0 = new_client_secret_res;
+            uvm_client_secret.as_mut().0 = Arc::new(new_client_secret_res);
             info!("updated Discord client_secret");
         }
     }

@@ -1,5 +1,7 @@
 use futures::Future;
 
+use tokio::sync::Mutex;
+
 use crate::prelude::*;
 
 pub type CommandSender = tokio::sync::mpsc::UnboundedSender<Command>;
@@ -26,6 +28,7 @@ pub struct AppCtxPlugin(pub CommandSender);
 
 #[derive(Component, Clone)]
 pub struct AppCtx {
+    app: Option<Arc<Mutex<App>>>,
     commands: CommandSender,
     handle: tokio::runtime::Handle,
 }
@@ -52,6 +55,23 @@ impl AppCtx {
             })
             .todo(f!("attempting to schedule"));
     }
+
+    pub async fn get_unique<U: Component + Clone + Send + Sync>(&self, reason: &'static str) -> U {
+        let all_access = self
+            .app
+            .as_ref()
+            .context(reason)
+            .expect("app mutex set")
+            .lock()
+            .await;
+        let b = all_access
+            .world
+            .borrow::<UniqueView<U>>()
+            .expect("unique access");
+        let ret = b.as_ref();
+        ret.clone()
+    }
+
     /// See [AppCtx::schedule_system]
     pub fn schedule_system_dedup<B, R, S>(&self, reason: &'static str, dedup: String, cmd: S)
     where
@@ -80,6 +100,10 @@ impl AppCtx {
             }
         });
     }
+
+    pub fn set_app(&mut self, app: Arc<Mutex<App>>) {
+        self.app = Some(app);
+    }
 }
 
 impl Plugin for AppCtxPlugin {
@@ -88,6 +112,7 @@ impl Plugin for AppCtxPlugin {
             tokio::runtime::Handle::try_current().expect("expect a tokio runtime is ready");
 
         app.add_unique(AppCtx {
+            app: Default::default(),
             commands: self.0.clone(),
             handle,
         });

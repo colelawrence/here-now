@@ -34,10 +34,16 @@ impl ReadConfigFile for AppServerConfigFile {
 
 impl Plugin for AppServerPlugin {
     fn build(&self, app: &mut AppBuilder) {
-        app.add_tracked_value(PublicServerBindAddress(
+        app.add_tracked_value(PublicServerBindAddress(Arc::new(
             self.default_socket_addr
+                .clone()
                 .context("default socket address not configured"),
-        ));
+        )));
+        app.add_tracked_value(PublicServerBaseURL(Arc::new(
+            self.default_socket_addr
+                .map(|socket| format!("http://{socket}"))
+                .context("default socket address not configured"),
+        )));
         app.add_unique(PublicServer {
             current_handle: None,
         });
@@ -52,7 +58,12 @@ impl Plugin for AppServerPlugin {
 /// Unique
 #[derive(Component)]
 #[track(All)]
-struct PublicServerBindAddress(pub Result<std::net::SocketAddr>);
+struct PublicServerBindAddress(pub ArcResult<std::net::SocketAddr>);
+
+/// Unique
+#[derive(Component, Clone)]
+#[track(All)]
+struct PublicServerBaseURL(pub ArcResult<String>);
 
 /// Unique
 #[derive(Component)]
@@ -64,8 +75,23 @@ struct PublicServer {
 fn index_bind_address_system(
     uv_config: UniqueView<config_plugins::ConfigFileContent<AppServerConfigFile>>,
     mut uvm_public_bind_address: UniqueViewMut<PublicServerBindAddress>,
+    mut uvm_public_base_url: UniqueViewMut<PublicServerBaseURL>,
 ) {
     if uv_config.is_inserted_or_modified() {
+        let new_host_base_url_res = uv_config
+            .get_content()
+            .context("expected config to have content")
+            .and_then(|inner| inner.content.as_err_arc_ref())
+            .and_then(|doc| {
+                doc.get("public_host_base_url")
+                    .context("Toml has public_host_base_url key defined")
+            })
+            .and_then(|item| {
+                item.as_str()
+                    .context("expected public_host_base_url to be a string")
+            })
+            .map(String::from);
+
         let new_bind_address_res = uv_config
             .get_content()
             .context("expected config to have content")
@@ -84,12 +110,15 @@ fn index_bind_address_system(
             })
             .map_err(|e| anyhow::anyhow!("{e:?}"));
 
-        if uvm_public_bind_address.0.as_ref().ok() == new_bind_address_res.as_ref().ok() {
-            return; // already up to date!
+        if uvm_public_bind_address.0.as_ref().as_ref().ok() != new_bind_address_res.as_ref().ok() {
+            // as_mut marks it for modified
+            uvm_public_bind_address.as_mut().0 = Arc::new(new_bind_address_res);
         }
 
-        // as_mut marks it for modified
-        uvm_public_bind_address.as_mut().0 = new_bind_address_res;
+        if uvm_public_base_url.0.as_ref().as_ref().ok() != new_host_base_url_res.as_ref().ok() {
+            // as_mut marks it for modified
+            uvm_public_base_url.as_mut().0 = Arc::new(new_host_base_url_res);
+        }
     }
 }
 
@@ -109,6 +138,7 @@ fn maintain_public_server_system(
         let listener = uv_public_bind_address
             .as_ref()
             .0
+            .as_ref()
             .as_ref()
             .map_err(|err| anyhow::anyhow!("{err:?}"))
             .and_then(|addr| {

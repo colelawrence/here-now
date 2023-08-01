@@ -2,6 +2,16 @@
 {% macro conf(disabled) %}
 {% if client_id %}
 <h3 class="text-title-xl">OAuth 2 Settings</h3>
+<details class="p-2 bg-ext-yellow-container">
+  <summary>Are you experiencing an issue with OAuth scopes like <b>invalid_scope</b>?</summary>
+  You may need to get Discord's approval for Here Now, so we can read the user's relationships.
+  Without knowning the user's relationships, we cannot easily link them with other people in the platform.
+  <br />
+  In order to get approval, you must <a class="text-sys-primary hover:underline"
+    href="https://support.discord.com/hc/en-us/requests/new?ticket_form_id=12094720423319" target="_blank">
+    submit an "Developer Support" ticket
+  </a>.
+</details>
 {% set oauth2_url = "applications/" + client_id + "/oauth2/general" if client_id else "applications" %}
 <a class="text-sys-primary hover:underline" target="_blank" href="https://discord.com/developers/{{ oauth2_url }}">Open
   OAuth 2 settings</a>
@@ -14,7 +24,7 @@
 {{ form_input(disabled=disabled, name="bot_token", label="Bot Token", value=bot_token, type="password") }}
 {% else %}
 <h3 class="text-title-xl">Getting started.</h3>
-<ol class="list-decimal pl-4">
+<ol class="pl-4 list-decimal">
   <li>Create a Discord app at <a class="text-sys-primary hover:underline" target="_blank"
       href="https://discord.com/developers/applications">discord.com/developers/applications</a></li>
   <li>

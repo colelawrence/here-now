@@ -41,12 +41,12 @@ fn web_build(watch: bool) {
         .run_in_thread("build design tool typescript like TailwindCSS settings");
 
     let svelte_generator = Cmd::new("cargo")
-        .args("test --bin server -- app_server_plugins::generate_svelte_templates --exact --nocapture".split(' '))
+        .args("test --bin server -- app_server_plugins::public_server::generate_svelte_templates --exact --nocapture".split(' '))
         .root_dir(".")
         .run_watchable(
             "built svelte template generated code",
             watch,
-            "-w hn-server/templates/generator -e ts,rs -w hn-server/src/app_server_plugins.rs",
+            "-w hn-server/templates/generator -e ts,rs -w hn-server/src/app_server_plugins/public_server.rs",
         );
 
     let svelte = Cmd::new("deno")

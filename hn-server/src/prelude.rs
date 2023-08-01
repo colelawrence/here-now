@@ -181,8 +181,8 @@ pub(crate) trait AsErrArcRefExt<T, E> {
     fn as_err_arc_ref(&self) -> Result<&T, Error>;
 }
 
-impl<T: 'static, E: std::error::Error + Debug + Display + Send + Sync + 'static>
-    AsErrArcRefExt<T, E> for Arc<Result<T, E>>
+impl<T: 'static, E: Debug + Display + Send + Sync + 'static> AsErrArcRefExt<T, E>
+    for Arc<Result<T, E>>
 {
     fn as_err_arc_ref(&self) -> Result<&T, Error> {
         let arc = self.clone();
@@ -193,12 +193,15 @@ impl<T: 'static, E: std::error::Error + Debug + Display + Send + Sync + 'static>
     }
 }
 
+#[derive(Clone)]
 struct ArcError<T, E>(pub Arc<Result<T, E>>);
+
+pub(crate) type ArcResult<T, E = Error> = Arc<Result<T, E>>;
 
 unsafe impl<E: Sync, T> Sync for ArcError<T, E> {}
 unsafe impl<E: Send, T> Send for ArcError<T, E> {}
 
-impl<T, E: std::error::Error + Debug + Display> std::error::Error for ArcError<T, E> {}
+impl<T, E: Debug + Display> std::error::Error for ArcError<T, E> {}
 
 impl<T, E: Display> Display for ArcError<T, E> {
     fn fmt(&self, mut f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

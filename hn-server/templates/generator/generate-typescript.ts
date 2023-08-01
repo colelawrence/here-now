@@ -22,8 +22,8 @@ function convert(input: gen.Input): gen.Output {
       args.includeLocationsRelativeTo ? [args.includeLocationsRelativeTo, decl.id_location] : undefined,
     );
 
-    if (decl.codegen_attrs?.outputname) {
-      outputFiles.set(decl.codegen_attrs.outputname[0], { importIdent: ident(decl.id) });
+    if (decl.codegen_attrs?.template) {
+      outputFiles.set(decl.codegen_attrs.template[0] + ".props.ts", { importIdent: ident(decl.id) });
     }
 
     if (decl.codegen_flags?.scalar) {
@@ -286,8 +286,8 @@ function convert(input: gen.Input): gen.Output {
         path: sharedOutputFile,
         source: generated.toString(),
       },
-      ...Array.from(outputFiles.entries()).map(([name, { docs, importIdent }]) => ({
-        path: name + ".ts",
+      ...Array.from(outputFiles.entries()).map(([name, { importIdent }]) => ({
+        path: name,
         source: new Code([`export { ${importIdent} } from "./${sharedOutputFile}";`]).toString(),
       })),
     ],

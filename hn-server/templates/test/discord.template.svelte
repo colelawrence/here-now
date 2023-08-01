@@ -1,6 +1,6 @@
 <script lang="ts">
   // import {DiscordSettings} from "./discord.ts"
-  import Input from "./Input.svelte";
+  import Input from "../Input.svelte";
   export let api_key = "00000001";
   export let client_id = "00000001";
 </script>
