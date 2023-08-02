@@ -2,7 +2,7 @@ use opentelemetry::global;
 
 use tracing_subscriber::prelude::*;
 
-static DEFAULT_RUST_LOG_ENV: &'static str = "debug,hyper=warn";
+static DEFAULT_HERE_NOW_LOG_ENV: &'static str = "debug,hyper=warn";
 
 pub(super) fn expect_init_logger() {
     // Something like http://localhost:14268/api/traces
@@ -22,8 +22,8 @@ pub(super) fn expect_init_logger() {
 
         tracing_subscriber::registry()
             .with(
-                tracing_subscriber::EnvFilter::try_from_default_env()
-                    .unwrap_or_else(|_| DEFAULT_RUST_LOG_ENV.into()),
+                tracing_subscriber::EnvFilter::try_from_env("HERE_NOW_LOG")
+                    .unwrap_or_else(|_| DEFAULT_HERE_NOW_LOG_ENV.into()),
             )
             .with(tracing_opentelemetry::layer().with_tracer(tracer))
             .with(
@@ -39,7 +39,7 @@ pub(super) fn expect_init_logger() {
     } else {
         use tracing_subscriber as ts;
         let env_filter =
-            ts::EnvFilter::try_from_default_env().unwrap_or_else(|_| DEFAULT_RUST_LOG_ENV.into());
+            ts::EnvFilter::try_from_default_env().unwrap_or_else(|_| DEFAULT_HERE_NOW_LOG_ENV.into());
         ts::registry()
             .with(env_filter)
             .with(ts::fmt::layer())
@@ -52,7 +52,7 @@ pub(crate) fn test_logger() {
     // in case a test needs logging
     use tracing_subscriber as ts;
     let env_filter =
-        ts::EnvFilter::try_from_default_env().unwrap_or_else(|_| DEFAULT_RUST_LOG_ENV.into());
+        ts::EnvFilter::try_from_default_env().unwrap_or_else(|_| DEFAULT_HERE_NOW_LOG_ENV.into());
     let _ = ts::registry()
         .with(env_filter)
         .with(ts::fmt::layer())

@@ -77,22 +77,21 @@ fn web_build(watch: bool) {
         .run_in_thread("build design tool typescript like TailwindCSS settings");
 
     let svelte_generator = Cmd::new("cargo")
-        .args("test --bin server -- app_server_plugins::public_server::generate_svelte_templates --exact --nocapture".split(' '))
+        .args("test --bin hn-server -- app_server_plugins::public_server::generate_svelte_templates --exact --nocapture".split(' '))
         .root_dir(".")
-        .run_watchable(
-            "built svelte template generated code",
+        .watchable(
             watch,
             "-w hn-server/templates/generator -e ts,rs -w hn-server/src/app_server_plugins/public_server.rs",
-        );
+        ).run_in_thread("built svelte template generated code");
 
     let svelte = Cmd::new("deno")
         .args("run -A ./svelte-tools/compile-svelte.ts ./hn-server/templates".split(' '))
         .root_dir(".")
-        .run_watchable(
-            "built svelte templates",
+        .watchable(
             watch,
             "-w ./hn-server/templates -e svelte,ts --ignore ./hn-server/templates/generator",
-        );
+        )
+        .run_in_thread("built svelte templates");
 
     let tailwind = Cmd::new("npx")
         .args("tailwindcss -i hn-server/config-html-server.css -o hn-server/src/config_html_server/build/config-html-server.css".split(' '))
@@ -108,17 +107,16 @@ fn web_build(watch: bool) {
 
 fn dev(jaeger: bool) {
     let server = Cmd::new("cargo")
-        .env("RUST_LOG", "debug,!hyper")
+        .env("HERE_NOW_LOG", "debug,!hyper,!watchexec=error")
         .env("HERE_NOW_CONFIG_FOLDER", "../conf")
         .env_if(
             jaeger,
             "JAEGER_COLLECTOR_ENDPOINT",
             "http://localhost:14268/api/traces",
         )
-        .args("watch --watch ./src --ignore *.j2 --ignore *.css".split(' '))
-        .arg("--exec")
         .arg("run")
         .root_dir("./hn-server")
+        .watchable(true, "-w ./src -i *.j2 -i *.css")
         .run_in_thread("watch and run hn-server Rust program");
 
     let web_assets = jod_thread::spawn(|| {

@@ -1,0 +1,44 @@
+# Test with
+# docker build --file=./Dockerfile.here-now -t herenow/server .  && docker run -it herenow/server /bin/bash
+
+FROM herenow/dev-tools:latest as dev-tools
+
+FROM rust:1.70.0-bullseye as rust-toolchain
+
+WORKDIR /build
+# 1. When the `rust-toolchain.toml` is changed,
+COPY ./rust-toolchain.toml /
+COPY ./rust-toolchain.toml ./rust-toolchain.toml
+
+# 2. then `rustup show` will download the appropriate components (which is now cached based on just one file)
+RUN rustup show
+RUN rustup default
+
+FROM rust-toolchain as builder
+
+RUN ln -s $(which cargo) /usr/bin/cargo
+
+# Copy in the manifest information for our dependencies
+# We can then build a minimal version of the workspace and cache that work.
+COPY ./vendor ./vendor
+COPY ./Cargo.toml ./Cargo.toml
+COPY ./Cargo.lock ./Cargo.lock
+COPY ./.cargo ./.cargo
+COPY ./hn-desktop/Cargo.toml ./hn-desktop/Cargo.toml
+COPY ./docker/dummy/main.rs  ./hn-desktop/src/main.rs
+COPY ./hn-server/Cargo.toml ./hn-server/Cargo.toml
+COPY ./docker/dummy/main.rs ./hn-server/src/main.rs
+COPY ./hn-common/Cargo.toml ./hn-common/Cargo.toml
+COPY ./docker/dummy/lib.rs  ./hn-common/src/lib.rs
+COPY ./xtask/Cargo.toml     ./xtask/Cargo.toml
+COPY ./docker/dummy/main.rs ./xtask/src/main.rs
+
+# cache dependencies (download and compile them)
+RUN /usr/bin/cargo check --release -p hn-server
+
+# Copy in the actually changed code
+COPY ./hn-server ./hn-server
+COPY ./hn-common ./hn-common
+
+# Build a release
+RUN /usr/bin/cargo build --release -p hn-server

@@ -1,0 +1,48 @@
+# Test with
+# docker build --file=./Dockerfile.here-now -t herenow/server .  && docker run -it herenow/server /bin/bash
+
+FROM herenow/dev-tools:latest as dev-tools
+
+FROM rust:1.70.0-bullseye as rust-toolchain
+
+WORKDIR /build
+# 1. When the `rust-toolchain.toml` is changed,
+COPY ./rust-toolchain.toml /
+COPY ./rust-toolchain.toml ./rust-toolchain.toml
+
+# 2. then `rustup show` will download the appropriate components (which is now cached based on just one file)
+RUN rustup show
+RUN rustup default
+
+FROM rust-toolchain as cargo-builder
+
+# grab a pre-built cargo-chef
+COPY --from=dev-tools /dev-tools/bin/cargo-chef /usr/local/cargo/bin/
+
+RUN ln -s $(which cargo) /usr/bin/cargo
+
+FROM cargo-builder AS planner
+COPY . .
+RUN /usr/bin/cargo chef prepare --recipe-path recipe.json
+
+# Build dependencies - this is the caching Docker layer!
+FROM cargo-builder as builder
+
+# Place this into the following image depending on whether you need release or not
+# RUN /usr/bin/cargo chef cook --release --recipe-path recipe.json
+COPY --from=planner /build/recipe.json recipe.json
+
+# COPY ./vendor ./vendor
+
+# RUN /usr/bin/cargo chef cook --release --recipe-path recipe.json
+RUN /usr/bin/cargo chef cook --recipe-path recipe.json
+
+COPY ./Cargo.toml ./Cargo.toml
+COPY ./Cargo.lock ./Cargo.lock
+COPY ./.cargo ./.cargo
+COPY ./conf ./conf
+COPY ./hn-desktop ./hn-desktop
+COPY ./hn-server ./hn-server
+COPY ./hn-common ./hn-common
+# RUN /usr/bin/cargo build --release -p hn-server
+# RUN /usr/bin/cargo build -p hn-server

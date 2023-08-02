@@ -1,5 +1,5 @@
 use jod_thread::JoinHandle;
-use std::path::PathBuf;
+use std::{borrow::BorrowMut, ffi::OsString, path::PathBuf};
 
 fn get_project_root_dir() -> PathBuf {
     std::env::var_os("CARGO_MANIFEST_DIR")
@@ -13,12 +13,7 @@ pub trait CommandExt {
     fn run_in_thread(&mut self, reason: &'static str) -> JoinHandle;
     fn arg_if(&mut self, cond: bool, arg: &str) -> &mut Self;
     fn env_if(&mut self, cond: bool, key: &str, value: &str) -> &mut Self;
-    fn run_watchable(
-        &mut self,
-        reason: &'static str,
-        cond: bool,
-        watchexec_args: &str,
-    ) -> jod_thread::JoinHandle;
+    fn watchable(&mut self, cond: bool, watchexec_args: &str) -> &mut Self;
 }
 const ASCII_CYAN: &str = "\x1b[36m";
 const ASCII_DIM: &str = "\x1b[2m";
@@ -74,29 +69,26 @@ impl CommandExt for devx_cmd::Cmd {
                 .expect("found directory"),
         )
     }
-    fn run_watchable(
-        &mut self,
-        reason: &'static str,
-        cond: bool,
-        watchexec_args: &str,
-    ) -> jod_thread::JoinHandle {
+
+    fn watchable(&mut self, cond: bool, watchexec_args: &str) -> &mut Self {
         if cond {
-            let mut watchexec_cmd = devx_cmd::Cmd::new("watchexec");
+            let bin = self.get_bin();
+            let args = self.get_args().to_vec();
+            let arg_len = args.len();
+            let mut all_args_it = watchexec_args
+                .split(' ')
+                .map(OsString::from)
+                .chain(std::iter::once(OsString::from(bin)))
+                .chain(args)
+                .into_iter();
 
-            watchexec_cmd
-                .args(watchexec_args.split(' '))
-                .arg(self.get_bin())
-                .args(self.get_args());
-
-            if let Some(curr) = self.get_current_dir() {
-                watchexec_cmd.current_dir(curr);
+            self.bin("watchexec");
+            for (idx, arg) in all_args_it.borrow_mut().take(arg_len).enumerate() {
+                self.replace_arg(idx, arg);
             }
 
-            eprintln!("Running {watchexec_cmd}");
-
-            watchexec_cmd.run_in_thread(reason)
-        } else {
-            self.run_in_thread(reason)
+            self.args(all_args_it);
         }
+        self
     }
 }

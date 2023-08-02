@@ -1,0 +1,31 @@
+# -t herenow/dev-tools
+
+# Debugging with:
+# docker build --file=./Dockerfile.dev-tools -t herenow/dev-tools . && docker run -it herenow/dev-tools bash
+
+FROM rust:1.70.0-bullseye as rust_tools
+
+RUN mkdir /dev-tools
+
+# will place the executables into /dev-tools/bin
+RUN cargo install --no-track --root /dev-tools \
+    watchexec-cli \
+    cargo-watch \
+    cargo-chef
+# https://github.com/watchexec/watchexec
+# https://github.com/watchexec/cargo-watch
+# https://github.com/LukeMathWalker/cargo-chef # Cannot yet use, because there are issues with loading relative paths
+
+
+FROM jaegertracing/all-in-one:1.47 as jaeger
+
+# for distributing
+# FROM scratch
+# for debugging
+FROM debian:bullseye-slim
+
+WORKDIR /dev-tools
+
+# these CLI tools can be copied into any debian (preferably bullseye) based image
+COPY --from=rust_tools /dev-tools/bin/* /dev-tools/bin/
+COPY --from=jaeger /go/bin/all-in-one-linux /dev-tools/bin/jaeger-all-in-one
