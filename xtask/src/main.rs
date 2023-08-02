@@ -53,7 +53,8 @@ fn jaeger(docker: bool) -> jod_thread::JoinHandle {
     } else {
         eprintln!("Starting jaeger locally. You can download jaeger binaries from https://github.com/jaegertracing/jaeger/releases/");
         Cmd::new("jaeger-all-in-one")
-            .root_dir(".")
+            .root_dir("./xtask/jaeger")
+            .arg("--query.ui-config=./jaeger-config.json")
             .run_in_thread("starting jaeger locally")
     }
 }

@@ -346,7 +346,7 @@ mod config_file_plugin {
             } = uvm_watcher.as_mut();
 
             if let Some(watch_path) = uvm_file_path.watch_path.as_ref() {
-                let _span = debug_span!("removing old watch path", ?watch_path).entered();
+                let _span = debug_span!("removing old watch path", file_path=?watch_path).entered();
                 if let Some(1) = watch_count.get(watch_path) {
                     watch_count.remove(watch_path);
                     let _ = watcher.unwatch(watch_path);
@@ -366,11 +366,11 @@ mod config_file_plugin {
                     .canonicalize()
                     .todo(f!("canonicalizing path ({watch_path:?}) to config file"));
 
-                debug!(?watch_path, "adding path to watch");
+                debug!(file_path=?watch_path, "adding path to watch");
 
                 let cur = watch_count.entry(watch_path.clone()).or_default();
                 if *cur == 0 {
-                    debug_span!("watcher add watched file", ?watch_path).in_scope(|| {
+                    debug_span!("watcher add watched file", file_path=?watch_path).in_scope(|| {
                         watcher
                             .watch(&watch_path, notify::RecursiveMode::NonRecursive)
                             .todo(f!("watching file"))

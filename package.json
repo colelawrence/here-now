@@ -9,5 +9,9 @@
     "tailwindcss": "^3.3.2",
     "tslib": "^2.6.0",
     "typescript": "^5.1.6"
+  },
+  "dependencies": {
+    "launch-editor": "^2.6.0",
+    "svelte": "^4.1.2"
   }
 }

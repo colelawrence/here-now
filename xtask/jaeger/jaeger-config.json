@@ -1,0 +1,57 @@
+{
+  "dependencies": {
+    "dagMaxNumServices": 200,
+    "menuEnabled": false
+  },
+  "monitor": {
+    "menuEnabled": false
+  },
+  "archiveEnabled": false,
+  "menu": [
+    {
+      "label": "Public",
+      "url": "http://127.0.0.1:9000"
+    },
+    {
+      "label": "Config",
+      "url": "http://127.0.0.1:3000"
+    },
+    {
+      "label": "Cargo Docs",
+      "url": "http://127.0.0.1:3000/dev/docs/server/index.html"
+    }
+  ],
+  "search": {
+    "maxLookback": {
+      "label": "2 Days",
+      "value": "2d"
+    },
+    "maxLimit": 1500
+  },
+  "linkPatterns": [
+    {
+      "type": "process",
+      "key": "jaeger.version",
+      "url": "https://github.com/jaegertracing/jaeger-client-java/releases/tag/#{jaeger.version}",
+      "text": "Information about Jaeger release #{jaeger.version}"
+    },
+    {
+      "type": "tags",
+      "key": "code.filepath",
+      "url": "http://0.0.0.0:3000/dev/open?file=#{code.filepath}:#{code.lineno}",
+      "text": "Open file in editor #{code.filepath}:#{code.lineno}"
+    },
+    {
+      "type": "tags",
+      "key": "file_path",
+      "url": "http://0.0.0.0:3000/dev/open?file=#{file_path}",
+      "text": "Open file in editor #{file_path}"
+    },
+    {
+      "type": "tags",
+      "key": "uri",
+      "url": "http://0.0.0.0:3000/dev/redir?uri=#{uri}",
+      "text": "Open #{uri}"
+    }
+  ]
+}

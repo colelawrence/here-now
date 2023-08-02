@@ -30,6 +30,8 @@ impl SvelteTemplates {
         let mut html = r#"<!DOCTYPE html>
         <html><head>
         <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+        <meta name="viewport" content="width=device-width,initial-scale=1"/>
+        <link rel="icon" type="image/png" href="/public/favicon.png"/>
         <title>Here Now</title>"#
             .to_string();
         html.push_str(&ssr.head);

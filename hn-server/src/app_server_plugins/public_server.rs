@@ -7,7 +7,7 @@ use axum::{
 use derive_codegen::Codegen;
 
 use http::{header::LOCATION, StatusCode};
-use tower_http::trace::TraceLayer;
+use tower_http::{services::ServeDir, trace::TraceLayer};
 
 use crate::{http::OrInternalError, prelude::*};
 
@@ -24,19 +24,20 @@ pub fn start_server_from_tcp_listener(
     let handle = axum_server::Handle::new();
     let server = axum_server::from_tcp(listener).handle(handle.clone());
 
+    let templates_path = get_crate_path()
+        .join("templates")
+        .canonicalize()
+        .expect("templates path exists");
+
     let app = Router::new()
         .route("/", get(login_page))
         .route("/login-discord", get(login_discord))
         .route("/callback-discord", get(callback_discord))
+        .nest_service("/public", ServeDir::new(templates_path.join("./public")))
         .layer(TraceLayer::new_for_http())
         .layer(Extension(app_ctx.clone()))
         .layer(Extension(svelte_templates::SvelteTemplates {
-            dev_path: Arc::new(
-                get_crate_path()
-                    .join("templates")
-                    .canonicalize()
-                    .expect("templates path exists"),
-            ),
+            dev_path: Arc::new(templates_path),
         }));
 
     app_ctx.spawn(async {
@@ -78,7 +79,15 @@ fn generate_svelte_templates() {
         .print();
 }
 
-async fn login_discord(Extension(app_ctx): Extension<AppCtx>) -> HttpResult<impl IntoResponse> {
+#[derive(Deserialize)]
+struct LoginDiscordParams {
+    bot: Option<String>,
+}
+
+async fn login_discord(
+    Extension(app_ctx): Extension<AppCtx>,
+    Query(LoginDiscordParams { bot }): Query<LoginDiscordParams>,
+) -> HttpResult<impl IntoResponse> {
     use axum::response::*;
 
     let client_id = app_ctx
@@ -92,7 +101,7 @@ async fn login_discord(Extension(app_ctx): Extension<AppCtx>) -> HttpResult<impl
     let public_server_base_url = public_server_base_url.0.as_err_arc_ref().err_500()?;
 
     // https://discord.com/developers/docs/topics/oauth2#shared-resources-oauth2-scopes
-    let scopes = [
+    let mut scopes = vec![
         // "activities.read", // allows your app to fetch data from a user's "Now Playing/Recently Played" list — not currently available for apps
         // "activities.write", // allows your app to update a user's activity - requires Discord approval (NOT REQUIRED FOR GAMESDK ACTIVITY MANAGER)
         // "applications.builds.read", // allows your app to read build data for a user's applications
@@ -122,6 +131,10 @@ async fn login_discord(Extension(app_ctx): Extension<AppCtx>) -> HttpResult<impl
         // "messages.read", // for local rpc server api access, this allows you to read messages from all client channels (otherwise restricted to channels/guilds your app creates)
         "identify", // allows /users/@me without email
     ];
+
+    if bot.is_some() {
+        scopes.push("bot");
+    }
 
     let scopes = scopes.join("%20");
     let redirect_uri = format!("{public_server_base_url}/callback-discord");
@@ -160,10 +173,22 @@ struct DiscordCallbackProps<'a> {
 
 #[derive(Deserialize, Serialize, Codegen)]
 #[codegen(tags = "templates")]
+struct DiscordCallbackBot {
+    /// `&guild_id=936348778330468482`
+    guild_id: String,
+    /// `&permissions=0`
+    permissions: String,
+}
+
+#[derive(Deserialize, Serialize, Codegen)]
+#[codegen(tags = "templates")]
 struct DiscordCallbackQuery {
     /// `error=invalid_scope&error_description=the+requested+scope+is+invalid%2c+unknown%2c+or+malformed.`
     #[serde(flatten)]
     error: Option<CallbackError>,
+    /// for when adding a bot workflow
+    #[serde(flatten)]
+    bot: Option<DiscordCallbackBot>,
     // e.g. `TKNwGgDvQqJdR5ZxMhtZef25JY4KsM`
     code: Option<String>,
 }
@@ -273,15 +298,19 @@ async fn login_page(
     let props = LoginProps {
         loginURLs: vec![
             LoginURL {
-                label: "Discord".to_string(),
+                label: "Add Discord Bot".to_string(),
+                url: "login-discord?bot".to_string(),
+            },
+            LoginURL {
+                label: "Continue with Discord".to_string(),
                 url: "login-discord".to_string(),
             },
             LoginURL {
-                label: "Slack".to_string(),
+                label: "Continue with Slack".to_string(),
                 url: "login-slack".to_string(),
             },
             LoginURL {
-                label: "Google Workspace".to_string(),
+                label: "Continue with Google Workspace".to_string(),
                 url: "login-google-workspace".to_string(),
             },
         ],

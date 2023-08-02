@@ -42,6 +42,17 @@ export function DiscordCallbackProps(inner: DiscordCallbackProps): DiscordCallba
   return inner;
 }
 /** `#[codegen(tags = "templates")]` */
+export type DiscordCallbackBot = {
+  /** `&guild_id=936348778330468482` */
+  guild_id: string;
+  /** `&permissions=0` */
+  permissions: string;
+};
+/** `#[codegen(tags = "templates")]` */
+export function DiscordCallbackBot(inner: DiscordCallbackBot): DiscordCallbackBot {
+  return inner;
+}
+/** `#[codegen(tags = "templates")]` */
 export type DiscordCallbackQuery = {
   code?: string | undefined | null | null | undefined;
 } // flattened fields:
@@ -52,7 +63,15 @@ export type DiscordCallbackQuery = {
  *
  * Flattened from `.error`.
  */
-& Partial<CallbackError | undefined | null>;
+& Partial<CallbackError | undefined | null>
+/**
+ * for when adding a bot workflow
+ *
+ * `#[serde(flatten)]`
+ *
+ * Flattened from `.bot`.
+ */
+& Partial<DiscordCallbackBot | undefined | null>;
 /** `#[codegen(tags = "templates")]` */
 export function DiscordCallbackQuery(inner: DiscordCallbackQuery): DiscordCallbackQuery {
   return inner;

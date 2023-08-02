@@ -12,7 +12,7 @@ import { LoginProps } from "./login.props.ts";
 <Header/>
 
 {#each loginURLs as { url, label }}
-  <a href={url} class="login-btn">Continue with {label}</a>
+  <a href={url} class="login-btn">{label}</a>
 {/each}
 
 <style>

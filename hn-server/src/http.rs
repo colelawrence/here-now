@@ -1,12 +1,11 @@
 use anyhow::Result;
-use axum::response::Html;
 pub use http::StatusCode;
 pub trait OrInternalError<T> {
     fn err_500(self) -> Result<T, (StatusCode, String)>;
     fn err_400(self) -> Result<T, (StatusCode, String)>;
 }
 
-impl<T> OrInternalError<T> for Result<T> {
+impl<T, E: std::fmt::Debug + std::fmt::Display> OrInternalError<T> for Result<T, E> {
     fn err_500(self) -> Result<T, (StatusCode, String)> {
         self.map_err(|err| {
             // redundant?
@@ -22,5 +21,3 @@ impl<T> OrInternalError<T> for Result<T> {
         self.map_err(|err| (StatusCode::BAD_REQUEST, format!("BAD REQUEST:\n{}", err)))
     }
 }
-
-pub type Response = Result<Html<String>, (StatusCode, String)>;

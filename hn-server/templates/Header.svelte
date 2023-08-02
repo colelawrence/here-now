@@ -1,4 +1,4 @@
-<h1><span class="wave">👋</span>&nbsp;<a href="/">Here Now</a></h1>
+<h1><span class="wave"><img src="/public/favicon.png" alt="Ducky"></span><a href="/">Here Now</a></h1>
 
 <style>
   :root {
@@ -8,9 +8,14 @@
     margin: 2rem auto;
   }
 
+  img {
+    height: 1em;
+  }
+
   a {
     color: inherit;
     text-decoration: none;
+    padding-left: 10px;
   }
 
   h1 {
