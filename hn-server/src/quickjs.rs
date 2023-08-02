@@ -1,5 +1,6 @@
 use anyhow::{Context as _, Result};
 
+#[tracing::instrument(skip_all)]
 pub(crate) fn serialize_to_js_value<S: serde::Serialize>(a: S) -> Result<quick_js::JsValue> {
     let json_with_parens = {
         let mut vec = Vec::with_capacity(128);

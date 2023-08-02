@@ -9,7 +9,7 @@ pub(crate) struct Unique;
 pub(crate) use std::borrow::Cow;
 use std::fmt::{format, Display};
 pub(crate) use std::sync::Arc;
-pub(crate) use tracing::{debug, debug_span, error, error_span, info, info_span, warn, warn_span};
+pub(crate) use tracing::{instrument, debug, debug_span, error, error_span, info, info_span, warn, warn_span};
 
 pub(crate) use anyhow::{Context as AnyhowContext, Error, Result};
 pub(crate) use serde::{Deserialize, Serialize};
