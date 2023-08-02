@@ -3,6 +3,7 @@ use std::{collections::BTreeSet, time::Duration};
 use prelude::ResultExt;
 use shipyard_app::AppBuilder;
 use tokio::{self, sync::Mutex};
+use tracing::{info_span, Instrument};
 
 mod app_ctx;
 mod hmm;
@@ -40,65 +41,83 @@ async fn main() {
         }
 
         let mut i = 0usize;
-        loop {
-            if let Some(app_ctx::Command {
-                reason,
-                system,
-                dedup,
-            }) = recv.recv().await
-            {
-                i += 1;
+        while let Some(app_ctx::Command {
+            reason,
+            system,
+            dedup,
+        }) = recv.recv().await
+        {
+            i += 1;
+            // async block so we can instrument with tracing
+            async {
+                // channel might continue growing?
+                tokio::time::sleep(Duration::from_millis(17))
+                    .instrument(info_span!("sleep to wait for additional commands"))
+                    .await;
 
-                debug!(?i, ?reason, "running command");
                 let mut seen = BTreeSet::<(String, &'static str)>::new();
                 seen.extend(dedup.map(|s| (s, reason)));
 
-                let name = format!("command-{i}");
-                let mut builder = WorkloadBuilder::new(name.clone());
-                builder = builder.with_system(system);
+                let (name, builder) = async {
+                    let name = format!("command-{i}");
+                    let mut builder = WorkloadBuilder::new(name.clone());
+                    builder = builder.with_system(system);
 
-                // channel might continue growing?
-                tokio::time::sleep(Duration::from_millis(100)).await;
+                    while let Ok(app_ctx::Command {
+                        reason,
+                        system,
+                        dedup,
+                    }) = recv.try_recv()
+                    {
+                        if let Some(dedup_str) = dedup {
+                            let val = (dedup_str, reason);
+                            if seen.contains(&val) {
+                                debug!(i, reason, dedup = val.0, "skipping duplicate command");
+                                continue;
+                            }
 
-                while let Ok(app_ctx::Command {
-                    reason,
-                    system,
-                    dedup,
-                }) = recv.try_recv()
-                {
-                    if let Some(dedup_str) = dedup {
-                        let val = (dedup_str, reason);
-                        if seen.contains(&val) {
-                            debug!(i, reason, dedup = val.0, "skipping duplicate command");
-                            continue;
+                            seen.insert(val);
                         }
 
-                        seen.insert(val);
+                        debug!(?i, ?reason, "adding command");
+                        builder = builder.with_system(system);
                     }
 
-                    debug!(?i, ?reason, "adding command");
-                    builder = builder.with_system(system);
+                    (name, builder)
+                }
+                .instrument(info_span!("collect commands into workload"))
+                .await;
+
+                {
+                    let app = app
+                        .lock()
+                        .instrument(info_span!("lock app for commands"))
+                        .await;
+                    async {
+                        let info = builder.add_to_world(&app.world).expect("adding workload");
+                        app.world
+                            .run_workload(name)
+                            .todo(f!("run collected commands workload {:?}", info));
+                    }
+                    .instrument(info_span!("run collected commands workload"))
+                    .await
                 }
 
-                debug!(?i, "running command loop");
                 {
-                    let app = app.lock().await;
-                    let info = builder.add_to_world(&app.world).expect("adding workload");
-                    app.world
-                        .run_workload(name)
-                        .todo(f!("run workload {:?}", info));
+                    let app = app
+                        .lock()
+                        .instrument(info_span!("lock app for update loop"))
+                        .await;
+                    info_span!("run update loop").in_scope(|| {
+                        workload.run(&app);
+                    });
                 }
-
-                debug!(?i, "running main loop");
-                {
-                    let app = app.lock().await;
-                    workload.run(&app);
-                }
-                debug!(?i, "running main loop done");
-            } else {
-                debug!(?i, "closed");
             }
+            .instrument(tracing::info_span!("running command", ?i, ?reason))
+            .await
         }
+
+        debug!(?i, "closed");
     });
 
     // must await or the nested jobs get canceled with an opaque "background task failed" error.

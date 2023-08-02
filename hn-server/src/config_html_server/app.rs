@@ -28,6 +28,7 @@ impl Configurable for AppSettings {
         "here-now-app".into()
     }
 
+    #[instrument(skip_all)]
     fn vars(&self, toml: &Box<dyn toml_edit::TableLike>) -> Result<JSON> {
         let public_bind_address = toml
             .get("public_bind_address")

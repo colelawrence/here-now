@@ -16,6 +16,7 @@ pub(crate) struct Templates {
 }
 
 impl Templates {
+    #[instrument(skip(self, value))]
     pub(crate) fn render(&self, template_name: &str, value: impl Serialize) -> Result<String> {
         let guard = self
             .reloader
@@ -33,6 +34,7 @@ impl Templates {
         Ok(result)
     }
 
+    #[instrument(skip(self, template, value))]
     pub(crate) fn render_block(
         &self,
         template: &HTMXPartial,

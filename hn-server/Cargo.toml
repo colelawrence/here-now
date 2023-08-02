@@ -1,5 +1,5 @@
 [package]
-name = "server"
+name = "hn-server"
 version = "0.1.0"
 edition.workspace = true
 license.workspace = true
@@ -18,7 +18,7 @@ serde_json.workspace = true
 actionable = "0.2.0"
 axum = "0.6.18"
 bonsaidb = { version = "0.4.1", default-features = false, features = ["server", "server-instrument"] }
-quick-js = { version = "0.4.2-alpha.0", path = "../vendor/quickjs-rs" }
+quick-js = { version = "0.4.2-alpha.0", path = "../vendor/quickjs-rs", features = ["serde"]}
 env_logger = "0.10.0"
 futures = "0.3.28"
 maud = { version = "0.25.0", features = ["axum"] }
@@ -44,6 +44,7 @@ reqwest = { version = "0.11.18", features = ["multipart"] }
 tracing-opentelemetry = { version = "0.19.0", path = "../vendor/tracing-opentelemetry" }
 opentelemetry = { version = "0.19.0", features = ["rt-tokio"] }
 opentelemetry-jaeger = { version = "0.18.0", features = ["rt-tokio", "reqwest_collector_client"] }
+reverse-proxy-service = { version = "0.2.0", features = ["axum"] }
 # flashmap = "0.1.0"
 # watchable = "1.1.1"
 # derive_more = { version = "1.0.0-beta.2", features = ["debug"] }

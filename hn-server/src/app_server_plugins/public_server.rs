@@ -34,7 +34,9 @@ pub fn start_server_from_tcp_listener(
         .route("/login-discord", get(login_discord))
         .route("/callback-discord", get(callback_discord))
         .nest_service("/public", ServeDir::new(templates_path.join("./public")))
-        .layer(TraceLayer::new_for_http())
+        .layer(TraceLayer::new_for_http().make_span_with(|request: &http::Request<_>| {
+            info_span!("public-request", method = %request.method(), uri = %request.uri())
+        }))
         .layer(Extension(app_ctx.clone()))
         .layer(Extension(svelte_templates::SvelteTemplates {
             dev_path: Arc::new(templates_path),

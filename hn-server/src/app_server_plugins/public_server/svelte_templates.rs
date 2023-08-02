@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use quick_js::JsValue;
 
-use crate::{prelude::*, quickjs::serialize_to_js_value};
+use crate::prelude::*;
 
 #[derive(Clone)]
 pub struct SvelteTemplates {
@@ -43,6 +43,7 @@ impl SvelteTemplates {
         html.push_str("</body></html>");
         Ok(html)
     }
+
     #[instrument(skip_all)]
     pub(crate) fn render_svelte_template<S: Serialize + Send>(
         &self,
@@ -58,12 +59,20 @@ impl SvelteTemplates {
         let code = template.read_cjs(&path)?;
         ctx.set_global("module", JsValue::Object(Default::default()))
             .context("setting global module")?;
-        ctx.eval(&code).expect("success");
-        ctx.set_global(
-            "_input_",
-            serialize_to_js_value(props).context("serializing props for template")?,
-        )
-        .context("setting global in context")?;
+        info_span!("eval svelte template code in quickjs")
+            .in_scope(|| ctx.eval(&code).context("evaluating svelte template code"))?;
+
+        // info_span!("set props (dumb) in quickjs").in_scope(|| {
+        //     ctx.set_global(
+        //         "_input0_",
+        //         serialize_to_js_value(&props).context("serializing props for template")?,
+        //     )
+        //     .context("setting global in context")
+        // })?;
+
+        info_span!("set_global_serde")
+            .in_scope(|| ctx.set_global_serde("_input_", &props))
+            .context("serializing props for template")?;
         match ctx
             .eval("module.exports.render(_input_)")
             .context("rendered template quick")?

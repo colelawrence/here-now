@@ -34,7 +34,7 @@ pub(super) fn expect_init_logger() {
 
         // Check out customization https://www.jaegertracing.io/docs/1.47/frontend-ui/
         tracing::warn!(
-            "jaeger tracing enabled, sending to {jaeger_collector_endpoint}, the UI is usually viewable at http://localhost:16686/search?service={service_name}",
+            "jaeger tracing enabled, sending to {jaeger_collector_endpoint}, the UI is usually viewable at http://localhost:16686/dev/traces/search?service={service_name}",
         );
     } else {
         use tracing_subscriber as ts;

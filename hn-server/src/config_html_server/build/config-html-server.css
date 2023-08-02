@@ -784,6 +784,10 @@ video {
   position: static;
 }
 
+.relative {
+  position: relative;
+}
+
 .mb-2 {
   margin-bottom: 0.5rem;
 }
@@ -843,6 +847,11 @@ video {
 .border-sys-on-secondary-container {
   --tw-border-opacity: 1;
   border-color: rgb(var(--sys-color-on-secondary-container, 8 30 39) / var(--tw-border-opacity));
+}
+
+.bg-ext-yellow-container {
+  --tw-bg-opacity: 1;
+  background-color: rgb(var(--ext-color-yellow-container, 255 223 150) / var(--tw-bg-opacity));
 }
 
 .bg-sys-error-container {
@@ -938,7 +947,7 @@ video {
 
 html,
 body {
-  height: 100%;
+  min-height: 100%;
 }
 
 body {

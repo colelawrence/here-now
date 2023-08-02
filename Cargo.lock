@@ -1537,6 +1537,49 @@ dependencies = [
 ]
 
 [[package]]
+name = "hn-server"
+version = "0.1.0"
+dependencies = [
+ "actionable",
+ "anyhow",
+ "async-trait",
+ "axum",
+ "axum-server",
+ "bonsaidb",
+ "clap 4.3.19",
+ "derive-codegen",
+ "directories",
+ "env_logger",
+ "futures",
+ "here-now-common",
+ "http",
+ "inquire",
+ "maud",
+ "minijinja",
+ "minijinja-autoreload",
+ "notify 6.0.1",
+ "once_cell",
+ "opentelemetry",
+ "opentelemetry-jaeger",
+ "quick-js",
+ "rayon",
+ "reqwest",
+ "reverse-proxy-service",
+ "serde",
+ "serde_json",
+ "shipyard",
+ "shipyard_app",
+ "tokio",
+ "toml_edit",
+ "tower-http",
+ "tower-layer",
+ "tracing",
+ "tracing-opentelemetry",
+ "tracing-subscriber 0.3.17",
+ "urlencoding",
+]
+
+[[package]]
 name = "http"
 version = "0.2.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2682,6 +2725,17 @@ dependencies = [
  "chrono",
  "libquickjs-sys",
  "once_cell",
+ "quick-js-serde",
+ "serde",
+]
+
+[[package]]
+name = "quick-js-serde"
+version = "0.1.0"
+dependencies = [
+ "libquickjs-sys",
+ "serde",
+ "thiserror",
 ]
 
 [[package]]
@@ -2927,6 +2981,20 @@ dependencies = [
  "wasm-bindgen-futures",
  "web-sys",
  "winreg",
+]
+
+[[package]]
+name = "reverse-proxy-service"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9fc2ed47bdba68a19ec326911efe3a141f3a102151b2164d75c75c4f852e3610"
+dependencies = [
+ "axum",
+ "http",
+ "hyper",
+ "log",
+ "regex",
+ "tower-service",
 ]
 
 [[package]]
@@ -3194,48 +3262,6 @@ dependencies = [
  "itoa",
  "ryu",
  "serde",
-]
-
-[[package]]
-name = "server"
-version = "0.1.0"
-dependencies = [
- "actionable",
- "anyhow",
- "async-trait",
- "axum",
- "axum-server",
- "bonsaidb",
- "clap 4.3.19",
- "derive-codegen",
- "directories",
- "env_logger",
- "futures",
- "here-now-common",
- "http",
- "inquire",
- "maud",
- "minijinja",
- "minijinja-autoreload",
- "notify 6.0.1",
- "once_cell",
- "opentelemetry",
- "opentelemetry-jaeger",
- "quick-js",
- "rayon",
- "reqwest",
- "serde",
- "serde_json",
- "shipyard",
- "shipyard_app",
- "tokio",
- "toml_edit",
- "tower-http",
- "tower-layer",
- "tracing",
- "tracing-opentelemetry",
- "tracing-subscriber 0.3.17",
- "urlencoding",
 ]
 
 [[package]]

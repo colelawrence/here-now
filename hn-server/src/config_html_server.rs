@@ -4,10 +4,12 @@ use std::{net::SocketAddr, sync::Arc};
 use axum::extract::Query;
 use axum::routing::post;
 use axum::{extract::State, response::Html, routing::get, Router};
+use axum_server::service::SendService;
 use http::header::LOCATION;
 use http::{HeaderValue, StatusCode};
 use minijinja::context;
 use tower_http::services::{ServeDir, ServeFile};
+use tower_http::trace::TraceLayer;
 
 use crate::config::{Configurable, Settings};
 use crate::http::OrInternalError;
@@ -18,6 +20,7 @@ pub(crate) mod discord;
 mod edit;
 mod templates;
 
+#[instrument(skip_all)]
 async fn get_root_path(
     templates: templates::Templates,
     config: State<Arc<config::Settings>>,
@@ -191,7 +194,7 @@ pub(crate) async fn start(config: Arc<config::Settings>) -> Result<()> {
     };
 
     // build our application with a single route
-    let mut app = Router::new().route("/", get(get_root_path));
+    let mut app = Router::<Arc<Settings>>::new().route("/", get(get_root_path));
     let templates = templates::Templates::new(templates_dir, initial_app.dev_mode.unwrap_or(true));
 
     #[allow(deprecated)]
@@ -200,15 +203,23 @@ pub(crate) async fn start(config: Arc<config::Settings>) -> Result<()> {
     }
 
     let app = app
-        .nest("/dev", create_dev_router())
         .fallback_service(
             ServeDir::new(templates_dir.join("./build"))
                 .not_found_service(ServeFile::new(templates_dir.join("./not-found.html"))),
         )
+        .layer(TraceLayer::new_for_http().make_span_with(|request: &http::Request<_>| {
+            info_span!("config-request", method = %request.method(), uri = %request.uri())
+        }))
         .layer(templates.axum_layer())
-        .with_state(config);
+        .with_state::<()>(config.clone());
 
     tracing::info!("Config server starting on http://{addr}");
+
+    let app = Router::<Arc<Settings>>::new()
+        .nest("/dev", create_dev_router())
+        // divided up so we don't trace the requests to the dev server
+        .fallback_service(app.into_service())
+        .with_state(config.clone());
 
     axum::Server::bind(&addr)
         .serve(app.into_make_service())
@@ -228,6 +239,29 @@ fn create_dev_router() -> Router<Arc<Settings>> {
         // /__open-in-editor?file=src/main.js:13:24
         .route("/open", get(dev_open))
         .route("/redir", get(dev_redir))
+        // TODO: make this based on the config
+        .nest_service("/traces", dev_jaeger_proxy::make_router().into_service())
+}
+
+mod dev_jaeger_proxy {
+    use axum::Router;
+    use reverse_proxy_service::AppendPrefix;
+    use tower_http::trace::TraceLayer;
+
+    use crate::prelude::{f, ResultExt};
+
+    pub(crate) fn make_router() -> Router {
+        // get from config?
+        let jaeger_host = "127.0.0.1:16686";
+        let jaeger_ui_host = reverse_proxy_service::builder_http(jaeger_host)
+            .todo(f!("ensure jaeger host ({jaeger_host}) is valid"));
+
+        Router::new()
+            .route_service("/*path", jaeger_ui_host.build(AppendPrefix("/dev/traces")))
+            .layer(TraceLayer::new_for_http().make_span_with(|request: &http::Request<_>| {
+                tracing::trace_span!("proxy-request", method = %request.method(), uri = %request.uri())
+            }))
+    }
 }
 
 #[derive(Debug, Deserialize)]

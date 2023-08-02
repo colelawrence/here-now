@@ -20,10 +20,14 @@ pub trait CommandExt {
         watchexec_args: &str,
     ) -> jod_thread::JoinHandle;
 }
+const ASCII_CYAN: &str = "\x1b[36m";
+const ASCII_DIM: &str = "\x1b[2m";
+const ASCII_RESET: &str = "\x1b[0m";
 
 impl CommandExt for devx_cmd::Cmd {
     #[track_caller]
     fn run_it(&mut self, reason: &str) {
+        eprintln!("${ASCII_CYAN} {self:?}\n{ASCII_DIM}{reason}{ASCII_RESET}");
         self.run()
             .map_err(|err| {
                 format!("Command for {reason:?} exited with non-zero code: {self:?}\n{err:#?}")
@@ -32,6 +36,7 @@ impl CommandExt for devx_cmd::Cmd {
     }
     #[track_caller]
     fn run_in_thread(&mut self, reason: &'static str) -> JoinHandle {
+        eprintln!("${ASCII_CYAN} {self:?}\n{ASCII_DIM}{reason}{ASCII_RESET}");
         let mut child = self
             .spawn()
             .map_err(|err| format!("Command for {reason:?} failed to start: {self:?}\n{err:#?}"))

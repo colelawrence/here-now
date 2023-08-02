@@ -4,7 +4,7 @@
 
 html,
 body {
-  @apply h-full;
+  @apply min-h-full;
 }
 
 body {
@@ -26,6 +26,7 @@ input, textarea {
   @apply p-1;
   @apply border-ext-yellow-container;
 }
+
 input:focus, textarea:focus {
   @apply text-ext-on-yellow-container;
   @apply border-ext-on-yellow-container;

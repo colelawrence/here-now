@@ -25,6 +25,9 @@ enum Args {
     Jaeger {
         #[clap(long)]
         docker: bool,
+        /// If you're expecting to see the Jaeger dashboard via the config server proxy /dev/jaeger
+        #[clap(long)]
+        proxied: bool,
     },
 }
 
@@ -33,14 +36,15 @@ fn main() {
 
     match args {
         Args::WebBuild { watch } => web_build(watch),
-        Args::Jaeger { docker } => jaeger(docker).join(),
+        Args::Jaeger { docker, proxied } => jaeger(docker, proxied).join(),
         Args::Dev { jaeger } => dev(jaeger),
         Args::Fix => fix(),
         Args::Doc => doc(),
     }
 }
 
-fn jaeger(docker: bool) -> jod_thread::JoinHandle {
+fn jaeger(docker: bool, proxied: bool) -> jod_thread::JoinHandle {
+    let proxy_base_path = "/dev/traces";
     if docker {
         Cmd::new("docker")
             .args("run --name jaeger".split(' '))
@@ -48,6 +52,8 @@ fn jaeger(docker: bool) -> jod_thread::JoinHandle {
             .arg("-p16686:16686") // open port for web ui
             .arg("-p14268:14268") // open port for trace collector http
             .arg("jaegertracing/all-in-one:latest")
+            .arg("--")
+            .arg_if(proxied, &format!("--query.base-path={proxy_base_path}"))
             .root_dir(".")
             .run_in_thread("starting jaeger in docker")
     } else {
@@ -55,6 +61,7 @@ fn jaeger(docker: bool) -> jod_thread::JoinHandle {
         Cmd::new("jaeger-all-in-one")
             .root_dir("./xtask/jaeger")
             .arg("--query.ui-config=./jaeger-config.json")
+            .arg_if(proxied, &format!("--query.base-path={proxy_base_path}"))
             .run_in_thread("starting jaeger locally")
     }
 }

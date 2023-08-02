@@ -18,7 +18,7 @@
     },
     {
       "label": "Cargo Docs",
-      "url": "http://127.0.0.1:3000/dev/docs/server/index.html"
+      "url": "http://127.0.0.1:3000/dev/docs/hn_server/index.html"
     }
   ],
   "search": {

@@ -54,8 +54,9 @@ pub(crate) struct SvelteTemplate {
 }
 
 impl SvelteTemplate {
-    pub fn read_cjs(&self, full_path: &std::path::Path) -> Result<String> {
-        std::fs::read_to_string(&full_path).with_context(|| format!("reading {full_path:?}"))
+    #[instrument(skip(self))]
+    pub fn read_cjs(&self, file_path: &std::path::Path) -> Result<String> {
+        std::fs::read_to_string(&file_path).with_context(|| format!("reading {file_path:?}"))
     }
 }
 
