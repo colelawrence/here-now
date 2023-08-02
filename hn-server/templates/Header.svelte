@@ -1,4 +1,4 @@
-<h1><span class="wave">👋</span>&nbsp;Here Now</h1>
+<h1><span class="wave">👋</span>&nbsp;<a href="/">Here Now</a></h1>
 
 <style>
   :root {
@@ -7,6 +7,12 @@
     max-width: 480px;
     margin: 2rem auto;
   }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
   h1 {
     position: relative;
   }
