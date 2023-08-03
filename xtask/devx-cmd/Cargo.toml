@@ -1,0 +1,23 @@
+[package]
+name = "devx-cmd"
+version = "0.5.0"
+edition = "2018"
+license = "MIT OR Apache-2.0"
+
+authors = ["Vitalii Kryvenko <vkryvenko@elastio.com>"]
+homepage = "https://github.com/elastio/devx"
+repository = "https://github.com/elastio/devx"
+keywords = ["process", "cmd", "shell", "bash"]
+categories = ["development-tools"]
+readme = "README.md"
+description = """
+    Convenience wrapper over std::process::Command for xtask crates
+"""
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+log = "0.4"
+
+[dev-dependencies]
+simple_logger = { version = "1.9", default-features = false }

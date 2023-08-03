@@ -1,5 +1,11 @@
 use jod_thread::JoinHandle;
-use std::{borrow::BorrowMut, ffi::OsString, path::PathBuf};
+use std::{
+    borrow::BorrowMut,
+    ffi::OsString,
+    io::{BufRead, BufReader},
+    path::PathBuf,
+    process::Stdio,
+};
 
 pub fn get_project_root_dir() -> PathBuf {
     std::env::var_os("CARGO_MANIFEST_DIR")
@@ -11,10 +17,17 @@ pub trait CommandExt {
     fn root_dir(&mut self, rel: &str) -> &mut Self;
     fn run_it(&mut self, reason: &str);
     fn run_in_thread(&mut self, reason: &'static str) -> JoinHandle;
+    fn run_with_printer(
+        &mut self,
+        reason: &'static str,
+        printer: for<'a> fn(&'a str),
+    ) -> JoinHandle;
     fn arg_if(&mut self, cond: bool, arg: &str) -> &mut Self;
     fn env_if(&mut self, cond: bool, key: &str, value: &str) -> &mut Self;
     fn watchable(&mut self, cond: bool, watchexec_args: &str) -> &mut Self;
 }
+
+const ASCII_RED: &str = "\x1b[31m";
 const ASCII_CYAN: &str = "\x1b[36m";
 const ASCII_DIM: &str = "\x1b[2m";
 const ASCII_RESET: &str = "\x1b[0m";
@@ -40,6 +53,31 @@ impl CommandExt for devx_cmd::Cmd {
         jod_thread::spawn(move || {
             child.wait().map_err(|err| {
                 format!("Command for {reason:?} in thread exited with non-zero code: {self_debug:?}\n{err:#?}")
+            }).unwrap()
+        })
+    }
+    #[track_caller]
+    fn run_with_printer(
+        &mut self,
+        reason: &'static str,
+        printer: for<'a> fn(&'a str),
+    ) -> JoinHandle {
+        eprintln!("${ASCII_CYAN} {self:?}\n{ASCII_DIM}{reason}{ASCII_RESET}");
+        let mut child = self
+            .spawn_with(Stdio::inherit(), Stdio::piped())
+            .map_err(|err| format!("Command for {reason:?} failed to start: {self:?}\n{err:#?}"))
+            .unwrap();
+        let self_debug = format!("{self:?}");
+        jod_thread::spawn(move || {
+            let buf = BufReader::new(child.child_mut().stderr.take().unwrap());
+            for line in buf.lines() {
+                match line {
+                    Ok(line) => printer(&line),
+                    Err(err) => eprintln!("Line read error: {err:#?}"),
+                }
+            }
+            child.wait().map_err(|err| {
+                format!("{ASCII_RED} Command for {reason:?} in thread exited with non-zero code: {self_debug:?}\n{ASCII_DIM}{err:#?}{ASCII_RESET}")
             }).unwrap()
         })
     }

@@ -1,9 +1,11 @@
-use std::{fmt::format, process::Command};
-
 use clap::{self, Parser};
 use devx_cmd::Cmd;
+use std::fmt::Write;
+use std::process::Command;
+use std::{collections::BTreeMap, ops::Rem};
 
 use command_ext::{get_project_root_dir, CommandExt};
+
 mod command_ext;
 
 #[derive(Debug, Parser)]
@@ -70,7 +72,7 @@ fn jaeger(docker: bool, proxied: bool) -> jod_thread::JoinHandle {
             .root_dir("./xtask/jaeger")
             .arg("--query.ui-config=./jaeger-config.json")
             .arg_if(proxied, &format!("--query.base-path={proxy_base_path}"))
-            .run_in_thread("starting jaeger locally")
+            .run_with_printer("starting jaeger locally", print_jaeger_line)
     }
 }
 
@@ -85,7 +87,7 @@ fn web_build(watch: bool) {
         .run_in_thread("build design tool typescript like TailwindCSS settings");
 
     let svelte_generator = Cmd::new("cargo")
-        .args("test --bin hn-server -- app_server_plugins::public_server::generate_svelte_templates --exact --nocapture".split(' '))
+        .args("test --quiet --bin hn-server -- app_server_plugins::public_server::generate_svelte_templates --exact --nocapture".split(' '))
         .root_dir(".")
         .watchable(
             watch,
@@ -123,6 +125,7 @@ fn dev(jaeger: bool) {
             "http://localhost:14268/api/traces",
         )
         .arg("run")
+        .arg("--quiet")
         .root_dir("./hn-server")
         .watchable(true, "-w ./src -i *.j2 -i *.css")
         .run_in_thread("watch and run hn-server Rust program");
@@ -192,5 +195,76 @@ fn build_docker(bash: bool) {
             .arg(tag)
             .root_dir(".")
             .run_it("running docker image");
+    }
+}
+/// ```json
+/// {"level":"info","ts":1690998316.6558468,"caller":"fswatcher/fswatcher.go:117","msg":"Received event","event":"CHMOD         \"jaeger-config.json\""}
+/// {"level":"info","ts":1690998341.6361809,"caller":"app/static_handler.go:150","msg":"reloaded UI config","filename":"./jaeger-config.json"}
+/// {"level":"info","ts":1690999310.2993999,"caller":"fswatcher/fswatcher.go:117","msg":"Received event","event":"CHMOD         \"jaeger-config.json\""}
+/// ```
+fn print_jaeger_line(line: &str) {
+    #[derive(serde::Deserialize)]
+    #[allow(unused)]
+    struct JaegerLine {
+        level: String,
+        msg: String,
+        ts: f64,
+        caller: String,
+        #[serde(flatten)]
+        rest: BTreeMap<String, serde_json::Value>,
+    }
+
+    const ASCII_YELLOW: &str = "\x1b[33m";
+    const ASCII_RED: &str = "\x1b[31m";
+    const ASCII_CYAN: &str = "\x1b[36m";
+    const ASCII_DIM: &str = "\x1b[2m";
+    const ASCII_RESET: &str = "\x1b[0m";
+    const ASCII_RESET_DIMMED: &str = "\x1b[0m\x1b[2m";
+    fn colored(name: &str) -> String {
+        let mut total = String::new();
+        for part in name.split(':') {
+            if total.len() > 0 {
+                total.push_str(ASCII_DIM);
+                total.push(':');
+                total.push_str(ASCII_RESET);
+            }
+            let bytes = part.as_bytes();
+            let len = bytes.len();
+            if len > 2 {
+                let x = unsafe { *bytes.get_unchecked(0) as usize };
+                let y = unsafe { *bytes.get_unchecked(len - 1) as usize };
+                // Bright on workerlog
+                // https://github.com/autoplayhq/workerlog/blob/c2e773c3bee59ff092255d32e5c07bc4e2c29b1f/src/workerlog.ts#L461-L463
+                let hue = 40 + x.rem(12) + y.rem(6) * 36;
+                write!(&mut total, "\x1b[38;5;{hue}m{part}").unwrap();
+            } else {
+                write!(&mut total, "{ASCII_CYAN}{part}").unwrap();
+            }
+        }
+        total
+    }
+
+    match serde_json::from_str::<JaegerLine>(&line) {
+        Ok(JaegerLine {
+            level,
+            msg,
+            caller: _,
+            ts: _,
+            rest,
+        }) => {
+            // let caller = colored(caller.split('/').last().unwrap_or(&caller));
+            let (level_color, msg_color) = match level.as_str() {
+                "info" => (ASCII_CYAN, ASCII_RESET_DIMMED),
+                "error" => (ASCII_RED, ASCII_RESET),
+                "warn" => (ASCII_YELLOW, ASCII_RESET),
+                _ => (ASCII_RESET_DIMMED, ASCII_RESET_DIMMED),
+            };
+            print!("{level_color}{level}{msg_color} {msg} ");
+            for (key, value) in rest {
+                print!("{}{ASCII_RESET}={} ", colored(&key), value);
+            }
+            println!("{ASCII_RESET}");
+        }
+        Err(_) => println!("{ASCII_DIM}{line}{ASCII_RESET}"),
     }
 }
