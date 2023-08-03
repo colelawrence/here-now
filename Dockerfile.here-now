@@ -6,6 +6,7 @@ FROM herenow/dev-tools:latest as dev-tools
 FROM rust:1.70.0-bullseye as rust-toolchain
 
 WORKDIR /build
+
 # 1. When the `rust-toolchain.toml` is changed,
 COPY ./rust-toolchain.toml /
 COPY ./rust-toolchain.toml ./rust-toolchain.toml
@@ -34,11 +35,25 @@ COPY ./xtask/Cargo.toml     ./xtask/Cargo.toml
 COPY ./docker/dummy/main.rs ./xtask/src/main.rs
 
 # cache dependencies (download and compile them)
-RUN /usr/bin/cargo check --release -p hn-server
+#   👇 and here's some caches!
+RUN --mount=type=cache,target=/root/.rustup \
+    --mount=type=cache,target=/root/.cargo/registry \
+    --mount=type=cache,target=/root/.cargo/git \
+		--mount=type=cache,target=/build/target \
+		set -eux; \
+		cargo build --release -p hn-server;
 
 # Copy in the actually changed code
 COPY ./hn-server ./hn-server
 COPY ./hn-common ./hn-common
 
 # Build a release
-RUN /usr/bin/cargo build --release -p hn-server
+RUN --mount=type=cache,target=/root/.rustup \
+    --mount=type=cache,target=/root/.cargo/registry \
+    --mount=type=cache,target=/root/.cargo/git \
+		--mount=type=cache,target=/build/target \
+		set -eux; \
+		cargo build --release -p hn-server; \
+		cp /build/target/release/hn-server /bin/hn-server;
+
+CMD ["/bin/hn-server"]

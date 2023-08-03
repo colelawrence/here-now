@@ -7,6 +7,8 @@ static DEFAULT_HERE_NOW_LOG_ENV: &'static str = "debug,hyper=warn";
 pub(super) fn expect_init_logger() {
     // Something like http://localhost:14268/api/traces
     let jaeger_collector_endpoint_var = std::env::var("JAEGER_COLLECTOR_ENDPOINT");
+    let env_filter = tracing_subscriber::EnvFilter::try_from_env("HERE_NOW_LOG")
+        .unwrap_or_else(|_| DEFAULT_HERE_NOW_LOG_ENV.into());
 
     if let Ok(jaeger_collector_endpoint) = jaeger_collector_endpoint_var {
         global::set_text_map_propagator(opentelemetry_jaeger::Propagator::new());
@@ -21,10 +23,7 @@ pub(super) fn expect_init_logger() {
             .expect("connected to jaeger");
 
         tracing_subscriber::registry()
-            .with(
-                tracing_subscriber::EnvFilter::try_from_env("HERE_NOW_LOG")
-                    .unwrap_or_else(|_| DEFAULT_HERE_NOW_LOG_ENV.into()),
-            )
+            .with(env_filter)
             .with(tracing_opentelemetry::layer().with_tracer(tracer))
             .with(
                 tracing_subscriber::fmt::layer()
@@ -37,12 +36,9 @@ pub(super) fn expect_init_logger() {
             "jaeger tracing enabled, sending to {jaeger_collector_endpoint}, the UI is usually viewable at http://localhost:16686/dev/traces/search?service={service_name}",
         );
     } else {
-        use tracing_subscriber as ts;
-        let env_filter =
-            ts::EnvFilter::try_from_default_env().unwrap_or_else(|_| DEFAULT_HERE_NOW_LOG_ENV.into());
-        ts::registry()
+        tracing_subscriber::registry()
             .with(env_filter)
-            .with(ts::fmt::layer())
+            .with(tracing_subscriber::fmt::layer())
             .init();
     }
 }

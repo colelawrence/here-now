@@ -17,6 +17,7 @@ pub(crate) mod quickjs;
 
 #[tokio::main]
 async fn main() {
+    eprintln!("Starting up");
     // can we make this configurable with reloading?
     logging::expect_init_logger();
 

@@ -1,3 +1,5 @@
+use std::{fmt::format, process::Command};
+
 use clap::{self, Parser};
 use devx_cmd::Cmd;
 
@@ -21,6 +23,11 @@ enum Args {
     Fix,
     /// Generate and show docs
     Doc,
+    /// Build docker container
+    Docker {
+        #[clap(long)]
+        bash: bool,
+    },
     /// Run Jaeger
     Jaeger {
         #[clap(long)]
@@ -40,6 +47,7 @@ fn main() {
         Args::Dev { jaeger } => dev(jaeger),
         Args::Fix => fix(),
         Args::Doc => doc(),
+        Args::Docker { bash } => build_docker(bash),
     }
 }
 
@@ -147,4 +155,33 @@ fn doc() {
         .args("--target aarch64-apple-darwin".split(' '))
         .root_dir(".")
         .run_it("geenrate and open docs");
+}
+
+fn build_docker(bash: bool) {
+    let tag = "herenow/server";
+    // docker build --file=./Dockerfile.here-now -t herenow/server .  && docker run -it herenow/server /bin/bash
+    Cmd::new("docker")
+        .env("DOCKER_BUILDKIT", "1")
+        .arg("build")
+        .arg("--file=./Dockerfile.here-now")
+        .arg(&format!("--tag={tag}"))
+        .arg(".")
+        .root_dir(".")
+        .run_it("building docker image");
+
+    if bash {
+        let mut child = Command::new("docker")
+            .arg("run")
+            .arg("-it")
+            .arg(tag)
+            .arg("/bin/bash")
+            .spawn() // inherits stdin, stdout, stderr
+            .expect("running docker image");
+        child.wait().expect("docker exited");
+    } else {
+        Cmd::new("docker")
+            .arg("run")
+            .arg(tag)
+            .run_it("running docker image");
+    }
 }
