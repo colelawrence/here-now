@@ -151,9 +151,15 @@ where
 }
 
 pub fn get_crate_path() -> std::path::PathBuf {
-    return std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+    let dir_from_env = std::env::var("CARGO_MANIFEST_DIR").unwrap_or_else(|_| {
+        std::env::var("HERE_NOW_SERVER_SRC_PATH").expect(
+            "CARGO_MANIFEST_DIR or HERE_NOW_SERVER_SRC_PATH env var pointing at hn-server folder",
+        )
+    });
+
+    return std::path::PathBuf::from(dir_from_env)
         .canonicalize()
-        .unwrap();
+        .expect("find ");
 }
 
 pub(crate) trait ResultExt<T, E> {
@@ -171,7 +177,8 @@ where
 {
     #[track_caller]
     fn todo<'a>(self, f: std::fmt::Arguments<'a>) -> T {
-        self.with_context(|| format!("{}", f)).unwrap()
+        self.with_context(|| format!("{}", f))
+            .expect("todo: handle error")
     }
 }
 

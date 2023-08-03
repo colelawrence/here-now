@@ -3,7 +3,7 @@ use std::{fmt::format, process::Command};
 use clap::{self, Parser};
 use devx_cmd::Cmd;
 
-use command_ext::CommandExt;
+use command_ext::{get_project_root_dir, CommandExt};
 mod command_ext;
 
 #[derive(Debug, Parser)]
@@ -179,9 +179,18 @@ fn build_docker(bash: bool) {
             .expect("running docker image");
         child.wait().expect("docker exited");
     } else {
+        let conf = get_project_root_dir().join("./conf");
+        let conf_str = conf.to_str().expect("conf path is valid utf8");
         Cmd::new("docker")
             .arg("run")
+            // remove on parent command exit
+            .args("--rm --init --name herenow".split(' '))
+            .arg2("-e", "HERE_NOW_CONFIG_FOLDER=/app/conf")
+            .arg2("-p", "3000:3000")
+            .arg2("-p", "9000:9000")
+            .arg2("-v", format!("{conf_str}:/app/conf"))
             .arg(tag)
+            .root_dir(".")
             .run_it("running docker image");
     }
 }

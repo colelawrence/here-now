@@ -1,7 +1,7 @@
 use jod_thread::JoinHandle;
 use std::{borrow::BorrowMut, ffi::OsString, path::PathBuf};
 
-fn get_project_root_dir() -> PathBuf {
+pub fn get_project_root_dir() -> PathBuf {
     std::env::var_os("CARGO_MANIFEST_DIR")
         .and_then(|value| PathBuf::from(value).parent().map(PathBuf::from))
         .expect("CARGO_MANIFEST_DIR was defined")

@@ -28,7 +28,7 @@ static CONFIG_FOLDER: Lazy<AppConfigFolder> = Lazy::new(|| {
             panic!("{CONFIG_FOLDER_ENV_VAR} env variable was not valid unicode: {err:?}");
         }
     }
-    eprintln!("No config folder passed in environment");
+    eprintln!("No config folder passed in environment via {HERE_NOW_CONFIG_FOLDER} env variable. Looking in default locations.");
     let user = directories::UserDirs::new().expect("no user directories found");
     let found = user
         .desktop_dir()
