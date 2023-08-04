@@ -1,13 +1,18 @@
-// @ts-nocheck
+// deno-lint-ignore-file
+// @ts-nocheck experimental
+
+import * as driver from "./protocol/is/driver.v0.gen.ts";
 
 namespace app {
   announce(
-    {
-      IDENTIFY: {
-        key: "here-now-app",
-        protocol: "protocol//driver.v0"
-      },
-    },
+    driver.Out.IDENTIFY({
+      key: "here-now",
+      // protocols: ["protocol//driver.v0"],
+    }),
+    driver.Out.DECLARE_SERVICE({
+      key: "public-http",
+      protocols: ["protocol//configuration", "protocol//http-server"],
+    }),
     {
       CONFIG_SECTION_UI: {
         key: "public",

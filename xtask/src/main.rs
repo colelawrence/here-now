@@ -148,7 +148,7 @@ fn dev_protocol() {
                 .split(' '),
         )
         .root_dir("./hn-server")
-        .watchable(true, "-w ./proc -w ./src/data.rs")
+        .watchable(true, "-w ./proc -w ./src/data.rs -w ./protocols/generator")
         .run_it("watching and generating protocol code");
 }
 

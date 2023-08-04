@@ -5,6 +5,10 @@
       "path": ".."
     },
     {
+      "name": "🔬 protocols",
+      "path": "../hn-server/protocols"
+    },
+    {
       "name": "🦀 derive-codegen",
       "path": "../vendor/derive-codegen"
     },
@@ -19,6 +23,7 @@
   ],
   "settings": {
     "files.exclude": {
+      "hn-server/protocols": true,
       "design-tools": true,
       "svelte-tools": true
     },
