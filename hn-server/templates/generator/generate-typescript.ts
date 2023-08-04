@@ -1,6 +1,5 @@
+import { Code, gen } from "https://deno.land/x/derive_codegen@v0.0.4-1/mod.ts";
 import { parseArgs } from "./parseArgs.ts";
-import { Code } from "./Code.ts";
-import { gen } from "./gen.ts";
 
 const args = parseArgs({
   sharedFileName: "What name for the shared file?",
