@@ -66,15 +66,23 @@ impl Configurable for AppSettings {
         let public_bind_address = json
             .get("public_bind_address")
             .and_then(|a| a.as_str())
-            .unwrap_or_default();
+            .unwrap_or_default()
+            .trim()
+            .trim_start_matches("http://")
+            .trim_end_matches('/');
         let public_host_base_url = json
             .get("public_host_base_url")
             .and_then(|a| a.as_str())
-            .unwrap_or_default();
+            .unwrap_or_default()
+            .trim()
+            .trim_end_matches('/');
         let config_server_bind_address = json
             .get("config_server_bind_address")
             .and_then(|a| a.as_str())
-            .unwrap_or_default();
+            .unwrap_or_default()
+            .trim()
+            .trim_start_matches("http://")
+            .trim_end_matches('/');
         let dev_mode = json
             .get("dev_mode")
             .and_then(|a| a.as_str())
