@@ -23,6 +23,8 @@ enum Args {
     },
     /// Assorted lint fixes
     Fix,
+    /// Develop loop for protocol definitions
+    DevProtocol,
     /// Generate and show docs
     Doc,
     /// Build docker container
@@ -50,6 +52,7 @@ fn main() {
         Args::Fix => fix(),
         Args::Doc => doc(),
         Args::Docker { bash } => build_docker(bash),
+        Args::DevProtocol => dev_protocol(),
     }
 }
 
@@ -127,7 +130,7 @@ fn dev(jaeger: bool) {
         .arg("run")
         .arg("--quiet")
         .root_dir("./hn-server")
-        .watchable(true, "-w ./src -i *.j2 -i *.css")
+        .watchable(true, "-w ./src -e rs")
         .run_in_thread("watch and run hn-server Rust program");
 
     let web_assets = jod_thread::spawn(|| {
@@ -136,6 +139,17 @@ fn dev(jaeger: bool) {
 
     web_assets.join();
     server.join();
+}
+
+fn dev_protocol() {
+    devx_cmd::Cmd::new("cargo")
+        .args(
+            "test --quiet --package hn-server --bin hn-server -- data::generate --exact --nocapture"
+                .split(' '),
+        )
+        .root_dir("./hn-server")
+        .watchable(true, "-w ./proc -w ./src/data.rs")
+        .run_it("watching and generating protocol code");
 }
 
 fn fix() {
@@ -152,12 +166,12 @@ fn fix() {
 
 fn doc() {
     Cmd::new("cargo")
-        .args("+nightly doc --workspace --open --target aarch64-apple-darwin".split(' '))
+        .args("+nightly doc --workspace --open".split(' '))
         // ensure not to get wasm bindgen stuff
         // the server and the desktop should work on this architecture
-        .args("--target aarch64-apple-darwin".split(' '))
+        .arg2("--target", current_platform::CURRENT_PLATFORM)
         .root_dir(".")
-        .run_it("geenrate and open docs");
+        .run_it("generate and open docs");
 }
 
 fn build_docker(bash: bool) {
@@ -233,9 +247,25 @@ fn print_jaeger_line(line: &str) {
             if len > 2 {
                 let x = unsafe { *bytes.get_unchecked(0) as usize };
                 let y = unsafe { *bytes.get_unchecked(len - 1) as usize };
+                let z = unsafe { *bytes.get_unchecked(1) as usize };
                 // Bright on workerlog
-                // https://github.com/autoplayhq/workerlog/blob/c2e773c3bee59ff092255d32e5c07bc4e2c29b1f/src/workerlog.ts#L461-L463
-                let hue = 40 + x.rem(12) + y.rem(6) * 36;
+                // See ./wikipedia-ansi-color-chart.png
+                // Inspired by https://github.com/autoplayhq/workerlog/blob/c2e773c3bee59ff092255d32e5c07bc4e2c29b1f/src/workerlog.ts#L461-L463
+                let mut r = x.rem(6);
+                let mut g = y.rem(6);
+                let mut b = z.rem(6);
+                if (r + g + b) < 3 {
+                    // too dark
+                    r += 1;
+                    g += 1;
+                    b += 1;
+                }
+
+                if r == g && r == b {
+                    // too gray
+                    b += 1;
+                }
+                let hue = 16 + r * 36 + g * 6 + b;
                 write!(&mut total, "\x1b[38;5;{hue}m{part}").unwrap();
             } else {
                 write!(&mut total, "{ASCII_CYAN}{part}").unwrap();
@@ -261,7 +291,7 @@ fn print_jaeger_line(line: &str) {
             };
             print!("{level_color}{level}{msg_color} {msg} ");
             for (key, value) in rest {
-                print!("{}{ASCII_RESET}={} ", colored(&key), value);
+                print!("{}{msg_color}{msg_color}={} ", colored(&key), value);
             }
             println!("{ASCII_RESET}");
         }

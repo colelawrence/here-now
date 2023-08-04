@@ -230,8 +230,9 @@ pub(crate) async fn start(config: Arc<config::Settings>) -> Result<()> {
 
 fn create_dev_router() -> Router<Arc<Settings>> {
     let router = Router::<Arc<Settings>>::new();
+    let current_platform = current_platform::CURRENT_PLATFORM;
     // TODO: make this configurable
-    let doc_path = get_crate_path().join("../target/aarch64-apple-darwin/doc");
+    let doc_path = get_crate_path().join(format!("../target/{current_platform}/doc"));
 
     router
         .nest_service("/docs", ServeDir::new(doc_path))

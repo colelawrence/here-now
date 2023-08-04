@@ -746,6 +746,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "current_platform"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a74858bcfe44b22016cb49337d7b6f04618c58e5dbfdef61b06b8c434324a0bc"
+
+[[package]]
 name = "darling"
 version = "0.13.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1395,12 +1401,14 @@ dependencies = [
  "axum",
  "axum-server",
  "bonsaidb",
+ "current_platform",
  "derive-codegen",
  "directories",
  "env_logger",
  "futures",
  "here-now-common",
  "http",
+ "i-hn-server-proc",
  "inquire",
  "maud",
  "minijinja",
@@ -1531,6 +1539,15 @@ dependencies = [
  "serde_derive_internals",
  "serde_json",
  "syn 2.0.27",
+]
+
+[[package]]
+name = "i-hn-server-proc"
+version = "0.0.0"
+dependencies = [
+ "derive-codegen",
+ "proc-macro2",
+ "quote",
 ]
 
 [[package]]
@@ -4079,6 +4096,7 @@ name = "xtask"
 version = "0.0.0"
 dependencies = [
  "clap",
+ "current_platform",
  "devx-cmd",
  "jod-thread",
  "serde",
