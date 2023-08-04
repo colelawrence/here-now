@@ -115,6 +115,7 @@ impl CommandExt for devx_cmd::Cmd {
             let arg_len = args.len();
             let mut all_args_it = watchexec_args
                 .split(' ')
+                .chain("--on-busy-update restart".split(' '))
                 .map(OsString::from)
                 .chain(std::iter::once(OsString::from(bin)))
                 .chain(args)
