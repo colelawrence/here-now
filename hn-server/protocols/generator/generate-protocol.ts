@@ -2,9 +2,10 @@ import { Code, gen } from "https://deno.land/x/derive_codegen@v0.0.4-1/mod.ts";
 import { parse } from "https://deno.land/std@0.194.0/flags/mod.ts";
 
 const { _: [jsonInput], ...args } = parse(Deno.args, {
-  string: ["sharedFileName", "includeLocationsRelativeTo"],
+  string: ["fileName", "includeLocationsRelativeTo"],
   default: {
-    sharedFileName: "protocol/is/driver.v0.gen.ts",
+    fileName: "protocol/is/driver.v0.gen.ts",
+    // for example "../" or ""
     includeLocationsRelativeTo: undefined,
   },
 });
@@ -19,7 +20,7 @@ function convert(input: gen.Input): gen.Output {
     const docs = Code.docString(
       decl,
       undefined,
-      args.includeLocationsRelativeTo ? [args.includeLocationsRelativeTo, decl.id_location] : undefined,
+      args.includeLocationsRelativeTo != null ? [args.includeLocationsRelativeTo, decl.id_location] : undefined,
     );
 
     if (decl.codegen_attrs?.template) {
@@ -79,7 +80,9 @@ function convert(input: gen.Input): gen.Output {
         }
       },
       Enum({ repr, variants }) {
+        checkEnum(repr)
         const enumIdent = ident(decl.id);
+        const $nsFactory = new Code(["// factory"]);
         const $nsMatchToObj = new Code(["// callbacks"]);
         const $nsMatchIfStrs = new Code(["// if-else strings"]);
         const $nsMatchIfObjs = new Code([
@@ -87,7 +90,7 @@ function convert(input: gen.Input): gen.Output {
           `if (typeof input !== "object" || input == null) throw new TypeError("Unexpected non-object for input");`,
         ]);
         const $ns = new Code([
-          `export type ApplyFns<R${genericsCont}> = {`,
+          `export type ApplyFns<R = void${genericsCont}> = {`,
           $nsMatchToObj,
           `}`,
           `/** Match helper for {@link ${enumIdent}} */`,
@@ -102,11 +105,19 @@ function convert(input: gen.Input): gen.Output {
               `const _exhaust: never = input;`,
               `throw new TypeError("Unknown object when expected ${enumIdent}");`,
             ]),
-            `}`,
+            `};`,
+          ]),
+          `}`,
+          `/** Factory helper for {@link ${enumIdent}} */`,
+          `export function factory<R${genericsCont}>(fn: (value: ${enumIdent}) => R): ApplyFns<R${genericsCont}> {`,
+          new Code([
+            `return {`,
+            $nsFactory,
+            `};`
           ]),
           `}`,
           `/** Match helper for {@link ${enumIdent}} */`,
-          `export function match<R>(`,
+          `export function match<R${genericsCont}>(`,
           new Code([`input: ${enumIdent}${generics},`, `to: ApplyFns<R${genericsCont}>,`]),
           `): R {`,
           new Code([`return apply(to)(input)`]),
@@ -136,6 +147,11 @@ function convert(input: gen.Input): gen.Output {
           const variantIdentRef = `${enumIdent}.${variantIdent}`;
           typeCode.ad1`| ${variantIdentRef}`;
           const variantDocs = Code.docString(variant);
+
+          $nsFactory.add`${variantIdent}(value) {`
+          $nsFactory.ad1`return fn(${variantIdent}(value));`
+          $nsFactory.add`},`
+
           gen.VariantFormat.match(variant.variant_format, {
             NewType(format) {
               const newTypeTs = createFormat(format);
@@ -287,7 +303,7 @@ function convert(input: gen.Input): gen.Output {
 
   generated.lines.unshift("/** serde_json::Value */\ntype Value = unknown;");
 
-  const sharedOutputFile = args.sharedFileName ?? "_shared.gen.ts";
+  const sharedOutputFile = args.fileName ?? "_shared.gen.ts";
 
   return {
     errors: [],
@@ -305,6 +321,15 @@ function convert(input: gen.Input): gen.Output {
   };
 }
 
+const checkEnum = gen.EnumRepresentation.apply({
+  External() {},
+  Tagged() {
+    throw new Error("Tagged representation not handled by generator");
+  },
+  Untagged() {
+    throw new Error("Untagged representation not handled by generator");
+  },
+});
 function splitByFlattened<T extends gen.Attrs>(items: T[]) {
   const flattened: T[] = [];
   const fields: T[] = [];

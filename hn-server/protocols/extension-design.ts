@@ -1,18 +1,68 @@
+// prettier no-semi
 // deno-lint-ignore-file
-// @ts-nocheck experimental
+// @ ts-nocheck experimental
 
-import * as driver from "./protocol/is/driver.v0.gen.ts";
+import * as iam from "./protocol/is/iam.v0.gen.ts"
+import * as driver from "./protocol/is/driver.v0.gen.js"
+// import * as service from "./protocol/is/service.v0.gen.ts"
 
-namespace app {
-  announce(
-    driver.Out.IDENTIFY({
-      key: "here-now",
-      // protocols: ["protocol//driver.v0"],
-    }),
-    driver.Out.DECLARE_SERVICE({
+async function test() {
+  await ch0.expect(({ iam, driver }) => {
+    // this is essentially a long-lived process
+    iam.IDENTIFY({
+      title: "Here Now App",
+      // protocols: ["protocol//iam.v0", "protocol//driver.v0"],
+    })
+    iam.UI({
+      key: "dev",
+      order: 1,
+      title: "Developer Settings",
+      items: [
+        {
+          INPUT: {
+            key: "dev_mode",
+            label: "Enable Dev Mode",
+            type: { TEXT: {} },
+          },
+        },
+      ],
+    })
+    driver.DECLARE_SERVICE({
       key: "public-http",
-      protocols: ["protocol//configuration", "protocol//http-server"],
-    }),
+      title: "",
+      // protocols: [
+      //   "protocol//configuration",
+      //   "protocol//http-server",
+      //   "protocol//driver",
+      // ],
+    })
+  })
+
+  ch0.in.driver.CREATE_SERVICE({
+    service_key: "public-http",
+    channel: "1",
+  })
+
+  const ch1 = {
+    in: {
+      service: service.In.factory(
+        console.log.bind("[1] %c-> Service", "color: blue"),
+      ),
+    },
+    expect: {
+      service: service.Out.factory(async (value) =>
+        console.log("[1] %cService ->", "color: yellow", value),
+      ),
+    },
+  }
+
+  ch1.expect.iam.IDENTIFY({
+    title: "",
+  })
+
+  ch1.expect.IDENTIFY({})
+
+  announce(
     {
       CONFIG_SECTION_UI: {
         key: "public",
@@ -80,7 +130,7 @@ namespace app {
         key: "public_url",
       },
     },
-  );
+  )
 
   announce(
     {
@@ -90,7 +140,9 @@ namespace app {
           {
             label: "Here Now Server",
             driver_id: "here-now-app",
-            shared: [{ item_id: "section/input//public/base_url", optional: false }],
+            shared: [
+              { item_id: "section/input//public/base_url", optional: false },
+            ],
           },
         ],
       },
@@ -99,15 +151,22 @@ namespace app {
       CONFIG_SECTION_UI: {
         key: "discord",
         items: [
-          { INPUT: { key: "client_id", type: { TEXT: { placeholder: "" } }, label: "Hello", help: "Help text" } },
+          {
+            INPUT: {
+              key: "client_id",
+              type: { TEXT: { placeholder: "" } },
+              label: "Hello",
+              help: "Help text",
+            },
+          },
           { INPUT: { key: "client_secret", label: "Secret from ..." } },
           { INPUT: { key: "bot_token", label: "Looks kinda like..." } },
         ],
       },
     },
-  );
+  )
 
-  operator({});
+  operator({})
 
   announce({
     RAISE: {
@@ -116,12 +175,41 @@ namespace app {
       key: "",
       resolved_by: [
         {
-          label: "Need to specify a public url in order to give other applications a public URL.",
+          label:
+            "Need to specify a public url in order to give other applications a public URL.",
           type: { SECTION_INPUTS: ["section/input:public/"] },
         },
       ],
     },
-  });
+  })
+}
+
+const ch0 = {
+  in: {
+    /** driver.v0 */
+    driver: driver.In.factory(async (value) =>
+      console.log("[0] %c-> [driver]", "color: blue", value),
+    ),
+    /** iam */
+    iam: iam.In.factory(async (value) =>
+      console.log("[0] %c-> [iam]", "color: blue", value),
+    ),
+  },
+  expect(
+    fn: (protos: {
+      driver: driver.Out.ApplyFns
+      iam: iam.Out.ApplyFns
+    }) => void,
+  ) {
+    fn({
+      iam: iam.Out.factory((value) =>
+        console.log("[0] %c[iam] ->", "color: yellow", value),
+      ),
+      driver: driver.Out.factory((value) =>
+        console.log("[0] %c[driver] ->", "color: yellow", value),
+      ),
+    })
+  },
 }
 
 function describe(...args: any[]) {}

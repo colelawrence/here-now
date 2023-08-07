@@ -46,6 +46,14 @@ opentelemetry = { version = "0.19.0", features = ["rt-tokio"] }
 opentelemetry-jaeger = { version = "0.18.0", features = ["rt-tokio", "reqwest_collector_client"] }
 reverse-proxy-service = { version = "0.2.0", features = ["axum"] }
 current_platform = "0.2.0"
+
+[dev-dependencies]
+smallvec = "1.11.0"
+sourcemap = "6.4.0"
+tree-sitter = "0.20.10"
+tree-sitter-rust = "0.20.3"
+tree-sitter-typescript = "0.20.2"
+ustr = "0.10.0"
 # flashmap = "0.1.0"
 # watchable = "1.1.1"
 # derive_more = { version = "1.0.0-beta.2", features = ["debug"] }

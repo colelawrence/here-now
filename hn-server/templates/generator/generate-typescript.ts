@@ -18,7 +18,7 @@ function convert(input: gen.Input): gen.Output {
     const docs = Code.docString(
       decl,
       undefined,
-      args.includeLocationsRelativeTo ? [args.includeLocationsRelativeTo, decl.id_location] : undefined,
+      args.includeLocationsRelativeTo != null ? [args.includeLocationsRelativeTo, decl.id_location] : undefined,
     );
 
     if (decl.codegen_attrs?.template) {
