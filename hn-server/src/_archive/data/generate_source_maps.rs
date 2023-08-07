@@ -1,3 +1,5 @@
+// ! Experimental matcher for source map creation for declaration file
+
 use std::collections::BTreeMap;
 
 use rayon::prelude::*;
@@ -325,6 +327,7 @@ fn generate_sourcemap() {
 
     let map_file_name = format!("{}.map", decl_file);
     let mut map_file = std::fs::File::create(protocol_file_dir.join(map_file_name)).unwrap();
+    // Check using https://evanw.github.io/source-map-visualization
     sm.into_sourcemap()
         .to_writer(&mut map_file)
         .expect("wrote to map");

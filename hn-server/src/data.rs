@@ -5,10 +5,6 @@ use std::marker::PhantomData;
 
 use crate::prelude::get_crate_path;
 
-#[cfg(test)]
-mod generate_source_maps;
-
-mod source_lines;
 #[protocol_type("global")]
 #[serde(transparent)]
 pub struct UsrString(String);

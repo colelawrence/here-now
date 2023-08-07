@@ -144,7 +144,7 @@ fn dev(jaeger: bool) {
 fn dev_protocol() {
     devx_cmd::Cmd::new("cargo")
         .args(
-            "test --quiet --package hn-server --bin hn-server -- data::generate --exact --nocapture"
+            "test --quiet --package hn-server --bin hn-server -- data::generate --exact --nocapture --ignored"
                 .split(' '),
         )
         .root_dir("./hn-server")

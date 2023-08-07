@@ -1,3 +1,5 @@
+// ! Experimental matcher for source map creation for declaration file
+
 #[derive(Clone)]
 pub struct SourceLineNumberIndex {
     newlines: Vec<usize>,

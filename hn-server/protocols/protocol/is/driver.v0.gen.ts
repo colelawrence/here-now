@@ -5,7 +5,7 @@ type Value = unknown;
  *
  * `#[codegen(tags = "protocol-global")]`
  *
- * [Source `hn-server/src/data.rs:9`](hn-server/src/data.rs)
+ * [Source `hn-server/src/data.rs:8`](hn-server/src/data.rs)
  */
 export type UsrString = string
 /**
@@ -13,7 +13,7 @@ export type UsrString = string
  *
  * `#[codegen(tags = "protocol-global")]`
  *
- * [Source `hn-server/src/data.rs:9`](hn-server/src/data.rs)
+ * [Source `hn-server/src/data.rs:8`](hn-server/src/data.rs)
  */
 export function UsrString(inner: string): UsrString {
   return inner;
@@ -23,7 +23,7 @@ export function UsrString(inner: string): UsrString {
  *
  * `#[codegen(tags = "protocol-global")]`
  *
- * [Source `hn-server/src/data.rs:13`](hn-server/src/data.rs)
+ * [Source `hn-server/src/data.rs:12`](hn-server/src/data.rs)
  */
 export type DevString = string
 /**
@@ -31,7 +31,7 @@ export type DevString = string
  *
  * `#[codegen(tags = "protocol-global")]`
  *
- * [Source `hn-server/src/data.rs:13`](hn-server/src/data.rs)
+ * [Source `hn-server/src/data.rs:12`](hn-server/src/data.rs)
  */
 export function DevString(inner: string): DevString {
   return inner;
@@ -39,13 +39,13 @@ export function DevString(inner: string): DevString {
 /**
  * `#[codegen(as = "`${string}//${string}`", tags = "protocol-global")]`
  *
- * [Source `hn-server/src/data.rs:17`](hn-server/src/data.rs)
+ * [Source `hn-server/src/data.rs:16`](hn-server/src/data.rs)
  */
 export type GlobalID = `${string}//${string}`;
 /**
  * `#[codegen(as = "`${string}//${string}`", tags = "protocol-global")]`
  *
- * [Source `hn-server/src/data.rs:17`](hn-server/src/data.rs)
+ * [Source `hn-server/src/data.rs:16`](hn-server/src/data.rs)
  */
 export function GlobalID(value: GlobalID): GlobalID {
   return value;
@@ -55,7 +55,7 @@ export function GlobalID(value: GlobalID): GlobalID {
  *
  * `#[codegen(tags = "protocol-global")]`
  *
- * [Source `hn-server/src/data.rs:20`](hn-server/src/data.rs)
+ * [Source `hn-server/src/data.rs:19`](hn-server/src/data.rs)
  */
 export type ChannelID = string
 /**
@@ -63,7 +63,7 @@ export type ChannelID = string
  *
  * `#[codegen(tags = "protocol-global")]`
  *
- * [Source `hn-server/src/data.rs:20`](hn-server/src/data.rs)
+ * [Source `hn-server/src/data.rs:19`](hn-server/src/data.rs)
  */
 export function ChannelID(inner: string): ChannelID {
   return inner;
@@ -73,7 +73,7 @@ export function ChannelID(inner: string): ChannelID {
  *
  * `#[codegen(tags = "protocol-global")]`
  *
- * [Source `hn-server/src/data.rs:24`](hn-server/src/data.rs)
+ * [Source `hn-server/src/data.rs:23`](hn-server/src/data.rs)
  */
 export type Key = string
 /**
@@ -81,7 +81,7 @@ export type Key = string
  *
  * `#[codegen(tags = "protocol-global")]`
  *
- * [Source `hn-server/src/data.rs:24`](hn-server/src/data.rs)
+ * [Source `hn-server/src/data.rs:23`](hn-server/src/data.rs)
  */
 export function Key(inner: string): Key {
   return inner;
@@ -91,7 +91,7 @@ export function Key(inner: string): Key {
  *
  * `#[codegen(tags = "protocol-global")]`
  *
- * [Source `hn-server/src/data.rs:28`](hn-server/src/data.rs)
+ * [Source `hn-server/src/data.rs:27`](hn-server/src/data.rs)
  */
 export type KeyTarget = string
 /**
@@ -99,7 +99,7 @@ export type KeyTarget = string
  *
  * `#[codegen(tags = "protocol-global")]`
  *
- * [Source `hn-server/src/data.rs:28`](hn-server/src/data.rs)
+ * [Source `hn-server/src/data.rs:27`](hn-server/src/data.rs)
  */
 export function KeyTarget(inner: string): KeyTarget {
   return inner;
@@ -109,7 +109,7 @@ export function KeyTarget(inner: string): KeyTarget {
  *
  * `#[codegen(tags = "protocol-global")]`
  *
- * [Source `hn-server/src/data.rs:32`](hn-server/src/data.rs)
+ * [Source `hn-server/src/data.rs:31`](hn-server/src/data.rs)
  */
 export type LiveID = string
 /**
@@ -117,7 +117,7 @@ export type LiveID = string
  *
  * `#[codegen(tags = "protocol-global")]`
  *
- * [Source `hn-server/src/data.rs:32`](hn-server/src/data.rs)
+ * [Source `hn-server/src/data.rs:31`](hn-server/src/data.rs)
  */
 export function LiveID(inner: string): LiveID {
   return inner;
@@ -125,7 +125,7 @@ export function LiveID(inner: string): LiveID {
 /**
  * `#[codegen(tags = "protocol-driver")]`
  *
- * [Source `hn-server/src/data.rs:39`](hn-server/src/data.rs)
+ * [Source `hn-server/src/data.rs:38`](hn-server/src/data.rs)
  */
 // deno-lint-ignore no-namespace
 export namespace Out {
@@ -179,14 +179,14 @@ export namespace Out {
 /**
  * `#[codegen(tags = "protocol-driver")]`
  *
- * [Source `hn-server/src/data.rs:39`](hn-server/src/data.rs)
+ * [Source `hn-server/src/data.rs:38`](hn-server/src/data.rs)
  */
 export type Out =
   | Out.DECLARE_SERVICE
 /**
  * `#[codegen(tags = "protocol-driver")]`
  *
- * [Source `hn-server/src/data.rs:53`](hn-server/src/data.rs)
+ * [Source `hn-server/src/data.rs:52`](hn-server/src/data.rs)
  */
 // deno-lint-ignore no-namespace
 export namespace In {
@@ -236,7 +236,7 @@ export namespace In {
 /**
  * `#[codegen(tags = "protocol-driver")]`
  *
- * [Source `hn-server/src/data.rs:53`](hn-server/src/data.rs)
+ * [Source `hn-server/src/data.rs:52`](hn-server/src/data.rs)
  */
 export type In =
   | In.CREATE_SERVICE
