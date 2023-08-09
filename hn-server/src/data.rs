@@ -84,12 +84,14 @@ mod iam {
     }
 
     #[protocol_type("iam")]
+    #[cfg(feature = "interact")]
     pub enum SetInputType {
         TEXT { to_text: Option<String> },
         CHOICE { to_choice_key: Option<KeyTarget> },
     }
 
     #[protocol_type("iam")]
+    #[cfg(feature = "interact")]
     pub enum InteractionType {
         SET_INPUT {
             /// [UIInput] key.
@@ -102,6 +104,7 @@ mod iam {
     #[protocol_type("iam")]
     pub enum In {
         /// should "interact" be just "ASK"?
+        #[cfg(feature = "interact")]
         INTERACT {
             /// [Out::UI] key.
             ui_key: KeyTarget,
@@ -222,6 +225,21 @@ mod iam {
         /// This enables a configuration approach similar to enums in Rust.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         inputs: Vec<UIInput>,
+    }
+}
+
+mod thread {
+    //! Something like Zulip threads?
+    use super::*;
+
+    #[protocol_type("thread")]
+    pub enum Out {
+        
+    }
+
+    #[protocol_type("thread")]
+    pub enum In {
+        
     }
 }
 

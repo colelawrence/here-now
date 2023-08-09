@@ -1,9 +1,9 @@
 // prettier no-semi
 // deno-lint-ignore-file
-// @ ts-nocheck experimental
+// @ts-nocheck experimental
 
 import * as iam from "./protocol/is/iam.v0.gen.ts"
-import * as driver from "./protocol/is/driver.v0.gen.js"
+import * as driver from "./protocol/is/driver.v0.gen.ts"
 // import * as service from "./protocol/is/service.v0.gen.ts"
 
 async function test() {

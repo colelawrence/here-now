@@ -214,143 +214,12 @@ export function InputValue(inner: InputValue): InputValue {
 /**
  * `#[codegen(tags = "protocol-iam")]`
  *
- * [Source `hn-server/src/data.rs:86`](hn-server/src/data.rs)
- */
-// deno-lint-ignore no-namespace
-export namespace SetInputType {
-  export type ApplyFns<R = void> = {
-    // callbacks
-    TEXT(inner: TEXT["TEXT"]): R,
-    CHOICE(inner: CHOICE["CHOICE"]): R,
-  }
-  /** Match helper for {@link SetInputType} */
-  export function apply<R>(
-    to: ApplyFns<R>,
-  ): (input: SetInputType) => R {
-    return function _match(input): R {
-      // if-else strings
-      // if-else objects
-      if (typeof input !== "object" || input == null) throw new TypeError("Unexpected non-object for input");
-      if ("TEXT" in input) return to.TEXT(input["TEXT"]);
-      if ("CHOICE" in input) return to.CHOICE(input["CHOICE"]);
-      const _exhaust: never = input;
-      throw new TypeError("Unknown object when expected SetInputType");
-    };
-  }
-  /** Factory helper for {@link SetInputType} */
-  export function factory<R>(fn: (value: SetInputType) => R): ApplyFns<R> {
-    return {
-      // factory
-      TEXT(value) {
-        return fn(TEXT(value));
-      },
-      CHOICE(value) {
-        return fn(CHOICE(value));
-      },
-    };
-  }
-  /** Match helper for {@link SetInputType} */
-  export function match<R>(
-    input: SetInputType,
-    to: ApplyFns<R>,
-  ): R {
-    return apply(to)(input)
-  }
-  export type TEXT = {
-    TEXT: {
-      to_text?: string | undefined | null | null | undefined;
-    };
-  };
-  export function TEXT(value: TEXT["TEXT"]): TEXT {
-    return { TEXT: value }
-  }
-  export type CHOICE = {
-    CHOICE: {
-      to_choice_key?: KeyTarget | undefined | null | null | undefined;
-    };
-  };
-  export function CHOICE(value: CHOICE["CHOICE"]): CHOICE {
-    return { CHOICE: value }
-  }
-}
-/**
- * `#[codegen(tags = "protocol-iam")]`
- *
- * [Source `hn-server/src/data.rs:86`](hn-server/src/data.rs)
- */
-export type SetInputType =
-  | SetInputType.TEXT
-  | SetInputType.CHOICE
-/**
- * `#[codegen(tags = "protocol-iam")]`
- *
- * [Source `hn-server/src/data.rs:92`](hn-server/src/data.rs)
- */
-// deno-lint-ignore no-namespace
-export namespace InteractionType {
-  export type ApplyFns<R = void> = {
-    // callbacks
-    SET_INPUT(inner: SET_INPUT["SET_INPUT"]): R,
-  }
-  /** Match helper for {@link InteractionType} */
-  export function apply<R>(
-    to: ApplyFns<R>,
-  ): (input: InteractionType) => R {
-    return function _match(input): R {
-      // if-else strings
-      // if-else objects
-      if (typeof input !== "object" || input == null) throw new TypeError("Unexpected non-object for input");
-      if ("SET_INPUT" in input) return to.SET_INPUT(input["SET_INPUT"]);
-      const _exhaust: never = input;
-      throw new TypeError("Unknown object when expected InteractionType");
-    };
-  }
-  /** Factory helper for {@link InteractionType} */
-  export function factory<R>(fn: (value: InteractionType) => R): ApplyFns<R> {
-    return {
-      // factory
-      SET_INPUT(value) {
-        return fn(SET_INPUT(value));
-      },
-    };
-  }
-  /** Match helper for {@link InteractionType} */
-  export function match<R>(
-    input: InteractionType,
-    to: ApplyFns<R>,
-  ): R {
-    return apply(to)(input)
-  }
-  export type SET_INPUT = {
-    SET_INPUT: {
-      /** [UIInput] key. */
-      input_key: KeyTarget;
-      /** `#[serde(rename = "type")]` */
-      type: SetInputType;
-    };
-  };
-  export function SET_INPUT(value: SET_INPUT["SET_INPUT"]): SET_INPUT {
-    return { SET_INPUT: value }
-  }
-}
-/**
- * `#[codegen(tags = "protocol-iam")]`
- *
- * [Source `hn-server/src/data.rs:92`](hn-server/src/data.rs)
- */
-export type InteractionType =
-  | InteractionType.SET_INPUT
-/**
- * `#[codegen(tags = "protocol-iam")]`
- *
- * [Source `hn-server/src/data.rs:102`](hn-server/src/data.rs)
+ * [Source `hn-server/src/data.rs:104`](hn-server/src/data.rs)
  */
 // deno-lint-ignore no-namespace
 export namespace In {
   export type ApplyFns<R = void> = {
     // callbacks
-    /** should "interact" be just "ASK"? */
-    INTERACT(inner: INTERACT["INTERACT"]): R,
     ASK(inner: ASK["ASK"]): R,
   }
   /** Match helper for {@link In} */
@@ -361,7 +230,6 @@ export namespace In {
       // if-else strings
       // if-else objects
       if (typeof input !== "object" || input == null) throw new TypeError("Unexpected non-object for input");
-      if ("INTERACT" in input) return to.INTERACT(input["INTERACT"]);
       if ("ASK" in input) return to.ASK(input["ASK"]);
       const _exhaust: never = input;
       throw new TypeError("Unknown object when expected In");
@@ -371,9 +239,6 @@ export namespace In {
   export function factory<R>(fn: (value: In) => R): ApplyFns<R> {
     return {
       // factory
-      INTERACT(value) {
-        return fn(INTERACT(value));
-      },
       ASK(value) {
         return fn(ASK(value));
       },
@@ -385,20 +250,6 @@ export namespace In {
     to: ApplyFns<R>,
   ): R {
     return apply(to)(input)
-  }
-  /** should "interact" be just "ASK"? */
-  export type INTERACT = {
-    /** should "interact" be just "ASK"? */
-    INTERACT: {
-      /** [Out::UI] key. */
-      ui_key: KeyTarget;
-      /** `#[serde(rename = "type")]` */
-      type: InteractionType;
-    };
-  };
-  /** should "interact" be just "ASK"? */
-  export function INTERACT(value: INTERACT["INTERACT"]): INTERACT {
-    return { INTERACT: value }
   }
   export type ASK = {
     ASK: {
@@ -414,15 +265,14 @@ export namespace In {
 /**
  * `#[codegen(tags = "protocol-iam")]`
  *
- * [Source `hn-server/src/data.rs:102`](hn-server/src/data.rs)
+ * [Source `hn-server/src/data.rs:104`](hn-server/src/data.rs)
  */
 export type In =
-  | In.INTERACT
   | In.ASK
 /**
  * `#[codegen(tags = "protocol-iam")]`
  *
- * [Source `hn-server/src/data.rs:120`](hn-server/src/data.rs)
+ * [Source `hn-server/src/data.rs:123`](hn-server/src/data.rs)
  */
 // deno-lint-ignore no-namespace
 export namespace Out {
@@ -538,7 +388,7 @@ export namespace Out {
 /**
  * `#[codegen(tags = "protocol-iam")]`
  *
- * [Source `hn-server/src/data.rs:120`](hn-server/src/data.rs)
+ * [Source `hn-server/src/data.rs:123`](hn-server/src/data.rs)
  */
 export type Out =
   | Out.IDENTIFY
@@ -549,7 +399,7 @@ export type Out =
 /**
  * `#[codegen(tags = "protocol-iam")]`
  *
- * [Source `hn-server/src/data.rs:165`](hn-server/src/data.rs)
+ * [Source `hn-server/src/data.rs:168`](hn-server/src/data.rs)
  */
 // deno-lint-ignore no-namespace
 export namespace UIItem {
@@ -621,7 +471,7 @@ export namespace UIItem {
 /**
  * `#[codegen(tags = "protocol-iam")]`
  *
- * [Source `hn-server/src/data.rs:165`](hn-server/src/data.rs)
+ * [Source `hn-server/src/data.rs:168`](hn-server/src/data.rs)
  */
 export type UIItem =
   | UIItem.INPUT
@@ -630,7 +480,7 @@ export type UIItem =
 /**
  * `#[codegen(tags = "protocol-iam")]`
  *
- * [Source `hn-server/src/data.rs:175`](hn-server/src/data.rs)
+ * [Source `hn-server/src/data.rs:178`](hn-server/src/data.rs)
  */
 export type UIInput = {
   key: Key;
@@ -641,7 +491,7 @@ export type UIInput = {
 /**
  * `#[codegen(tags = "protocol-iam")]`
  *
- * [Source `hn-server/src/data.rs:175`](hn-server/src/data.rs)
+ * [Source `hn-server/src/data.rs:178`](hn-server/src/data.rs)
  */
 export function UIInput(inner: UIInput): UIInput {
   return inner;
@@ -649,7 +499,7 @@ export function UIInput(inner: UIInput): UIInput {
 /**
  * `#[codegen(tags = "protocol-iam")]`
  *
- * [Source `hn-server/src/data.rs:183`](hn-server/src/data.rs)
+ * [Source `hn-server/src/data.rs:186`](hn-server/src/data.rs)
  */
 // deno-lint-ignore no-namespace
 export namespace UIContent {
@@ -711,7 +561,7 @@ export namespace UIContent {
 /**
  * `#[codegen(tags = "protocol-iam")]`
  *
- * [Source `hn-server/src/data.rs:183`](hn-server/src/data.rs)
+ * [Source `hn-server/src/data.rs:186`](hn-server/src/data.rs)
  */
 export type UIContent =
   | UIContent.HEADING
@@ -719,7 +569,7 @@ export type UIContent =
 /**
  * `#[codegen(tags = "protocol-iam")]`
  *
- * [Source `hn-server/src/data.rs:194`](hn-server/src/data.rs)
+ * [Source `hn-server/src/data.rs:197`](hn-server/src/data.rs)
  */
 // deno-lint-ignore no-namespace
 export namespace UIInputType {
@@ -792,7 +642,7 @@ export namespace UIInputType {
 /**
  * `#[codegen(tags = "protocol-iam")]`
  *
- * [Source `hn-server/src/data.rs:194`](hn-server/src/data.rs)
+ * [Source `hn-server/src/data.rs:197`](hn-server/src/data.rs)
  */
 export type UIInputType =
   | UIInputType.TEXT
@@ -800,7 +650,7 @@ export type UIInputType =
 /**
  * `#[codegen(tags = "protocol-iam")]`
  *
- * [Source `hn-server/src/data.rs:215`](hn-server/src/data.rs)
+ * [Source `hn-server/src/data.rs:218`](hn-server/src/data.rs)
  */
 export type UIInputChoice = {
   key: Key;
@@ -818,7 +668,7 @@ export type UIInputChoice = {
 /**
  * `#[codegen(tags = "protocol-iam")]`
  *
- * [Source `hn-server/src/data.rs:215`](hn-server/src/data.rs)
+ * [Source `hn-server/src/data.rs:218`](hn-server/src/data.rs)
  */
 export function UIInputChoice(inner: UIInputChoice): UIInputChoice {
   return inner;
