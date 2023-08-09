@@ -10,14 +10,14 @@ use minijinja::{path_loader, Environment};
 use minijinja_autoreload::AutoReloader;
 
 #[derive(Clone)]
-pub(crate) struct Templates {
+pub struct Templates {
     debug: Cow<'static, str>,
     reloader: Arc<AutoReloader>,
 }
 
 impl Templates {
     #[instrument(skip(self, value))]
-    pub(crate) fn render(&self, template_name: &str, value: impl Serialize) -> Result<String> {
+    pub fn render(&self, template_name: &str, value: impl Serialize) -> Result<String> {
         let guard = self
             .reloader
             .acquire_env()
@@ -35,7 +35,7 @@ impl Templates {
     }
 
     #[instrument(skip(self, template, value))]
-    pub(crate) fn render_block(
+    pub fn render_block(
         &self,
         template: &HTMXPartial,
         block_name: &str,
@@ -67,7 +67,7 @@ impl Templates {
         Ok(result)
     }
 
-    pub(crate) fn new(template_path: impl Into<PathBuf>, is_dev: bool) -> Templates {
+    pub fn new(template_path: impl Into<PathBuf>, is_dev: bool) -> Templates {
         let template_path = template_path.into();
         let fast_reload = is_dev;
         let watch = is_dev;
@@ -102,7 +102,7 @@ impl Templates {
         }
     }
 
-    pub(crate) fn axum_layer(self) -> Extension<Self> {
+    pub fn axum_layer(self) -> Extension<Self> {
         Extension(self)
     }
 }

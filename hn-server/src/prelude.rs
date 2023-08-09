@@ -1,5 +1,6 @@
 #![allow(unused)]
 pub(crate) use super::app_ctx::{AppCtx, AppCtxPlugin, AppSenderExt};
+pub(crate) use super::ecs;
 pub(crate) use async_trait::async_trait;
 pub(crate) use shipyard_app::prelude::*;
 pub(crate) use std::fmt::Debug;
@@ -12,6 +13,19 @@ pub(crate) use std::sync::Arc;
 pub(crate) use tracing::{
     debug, debug_span, error, error_span, info, info_span, instrument, warn, warn_span,
 };
+
+pub mod bonsai_ {
+    pub use bonsaidb::core::connection::Connection;
+    pub use bonsaidb::core::document::{CollectionDocument, Document};
+    pub use bonsaidb::core::schema;
+    pub use bonsaidb::core::schema::{SerializedCollection, SerializedView};
+    pub use bonsaidb::local;
+}
+
+pub mod ecs_ {
+    pub use i_hn_server_proc::{ecs_bundle, ecs_component, ecs_unique};
+    pub(crate) use shipyard_app::prelude::*;
+}
 
 pub(crate) use anyhow::{Context as AnyhowContext, Error, Result};
 pub(crate) use serde::{Deserialize, Serialize};
@@ -49,7 +63,7 @@ pub(crate) use svelte_template;
 /// Dev version with auto reloading from disk
 /// Future: use macro to replace with static versions
 #[derive(Copy, Clone)]
-pub(crate) struct SvelteTemplate {
+pub struct SvelteTemplate {
     pub(crate) template_file: &'static str,
 }
 
@@ -72,7 +86,7 @@ pub(crate) use htmx_partial;
 /// Dev version with auto reloading from disk
 /// Future: use macro to replace with static versions
 #[derive(Copy, Clone)]
-pub(crate) struct HTMXPartial {
+pub struct HTMXPartial {
     pub(crate) template_file: &'static str,
 }
 

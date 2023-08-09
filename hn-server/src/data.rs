@@ -233,14 +233,10 @@ mod thread {
     use super::*;
 
     #[protocol_type("thread")]
-    pub enum Out {
-        
-    }
+    pub enum Out {}
 
     #[protocol_type("thread")]
-    pub enum In {
-        
-    }
+    pub enum In {}
 }
 
 #[test]

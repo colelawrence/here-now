@@ -19,7 +19,7 @@ pub struct SvelteSSR {
 
 impl SvelteTemplates {
     #[instrument(skip_all)]
-    pub(crate) fn render_svelte_into_html_page<S: Serialize + Send>(
+    pub fn render_svelte_into_html_page<S: Serialize + Send>(
         &self,
         template: &SvelteTemplate,
         props: S,
@@ -45,7 +45,7 @@ impl SvelteTemplates {
     }
 
     #[instrument(skip_all)]
-    pub(crate) fn render_svelte_template<S: Serialize + Send>(
+    pub fn render_svelte_template<S: Serialize + Send>(
         &self,
         template: &SvelteTemplate,
         props: S,

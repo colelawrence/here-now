@@ -1,6 +1,6 @@
 use bonsaidb::core::{
-    api::{Api, Infallible},
-    schema::{ApiName, Qualified},
+    api::{Api, ApiName, Infallible},
+    schema::Qualified,
 };
 use serde::{Deserialize, Serialize};
 

@@ -14,8 +14,10 @@ mod logging;
 mod prelude;
 
 mod config_plugins;
-pub(crate) mod http;
-pub(crate) mod quickjs;
+
+pub mod ecs;
+pub mod http;
+pub mod quickjs;
 
 #[tokio::main]
 async fn main() {
@@ -138,6 +140,7 @@ impl shipyard_app::Plugin for MainPlugin {
                 ..Default::default()
             })
             .add_plugin(app_server_plugins::AppServerPlugin::default())
+            .add_plugin(ecs::SavePlugin::default())
             .add_plugin(config_html_server_plugins::ConfigHtmlServerPlugin { config_dir });
     }
 }
@@ -159,7 +162,7 @@ mod config_html_server_plugins {
     /// This cannot be tracked, but the underlying settings do change as there are changes
     /// to the filesystem.
     #[derive(Component)]
-    pub(crate) struct ConfigSettings(Arc<Settings>);
+    pub struct ConfigSettings(Arc<Settings>);
 
     impl Plugin for ConfigHtmlServerPlugin {
         fn build(&self, app: &mut AppBuilder) {

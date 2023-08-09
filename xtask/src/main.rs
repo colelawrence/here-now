@@ -120,7 +120,7 @@ fn web_build(watch: bool) {
 
 fn dev(jaeger: bool) {
     let server = Cmd::new("cargo")
-        .env("HERE_NOW_LOG", "debug,!hyper,!watchexec=error")
+        .env("HERE_NOW_LOG", "debug,!hyper,!pot,!nebari")
         .env("HERE_NOW_CONFIG_FOLDER", "../conf")
         .env_if(
             jaeger,

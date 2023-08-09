@@ -19,3 +19,6 @@
 [submodule "vendor/tracing-opentelemetry"]
 	path = vendor/tracing-opentelemetry
 	url = https://github.com/ymgyt/tracing-opentelemetry.git
+[submodule "vendor/bonsaidb"]
+	path = vendor/bonsaidb
+	url = https://github.com/khonsulabs/bonsaidb.git

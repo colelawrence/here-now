@@ -1,3 +1,8 @@
+use std::{
+    ops::Add,
+    time::{Duration, SystemTime},
+};
+
 use axum::{
     extract::Query,
     response::{Html, IntoResponse},
@@ -9,7 +14,7 @@ use derive_codegen::Codegen;
 use http::{header::LOCATION, StatusCode};
 use tower_http::{services::ServeDir, trace::TraceLayer};
 
-use crate::{http::OrInternalError, prelude::*};
+use crate::{ecs::HintedID, http::OrInternalError, prelude::*};
 
 use super::{discord, PublicServerBaseURL};
 
@@ -84,11 +89,12 @@ fn generate_svelte_templates() {
 #[derive(Deserialize)]
 struct LoginDiscordParams {
     bot: Option<String>,
+    device_id: Option<HintedID>,
 }
 
 async fn login_discord(
     Extension(app_ctx): Extension<AppCtx>,
-    Query(LoginDiscordParams { bot }): Query<LoginDiscordParams>,
+    Query(LoginDiscordParams { bot, device_id }): Query<LoginDiscordParams>,
 ) -> HttpResult<impl IntoResponse> {
     use axum::response::*;
 
@@ -138,12 +144,16 @@ async fn login_discord(
         scopes.push("bot");
     }
 
+    // don't actually create the device until the handoff.
+    let device_id = device_id.unwrap_or_else(|| HintedID::generate("web"));
+
     let scopes = scopes.join("%20");
     let redirect_uri = format!("{public_server_base_url}/callback-discord");
     let redirect_uri = urlencoding::encode(&redirect_uri);
     let url = [
         "https://discord.com/oauth2/authorize?",
         "response_type=code&",
+        &format!("state={device_id}&"),
         &format!("client_id={client_id}&"),
         &format!("scope={scopes}&"),
         &format!("redirect_uri={redirect_uri}&"),
@@ -185,6 +195,7 @@ struct DiscordCallbackBot {
 #[derive(Deserialize, Serialize, Codegen)]
 #[codegen(tags = "templates")]
 struct DiscordCallbackQuery {
+    state: HintedID,
     /// `error=invalid_scope&error_description=the+requested+scope+is+invalid%2c+unknown%2c+or+malformed.`
     #[serde(flatten)]
     error: Option<CallbackError>,
@@ -245,9 +256,62 @@ async fn callback_discord(
             })
             .err_400()?;
 
+        let expires_at = SystemTime::now().add(Duration::from_secs(token.expires_in));
+        let access_token = token.access_token.clone();
+        let device_id = query.state.clone();
+        app_ctx.schedule_system(
+            "insert new credential",
+            move |mut entities: EntitiesViewMut,
+                  mut vm_hinted_id: ViewMut<HintedID>,
+                  // creds
+                  mut vm_cred_tag: ViewMut<ecs::CredTag>,
+                  mut vm_discord_cred: ViewMut<ecs::EcsDiscordCred>,
+                  // device
+                  mut vm_device_tag: ViewMut<ecs::DeviceTag>,
+                  mut vm_linked_creds: ViewMut<ecs::Linked<ecs::CredTag>>| {
+                let cred_id = HintedID::generate("cred");
+                let cred_entity_id = entities.add_entity(
+                    (&mut vm_hinted_id, &mut vm_cred_tag, &mut vm_discord_cred),
+                    (
+                        cred_id,
+                        ecs::CredTag::Discord,
+                        ecs::EcsDiscordCred {
+                            access_token: token.access_token.clone(),
+                            refresh_token: token.refresh_token.clone(),
+                            expires_at,
+                        },
+                    ),
+                );
+                match vm_hinted_id
+                    .iter()
+                    .with_id()
+                    .find(|(_entity_id, id)| *id == &device_id)
+                {
+                    Some((entity_id, _id)) => {
+                        // update
+                        let mut linked_creds = (&mut vm_linked_creds)
+                            .get(entity_id)
+                            .todo(f!("query state was a device id with linked creds"));
+                        linked_creds.as_mut().items.push(cred_entity_id);
+                    }
+                    None => {
+                        // insert
+                        entities.add_entity(
+                            (&mut vm_device_tag, &mut vm_hinted_id, &mut vm_linked_creds),
+                            (
+                                ecs::DeviceTag,
+                                device_id.clone(),
+                                ecs::Linked::new_with(Some(cred_entity_id)),
+                            ),
+                        );
+                    }
+                }
+            },
+        );
+
         client
             .get("https://discord.com/api/users/@me")
-            .bearer_auth(token.access_token)
+            .bearer_auth(access_token)
             .send()
             .await
             .context("getting user info from discord")
@@ -289,6 +353,7 @@ async fn callback_discord(
 struct DiscordToken {
     token_type: String,
     access_token: String,
+    /// in seconds
     expires_in: u64,
     refresh_token: String,
     scope: String,

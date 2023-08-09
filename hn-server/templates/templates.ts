@@ -54,6 +54,7 @@ export function DiscordCallbackBot(inner: DiscordCallbackBot): DiscordCallbackBo
 }
 /** `#[codegen(tags = "templates")]` */
 export type DiscordCallbackQuery = {
+  state: HintedID;
   code?: string | undefined | null | null | undefined;
 } // flattened fields:
 /**

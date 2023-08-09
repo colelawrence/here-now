@@ -18,7 +18,7 @@ serde_json.workspace = true
 i-hn-server-proc = { version = "0.0.0", path = "./proc" }
 actionable = "0.2.0"
 axum = "0.6.18"
-bonsaidb = { version = "0.4.1", default-features = false, features = ["server", "server-instrument"] }
+bonsaidb = { workspace = true, default-features = false, features = ["local", "instrument"] }
 quick-js = { version = "0.4.2-alpha.0", path = "../vendor/quickjs-rs", features = ["serde"]}
 env_logger = "0.10.0"
 futures = "0.3.28"
@@ -46,6 +46,8 @@ opentelemetry = { version = "0.19.0", features = ["rt-tokio"] }
 opentelemetry-jaeger = { version = "0.18.0", features = ["rt-tokio", "reqwest_collector_client"] }
 reverse-proxy-service = { version = "0.2.0", features = ["axum"] }
 current_platform = "0.2.0"
+xid = "1.0.3"
+smartstring = { version = "1.0.1", features = ["serde"] }
 
 [dev-dependencies]
 smallvec = "1.11.0"

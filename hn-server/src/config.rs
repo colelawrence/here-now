@@ -5,7 +5,7 @@ use std::{path::PathBuf, str::FromStr};
 
 /// The root settings container for all configurable things in the app.
 #[derive(Clone, Debug)]
-pub(crate) struct Settings {
+pub struct Settings {
     config_files_directory: std::path::PathBuf,
     configurables: Vec<Arc<Box<dyn Configurable>>>,
 }
@@ -38,7 +38,7 @@ impl Settings {
 
 pub mod config_directory_setup;
 
-pub(crate) trait Configurable: Send + Sync + Debug {
+pub trait Configurable: Send + Sync + Debug {
     // TODO: some way to embed into binaries automatically?
     fn template(&self) -> HTMXPartial;
     /// Should this be separated out?
@@ -57,7 +57,7 @@ pub(crate) trait Configurable: Send + Sync + Debug {
 pub struct SettingEntry<'a, 'b> {
     settings: &'a Settings,
     section_name: Cow<'b, str>,
-    pub(crate) configurable: &'a dyn Configurable,
+    pub configurable: &'a dyn Configurable,
 }
 
 impl<'a, 'b> SettingEntry<'a, 'b> {

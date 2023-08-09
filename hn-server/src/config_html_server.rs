@@ -15,8 +15,8 @@ use crate::config::{Configurable, Settings};
 use crate::http::OrInternalError;
 use crate::{config, prelude::*};
 
-pub(crate) mod app;
-pub(crate) mod discord;
+pub mod app;
+pub mod discord;
 mod edit;
 mod templates;
 
@@ -167,7 +167,7 @@ fn setup(router: Router<Arc<Settings>>, c: Arc<Box<dyn Configurable>>) -> Router
         )
 }
 
-pub(crate) async fn start(config: Arc<config::Settings>) -> Result<()> {
+pub async fn start(config: Arc<config::Settings>) -> Result<()> {
     // TODO: Ask to set-up new configurations if not present?
     let initial_app = &config
         .get_entry("here-now-app")
@@ -251,7 +251,7 @@ mod dev_jaeger_proxy {
 
     use crate::prelude::{f, ResultExt};
 
-    pub(crate) fn make_router() -> Router {
+    pub fn make_router() -> Router {
         // get from config?
         let jaeger_host = "127.0.0.1:16686";
         let jaeger_ui_host = reverse_proxy_service::builder_http(jaeger_host)

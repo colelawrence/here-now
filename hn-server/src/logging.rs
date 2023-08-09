@@ -2,7 +2,7 @@ use opentelemetry::global;
 
 use tracing_subscriber::prelude::*;
 
-static DEFAULT_HERE_NOW_LOG_ENV: &'static str = "debug,hyper=warn";
+static DEFAULT_HERE_NOW_LOG_ENV: &'static str = "debug,hyper=warn,pot=warn,nebari=warn";
 
 pub(super) fn expect_init_logger() {
     // Something like http://localhost:14268/api/traces
@@ -44,7 +44,7 @@ pub(super) fn expect_init_logger() {
 }
 
 #[cfg(test)]
-pub(crate) fn test_logger() {
+pub fn test_logger() {
     // in case a test needs logging
     use tracing_subscriber as ts;
     let env_filter =

@@ -1,6 +1,6 @@
 [workspace]
 members = ["xtask", "hn-server", "hn-desktop", "hn-common"]
-exclude = ["vendor/shipyard", "vendor/quickjs-rs", "vendor/tracing-opentelemetry"]
+exclude = ["vendor/shipyard", "vendor/quickjs-rs", "vendor/tracing-opentelemetry", "vendor/bonsaidb"]
 resolver = "2"
 
 [workspace.package]
@@ -18,6 +18,7 @@ i-codegen-derive = { path = "vendor/derive-codegen/derive", version = "*" }
 i-codegen-code = { path = "vendor/derive-codegen/code", version = "*" }
 shipyard_app = { path = "vendor/shipyard_app", version = "*" }
 shipyard = { path = "vendor/shipyard", version = "*", features = ["proc", "tracing"] }
+bonsaidb = { path = "vendor/bonsaidb/crates/bonsaidb", version = "0.4.0" }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 anyhow = "1.0"

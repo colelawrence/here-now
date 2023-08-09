@@ -10,5 +10,5 @@ publish = false
 [dependencies]
 here-now-common.workspace = true
 serde.workspace = true
-bonsaidb = { version = "0.4.1", default-features = false, features = [] }
+bonsaidb = { workspace = true, default-features = false, features = [] }
 tokio = { version = "1.28", features = ["full"] }

@@ -1,6 +1,6 @@
 use toml_edit::Item;
 
-pub(crate) fn update_toml_key(
+pub fn update_toml_key(
     toml: &mut dyn toml_edit::TableLike,
     key: &str,
     item: Item,

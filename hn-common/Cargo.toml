@@ -11,4 +11,4 @@ serde.workspace = true
 anyhow.workspace = true
 derive-codegen.workspace = true
 actionable = "0.2.0"
-bonsaidb = { version = "0.4.1", default-features = false }
+bonsaidb = { workspace = true, default-features = false }
