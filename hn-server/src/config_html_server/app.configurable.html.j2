@@ -16,7 +16,12 @@ value=public_host_base_url,
 help="This is where the server will be accessible for logging in, client calls, and where webhooks from Discord and Slack will access.",
 )
 }}
-{# help="This is where people will connect directly to your server to log in.") #}
+{% if public_host_base_url %}
+<pre class="text-sm text-gray-500 p-4">
+Discord OAuth2 Redirect URL:
+<input value="{{ public_host_base_url }}/callback-discord" class="w-full"/>
+</pre>
+{% endif %}
 {{ form_input(
 disabled=disabled,
 name="config_server_bind_address",
