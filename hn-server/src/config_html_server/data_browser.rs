@@ -1,5 +1,8 @@
+use std::{collections::HashMap, time::SystemTime};
+
 use axum::{extract::Path, response::Html, routing::get, Extension, Router};
 use derive_codegen::Codegen;
+use tokio::sync::oneshot;
 
 use crate::{config::Settings, ecs::HintedID, http::OrInternalError, prelude::*, svelte_templates};
 
@@ -35,6 +38,8 @@ struct CollectionRow {
     id: HintedID,
     #[codegen(ts_as = "unknown")]
     content: serde_json::value::Value,
+    // #[codegen(ts_as = "undefined | Record<string, unknown>")]
+    ecs_content: Option<String>,
     // sort_options: Vec<String>
 }
 
@@ -91,22 +96,80 @@ async fn render_home(
 ) -> HttpResult {
     let template = svelte_template!("data-browser/data-collections.template.compiled.cjs");
     templates
-        .render_svelte_into_html_page(
-            &template,
-            DataCollections {
-                header,
-            },
-        )
+        .render_svelte_into_html_page(&template, DataCollections { header })
         .context("rendering data browser page")
         .err_500()
         .map(Html)
 }
 
 fn get_links() -> std::vec::Vec<(&'static str, &'static str)> {
-    return vec![
-        ("Credentials", "/data/creds"),
-        ("Devices", "/data/devices"),
-    ];
+    return vec![("Credentials", "/data/creds"), ("Devices", "/data/devices")];
+}
+
+async fn get_all_rows<
+    C: bonsaidb::core::schema::SerializedCollection<Contents = C, PrimaryKey = HintedID>
+        + Send
+        + Sync
+        + Serialize,
+>(
+    db: &bonsai_::local::Database,
+    app_ctx: &AppCtx,
+) -> HttpResult<Vec<CollectionRow>> {
+    let (tx, rx) = oneshot::channel::<HashMap<HintedID, Option<String>>>();
+
+    let results = C::all(db)
+        .query()
+        .err_500()?
+        .into_iter()
+        .map(|cred| -> Result<CollectionRow> {
+            Ok(CollectionRow {
+                id: cred.header.id,
+                content: serde_json::to_value(cred.contents).context("cred to json value")?,
+                ecs_content: None,
+            })
+        })
+        .collect::<Result<Vec<_>, _>>()
+        .err_500()?;
+
+    let empty_ids = results
+        .iter()
+        .map(|a| (a.id.clone(), None))
+        .collect::<HashMap<HintedID, Option<String>>>();
+
+    let id = SystemTime::now();
+
+    app_ctx.run_system("collect ecs info for database", {
+        let once = std::sync::Mutex::new(Some((empty_ids, tx)));
+        move |storages: AllStoragesView| {
+            if let Some((mut ids, tx)) = once.lock().unwrap().take() {
+                let v_hinted_id = storages.borrow::<View<HintedID>>().unwrap();
+
+                for (id, ecs_id) in v_hinted_id.iter().with_id() {
+                    if let Some(value) = ids.get_mut(ecs_id) {
+                        value.replace(format!("{id:?}"));
+                    }
+                }
+
+                tx.send(ids).unwrap();
+            } else {
+                error!(?id, "unexpected second execution");
+            }
+        }
+    });
+
+    let mut results = results;
+    let mut ecs_data = rx.await.context("receive back info from ECS").err_500()?;
+    for item in results.iter_mut() {
+        if let Some(value) = ecs_data
+            .get_mut(&item.id)
+            .expect("id still from original list")
+            .take()
+        {
+            item.ecs_content = Some(value);
+        }
+    }
+
+    Ok(results)
 }
 
 async fn get_collection(
@@ -114,44 +177,18 @@ async fn get_collection(
     Extension(templates): Extension<svelte_templates::SvelteTemplates>,
     Path((collection_id,)): Path<(String,)>,
 ) -> HttpResult {
-    use crate::prelude::bonsai_::*;
-
     let db = app_ctx.get_database().await;
     let db = db.as_err_arc_ref().err_500()?;
 
     let (label, rows) = match collection_id.as_str() {
-        "creds" => {
-            let all_creds = ecs::import_export::CredBundle::all(db)
-                .query()
-                .err_500()?
-                .into_iter()
-                .map(|cred| -> Result<CollectionRow> {
-                    Ok(CollectionRow {
-                        id: cred.header.id,
-                        content: serde_json::to_value(cred.contents)
-                            .context("cred to json value")?,
-                    })
-                })
-                .collect::<Result<Vec<_>, _>>()
-                .err_500()?;
-            ("Credentials", all_creds)
-        }
-        "devices" => {
-            let all_devices = ecs::import_export::DeviceBundle::all(db)
-                .query()
-                .err_500()?
-                .into_iter()
-                .map(|device| -> Result<CollectionRow> {
-                    Ok(CollectionRow {
-                        id: device.header.id,
-                        content: serde_json::to_value(device.contents)
-                            .context("device to json value")?,
-                    })
-                })
-                .collect::<Result<Vec<_>, _>>()
-                .err_500()?;
-            ("Devices", all_devices)
-        }
+        "creds" => (
+            "Credentials",
+            get_all_rows::<ecs::import_export::CredBundle>(db, &app_ctx).await?,
+        ),
+        "devices" => (
+            "Devices",
+            get_all_rows::<ecs::import_export::DeviceBundle>(db, &app_ctx).await?,
+        ),
         other => {
             return render_home(
                 &templates,

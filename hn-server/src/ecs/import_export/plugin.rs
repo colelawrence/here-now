@@ -16,6 +16,12 @@ impl Plugin for SavePlugin {
             )
         };
         app.add_unique(LocalDatabase(db));
+        app.add_unique(super::import::LastImport::default());
+        // initial load
+        if let Err(err) = app.app.run(super::import::import_all) {
+            error!(?err, "failed to import previous values");
+        }
+        // there's probably an extra write to bonsai happening
         app.add_reset_system(super::export::export_all, "save changes to disk");
     }
 }

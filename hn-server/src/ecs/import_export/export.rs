@@ -7,15 +7,22 @@ type ViewDevice<'a> = (
     View<'a, ecs::Linked<ecs::CredTag>>,
 );
 
-pub fn export_all(
+pub(super) fn export_all(
     uv_local_database: UniqueView<super::plugin::LocalDatabase>,
+    mut uvm_last_import: UniqueViewMut<super::import::LastImport>,
     (v_hinted_id, v_cred, v_device): ViewAll,
 ) {
     let _span = tracing::info_span!("export_all").entered();
     match uv_local_database.as_ref().as_ref() {
         Ok(db) => {
-            export_changed_creds(&db, &v_hinted_id, &v_cred);
-            export_changed_devices(&db, &v_hinted_id, &v_cred.0, &v_device);
+            export_changed_creds(&db, uvm_last_import.as_mut(), &v_hinted_id, &v_cred);
+            export_changed_devices(
+                &db,
+                uvm_last_import.as_mut(),
+                &v_hinted_id,
+                &v_cred.0,
+                &v_device,
+            );
         }
         Err(err) => {
             error!(?err, "failed to export all");
@@ -25,6 +32,7 @@ pub fn export_all(
 
 fn export_changed_creds(
     db: &local::Database,
+    last_import: &mut super::import::LastImport,
     v_hinted_id: &View<HintedID>,
     (v_cred_tag, v_discord_cred): &ViewCred,
     //
@@ -33,6 +41,9 @@ fn export_changed_creds(
     let updated = {
         let _span = info_span!("collect changed creds documents").entered();
         v_cred_tag.iter().ids().filter_map(|entity| {
+            if last_import.skip_once(entity) {
+                return None;
+            }
             if v_hinted_id.is_inserted_or_modified(entity)
                 || v_discord_cred.is_inserted_or_modified(entity)
             {
@@ -69,6 +80,7 @@ fn export_changed_creds(
 
 fn export_changed_devices(
     db: &local::Database,
+    last_import: &mut super::import::LastImport,
     v_hinted_id: &View<HintedID>,
     v_cred_tag: &View<ecs::CredTag>,
     (v_device_tag, v_linked_creds): &ViewDevice,
@@ -78,6 +90,9 @@ fn export_changed_devices(
     let updated = {
         let _span = info_span!("collect changed device documents").entered();
         v_device_tag.iter().ids().filter_map(|entity| {
+            if last_import.skip_once(entity) {
+                return None;
+            }
             if v_hinted_id.is_inserted_or_modified(entity)
                 || v_linked_creds.is_inserted_or_modified(entity)
             {

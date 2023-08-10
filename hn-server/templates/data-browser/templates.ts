@@ -32,6 +32,7 @@ export type CollectionRow = {
   id: string;
   /** `#[codegen(ts_as = "unknown")]` */
   content: unknown;
+  ecs_content?: string | undefined | null | null | undefined;
 };
 /** `#[codegen(tags = "data-browser")]` */
 export function CollectionRow(inner: CollectionRow): CollectionRow {

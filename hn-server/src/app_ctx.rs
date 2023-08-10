@@ -9,6 +9,7 @@ pub type CommandSender = tokio::sync::mpsc::UnboundedSender<Command>;
 
 pub struct Command {
     pub reason: &'static str,
+    pub immediate: bool,
     pub dedup: Option<String>,
     pub system: WorkloadSystem,
 }
@@ -50,6 +51,7 @@ impl AppCtx {
         self.commands
             .send(Command {
                 reason,
+                immediate: false,
                 dedup: None,
                 system: cmd
                     .into_workload_system()
@@ -82,6 +84,7 @@ impl AppCtx {
         self.commands
             .send(Command {
                 reason,
+                immediate: false,
                 dedup: Some(dedup),
                 system: cmd
                     .into_workload_system()
@@ -89,6 +92,24 @@ impl AppCtx {
             })
             .todo(f!("attempting to schedule"));
     }
+
+    /// See [AppCtx::schedule_system]
+    pub fn run_system<B, R, S>(&self, reason: &'static str, cmd: S)
+    where
+        S: IntoWorkloadSystem<B, R>,
+    {
+        self.commands
+            .send(Command {
+                reason,
+                immediate: true,
+                dedup: None,
+                system: cmd
+                    .into_workload_system()
+                    .todo(f!("expecting valid system")),
+            })
+            .todo(f!("attempting to schedule"));
+    }
+
     /// TODO: hook the result error into sending a command?
     #[track_caller]
     pub fn spawn<F>(&self, fut: F)

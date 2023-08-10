@@ -486,6 +486,7 @@ mod tests {
                 if let Some(app_ctx::Command {
                     reason: _,
                     dedup: _,
+                    immediate: _,
                     system,
                 }) = recv.recv().await
                 {

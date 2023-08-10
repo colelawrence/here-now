@@ -48,6 +48,7 @@ async fn main() {
         let mut i = 0usize;
         while let Some(app_ctx::Command {
             reason,
+            immediate,
             system,
             dedup,
         }) = recv.recv().await
@@ -55,10 +56,12 @@ async fn main() {
             i += 1;
             // async block so we can instrument with tracing
             async {
-                // channel might continue growing?
-                tokio::time::sleep(Duration::from_millis(17))
-                    .instrument(info_span!("sleep to wait for additional commands"))
-                    .await;
+                if !immediate {
+                    // channel might continue growing?
+                    tokio::time::sleep(Duration::from_millis(17))
+                        .instrument(info_span!("sleep to wait for additional commands"))
+                        .await;
+                }
 
                 let mut seen = BTreeSet::<(String, &'static str)>::new();
                 seen.extend(dedup.map(|s| (s, reason)));
@@ -70,6 +73,7 @@ async fn main() {
 
                     while let Ok(app_ctx::Command {
                         reason,
+                        immediate: _,
                         system,
                         dedup,
                     }) = recv.try_recv()

@@ -9,6 +9,7 @@ use crate::prelude::*;
 #[schema(name = "DBSchema", collections = [CredBundle, DeviceBundle])]
 pub struct DBSchema;
 
+pub mod import;
 pub mod export;
 pub mod plugin;
 
