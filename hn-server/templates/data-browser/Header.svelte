@@ -5,12 +5,12 @@
 </script>
 
 <h1>
-  <a href="/data" class="title-link">{header.title}</a>
   <div class="links">
     {#each header.links as [collection_label, href]}
       <a {href}>{collection_label}</a>
     {/each}
   </div>
+  <a href="/data" class="title-link">{header.title}</a>
 </h1>
 
 {#if header.warning}
@@ -29,6 +29,14 @@
   :global(a) {
     color: dodgerblue;
     text-decoration: none;
+  }
+  :global(a[href*="/creds#"], a[href*="#cred_"]) {
+    color: oklch(0.1 0.5 30);
+    background-color: oklch(0.9 0.1 30);
+  }
+  :global(a[href*="/devices#"], a[href*="#web_"]) {
+    color: oklch(0.1 0.5 60);
+    background-color: oklch(0.9 0.1 60);
   }
   :global(a:hover) {
     text-decoration: underline;
@@ -64,5 +72,8 @@
 
   h1 {
     position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
   }
 </style>
