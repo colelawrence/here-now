@@ -1,3 +1,4 @@
+use anyhow::anyhow;
 use futures::Future;
 
 use tokio::sync::Mutex;
@@ -29,6 +30,7 @@ pub struct AppCtxPlugin(pub CommandSender);
 #[derive(Component, Clone)]
 pub struct AppCtx {
     app: Option<Arc<Mutex<App>>>,
+    db: Arc<Mutex<ArcResult<bonsaidb::local::Database>>>,
     commands: CommandSender,
     handle: tokio::runtime::Handle,
 }
@@ -104,6 +106,10 @@ impl AppCtx {
     pub fn set_app(&mut self, app: Arc<Mutex<App>>) {
         self.app = Some(app);
     }
+
+    pub async fn get_database(&self) -> ArcResult<bonsaidb::local::Database> {
+        self.db.lock().await.clone()
+    }
 }
 
 impl Plugin for AppCtxPlugin {
@@ -113,8 +119,25 @@ impl Plugin for AppCtxPlugin {
 
         app.add_unique(AppCtx {
             app: Default::default(),
+            // lovely...
+            db: Arc::new(Mutex::new(Arc::new(Err(anyhow!("not ready yet"))))),
             commands: self.0.clone(),
             handle,
         });
+
+        app.add_reset_system(
+            keep_db_up_to_date,
+            "update database reference when database is created",
+        );
+    }
+}
+
+fn keep_db_up_to_date(
+    uv_database: UniqueView<ecs::import_export::plugin::LocalDatabase>,
+    mut uvm_app_ctx: UniqueViewMut<AppCtx>,
+) {
+    if uv_database.is_inserted_or_modified() {
+        let mut db_lock = uvm_app_ctx.as_mut().db.blocking_lock();
+        *db_lock = uv_database.get_database();
     }
 }

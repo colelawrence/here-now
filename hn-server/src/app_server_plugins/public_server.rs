@@ -14,11 +14,9 @@ use derive_codegen::Codegen;
 use http::{header::LOCATION, StatusCode};
 use tower_http::{services::ServeDir, trace::TraceLayer};
 
-use crate::{ecs::HintedID, http::OrInternalError, prelude::*};
+use crate::{ecs::HintedID, http::OrInternalError, prelude::*, svelte_templates};
 
 use super::{discord, PublicServerBaseURL};
-
-mod svelte_templates;
 
 pub fn start_server_from_tcp_listener(
     listener: std::net::TcpListener,
@@ -74,6 +72,7 @@ pub struct LoginURL {
 }
 
 #[test]
+#[ignore]
 fn generate_svelte_templates() {
     derive_codegen::Generation::for_tag("templates")
         .as_arg_of(

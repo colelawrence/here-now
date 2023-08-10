@@ -1,0 +1,1 @@
+export { CollectionPage } from "./templates.ts";

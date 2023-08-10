@@ -23,6 +23,12 @@ impl Plugin for SavePlugin {
 #[ecs_unique]
 pub struct LocalDatabase(ArcResult<local::Database>);
 
+impl LocalDatabase {
+    pub fn get_database(&self) -> ArcResult<local::Database> {
+        self.0.clone()
+    }
+}
+
 impl AsRef<Result<local::Database>> for LocalDatabase {
     fn as_ref(&self) -> &Result<local::Database> {
         &self.0

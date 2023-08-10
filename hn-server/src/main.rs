@@ -18,6 +18,7 @@ mod config_plugins;
 pub mod ecs;
 pub mod http;
 pub mod quickjs;
+pub mod svelte_templates;
 
 #[tokio::main]
 async fn main() {
@@ -173,7 +174,7 @@ mod config_html_server_plugins {
             tracing::info!("loaded {settings:#?}");
             let ctx = app.ctx();
             let arc_settings = Arc::new(settings);
-            ctx.spawn(config_html_server::start(arc_settings.clone()));
+            ctx.spawn(config_html_server::start(arc_settings.clone(), ctx.clone()));
             app.add_unique(ConfigSettings(arc_settings));
         }
     }

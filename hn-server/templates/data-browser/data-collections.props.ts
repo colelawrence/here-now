@@ -1,0 +1,1 @@
+export { DataCollections } from "./templates.ts";

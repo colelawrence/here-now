@@ -90,12 +90,20 @@ fn web_build(watch: bool) {
         .run_in_thread("build design tool typescript like TailwindCSS settings");
 
     let svelte_generator = Cmd::new("cargo")
-        .args("test --quiet --bin hn-server -- app_server_plugins::public_server::generate_svelte_templates --exact --nocapture".split(' '))
+        .args("test --quiet --bin hn-server -- app_server_plugins::public_server::generate_svelte_templates --exact --nocapture --ignored".split(' '))
         .root_dir(".")
         .watchable(
             watch,
             "-w hn-server/templates/generator -e ts,rs -w hn-server/src/app_server_plugins/public_server.rs",
         ).run_in_thread("built svelte template generated code");
+
+    let svelte_generator_data_browser = Cmd::new("cargo")
+        .args("test --quiet --bin hn-server -- config_html_server::data_browser::generate_svelte_templates --exact --nocapture --ignored".split(' '))
+        .root_dir(".")
+        .watchable(
+            watch,
+            "-w hn-server/templates/generator -e ts,rs -w hn-server/src/config_html_server/data_browser.rs",
+        ).run_in_thread("built svelte template generated code for data browser");
 
     let svelte = Cmd::new("deno")
         .args("run -A ./svelte-tools/compile-svelte.ts ./hn-server/templates".split(' '))
@@ -116,6 +124,7 @@ fn web_build(watch: bool) {
     svelte.join();
     tailwind.join();
     svelte_generator.join();
+    svelte_generator_data_browser.join();
 }
 
 fn dev(jaeger: bool) {

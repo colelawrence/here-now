@@ -1,5 +1,6 @@
 use std::{net::SocketAddr, sync::Arc};
 
+use axum::Extension;
 use axum::routing::post;
 use axum::{extract::State, response::Html, routing::get, Router};
 use axum_server::service::SendService;
@@ -14,6 +15,7 @@ use crate::{config, prelude::*};
 
 pub mod app;
 mod dev_paths;
+mod data_browser;
 pub mod discord;
 mod edit;
 mod templates;
@@ -168,7 +170,7 @@ fn setup_configurable(
         )
 }
 
-pub async fn start(config: Arc<config::Settings>) -> Result<()> {
+pub async fn start(config: Arc<config::Settings>, app_ctx: AppCtx) -> Result<()> {
     // TODO: Ask to set-up new configurations if not present?
     let initial_app = &config
         .get_entry("here-now-app")
@@ -208,6 +210,7 @@ pub async fn start(config: Arc<config::Settings>) -> Result<()> {
             ServeDir::new(templates_dir.join("./build"))
                 .not_found_service(ServeFile::new(templates_dir.join("./not-found.html"))),
         )
+        .layer(Extension(app_ctx.clone()))
         .layer(TraceLayer::new_for_http().make_span_with(|request: &http::Request<_>| {
             info_span!("config-request", method = %request.method(), uri = %request.uri())
         }))
@@ -218,6 +221,7 @@ pub async fn start(config: Arc<config::Settings>) -> Result<()> {
 
     let app = Router::<Arc<Settings>>::new()
         .nest("/dev", dev_paths::create_dev_router())
+        .nest("/data", data_browser::create_data_browser_router(app_ctx))
         // divided up so we don't trace the requests to the dev server
         .fallback_service(app.into_service())
         .with_state(config.clone());

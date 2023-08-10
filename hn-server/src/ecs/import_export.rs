@@ -26,6 +26,7 @@ pub struct DeviceBundle {
 #[derive(Debug, Default)]
 pub struct LinkedBundle<Tag: 'static> {
     items: Vec<HintedID>,
+    #[serde(skip_serializing, default)]
     _mark: PhantomData<Tag>,
 }
 
