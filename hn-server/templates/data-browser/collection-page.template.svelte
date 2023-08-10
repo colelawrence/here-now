@@ -3,13 +3,13 @@
   import { sanitizeHTML } from "../sanitizeHTML";
   import Header from "./Header.svelte";
   import { CollectionPage } from "./collection-page.props";
-  export let header: CollectionPage["header"] = { title: "Title" };
+  export let header: CollectionPage["header"] = { title: "Title", links: [] };
   export let rows: CollectionPage["rows"] = [];
 
   const shorthand_lookup = {
     web: "devices",
     cred: "creds",
-  }
+  };
 </script>
 
 <Header {header} />
@@ -28,6 +28,11 @@
           /"((\w{2,})_\w+)"/g,
           (_, id, shorthand) => `<a href="/data/${shorthand_lookup[shorthand] ?? `${shorthand}s`}#${id}">${id}</a>`
         )}</pre>
+      {#if row.ecs_content}
+        <pre>{@html sanitizeHTML(devStringify(row.ecs_content))}</pre>
+        {:else}
+        <pre class="warning">No ECS Content Loaded</pre>
+      {/if}
     </div>
   {/each}
 </div>
@@ -51,6 +56,12 @@
   }
 
   .collection-row:target {
+    background-color: #e6f6ff;
+    border: 1px solid #9cc7ff;
+  }
+
+  .warning {
+    padding: 1rem;
     background-color: #fffae6;
     border: 1px solid #ffeb9c;
   }

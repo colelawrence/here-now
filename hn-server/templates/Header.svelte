@@ -1,5 +1,9 @@
 <h1><span class="wave"><img src="/public/favicon.png" alt="Ducky"></span><a href="/">Here Now</a></h1>
 
+<svelte:head>
+  <title>Here Now</title>
+</svelte:head>
+
 <style>
   :root {
     font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell,

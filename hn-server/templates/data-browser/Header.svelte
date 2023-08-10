@@ -4,6 +4,11 @@
   export let header: PageHeader = { title: "Data Collections", links: [] };
 </script>
 
+<svelte:head>
+  <title>{header.title}</title>
+  <link rel="shortcut icon" href="/duckyhn.png" type="image/png">
+</svelte:head>
+
 <h1>
   <div class="links">
     {#each header.links as [collection_label, href]}
