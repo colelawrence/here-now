@@ -90,6 +90,7 @@ async fn get_home(
     .await
 }
 
+#[instrument(skip_all)]
 async fn render_home(
     templates: &svelte_templates::SvelteTemplates,
     header: PageHeader,
@@ -172,6 +173,7 @@ async fn get_all_rows<
     Ok(results)
 }
 
+#[instrument(skip_all)]
 async fn get_collection(
     Extension(app_ctx): Extension<AppCtx>,
     Extension(templates): Extension<svelte_templates::SvelteTemplates>,

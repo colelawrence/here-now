@@ -67,6 +67,7 @@ pub fn start_server_from_tcp_listener(
 #[codegen(template = "login")]
 #[allow(non_snake_case)]
 pub struct LoginProps {
+    note: Option<String>,
     loginURLs: Vec<LoginURL>,
 }
 
@@ -93,7 +94,7 @@ fn generate_svelte_templates() {
 }
 
 #[derive(Deserialize)]
-struct LoginDiscordParams {
+struct LoginDiscordQuery {
     bot: Option<String>,
     device_id: Option<HintedID>,
 }
@@ -163,7 +164,7 @@ async fn create_device(
 
 async fn login_discord(
     Extension(app_ctx): Extension<AppCtx>,
-    Query(LoginDiscordParams { bot, device_id }): Query<LoginDiscordParams>,
+    Query(LoginDiscordQuery { bot, device_id }): Query<LoginDiscordQuery>,
 ) -> HttpResult<impl IntoResponse> {
     use axum::response::*;
 
@@ -264,6 +265,7 @@ struct DiscordCallbackBot {
 #[derive(Deserialize, Serialize, Codegen)]
 #[codegen(tags = "templates")]
 struct DiscordCallbackQuery {
+    /// The device id
     state: HintedID,
     /// `error=invalid_scope&error_description=the+requested+scope+is+invalid%2c+unknown%2c+or+malformed.`
     #[serde(flatten)]
@@ -275,6 +277,7 @@ struct DiscordCallbackQuery {
     code: Option<String>,
 }
 
+#[instrument(skip_all)]
 async fn callback_discord(
     Query(query): Query<DiscordCallbackQuery>,
     Extension(app_ctx): Extension<AppCtx>,
@@ -328,6 +331,7 @@ async fn callback_discord(
         let expires_at = SystemTime::now().add(Duration::from_secs(token.expires_in));
         let access_token = token.access_token.clone();
         let device_id = query.state.clone();
+        let span = info_span!("insert new credential", ?device_id);
         app_ctx.schedule_system(
             "insert new credential",
             move |mut entities: EntitiesViewMut,
@@ -337,19 +341,43 @@ async fn callback_discord(
                   mut vm_discord_cred: ViewMut<ecs::EcsDiscordCred>,
                   // device
                   mut vm_linked_creds: ViewMut<ecs::Linked<ecs::CredTag>>| {
-                let cred_id = HintedID::generate("cred");
-                let cred_entity_id = entities.add_entity(
-                    (&mut vm_hinted_id, &mut vm_cred_tag, &mut vm_discord_cred),
-                    (
-                        cred_id,
-                        ecs::CredTag::Discord,
-                        ecs::EcsDiscordCred {
-                            access_token: token.access_token.clone(),
-                            refresh_token: token.refresh_token.clone(),
-                            expires_at,
-                        },
-                    ),
-                );
+                let _span = span.enter();
+
+                // find an existing discord access token and replace
+                let cred_entity_id = (&vm_hinted_id, &mut vm_discord_cred)
+                    .iter()
+                    .with_id()
+                    .find_map(|(entity_id, (cred_id, mut cred))| {
+                        if cred.access_token == token.access_token
+                            || cred.refresh_token == token.refresh_token
+                        {
+                            info!(?cred_id, "updated existing discord cred");
+                            let cred = &mut cred;
+                            cred.access_token = token.access_token.clone();
+                            cred.refresh_token = token.refresh_token.clone();
+                            cred.expires_at = expires_at;
+                            Some(entity_id)
+                        } else {
+                            None
+                        }
+                    })
+                    .unwrap_or_else(|| {
+                        let cred_id = HintedID::generate("cred");
+                        info!(?cred_id, "creating new discord cred");
+                        entities.add_entity(
+                            (&mut vm_hinted_id, &mut vm_cred_tag, &mut vm_discord_cred),
+                            (
+                                cred_id,
+                                ecs::CredTag::Discord,
+                                ecs::EcsDiscordCred {
+                                    access_token: token.access_token.clone(),
+                                    refresh_token: token.refresh_token.clone(),
+                                    expires_at,
+                                },
+                            ),
+                        )
+                    });
+
                 match vm_hinted_id
                     .iter()
                     .with_id()
@@ -363,16 +391,7 @@ async fn callback_discord(
                         linked_creds.as_mut().items.push(cred_entity_id);
                     }
                     None => {
-                        error!("unexpected new device");
-                        // // insert
-                        // entities.add_entity(
-                        //     (&mut vm_device_tag, &mut vm_hinted_id, &mut vm_linked_creds),
-                        //     (
-                        //         ecs::DeviceTag,
-                        //         device_id.clone(),
-                        //         ecs::Linked::new_with(Some(cred_entity_id)),
-                        //     ),
-                        // );
+                        error!(?device_id, "unexpected new device");
                     }
                 }
             },
@@ -428,28 +447,54 @@ struct DiscordToken {
     scope: String,
 }
 
+#[derive(Deserialize)]
+struct LoginPageQuery {
+    device_id: Option<HintedID>,
+}
+
+#[instrument(skip_all)]
 async fn login_page(
     Extension(templates): Extension<svelte_templates::SvelteTemplates>,
+    Query(LoginPageQuery { device_id }): Query<LoginPageQuery>,
 ) -> HttpResult {
-    let props = LoginProps {
-        loginURLs: vec![
-            LoginURL {
-                label: "Add Discord Bot".to_string(),
-                url: "login-discord?bot".to_string(),
-            },
-            LoginURL {
-                label: "Continue with Discord".to_string(),
-                url: "login-discord".to_string(),
-            },
-            LoginURL {
-                label: "Continue with Slack".to_string(),
-                url: "login-slack".to_string(),
-            },
-            LoginURL {
-                label: "Continue with Google Workspace".to_string(),
-                url: "login-google-workspace".to_string(),
-            },
-        ],
+    // LoginURL {
+    //     label: "Continue with Slack".to_string(),
+    //     url: "login-slack".to_string(),
+    // },
+    // LoginURL {
+    //     label: "Continue with Google Workspace".to_string(),
+    //     url: "login-google-workspace".to_string(),
+    // },
+    let props = if let Some(device_id) = device_id {
+        LoginProps {
+            note: Some(format!(
+                "You will be redirected to your app after log in is complete."
+            )),
+            loginURLs: vec![
+                LoginURL {
+                    label: "Add Discord Bot".to_string(),
+                    url: format!("login-discord?bot&device_id={device_id}"),
+                },
+                LoginURL {
+                    label: "Continue with Discord".to_string(),
+                    url: format!("login-discord?device_id={device_id}"),
+                },
+            ],
+        }
+    } else {
+        LoginProps {
+            note: None,
+            loginURLs: vec![
+                LoginURL {
+                    label: "Add Discord Bot".to_string(),
+                    url: "login-discord?bot".to_string(),
+                },
+                LoginURL {
+                    label: "Continue with Discord".to_string(),
+                    url: "login-discord".to_string(),
+                },
+            ],
+        }
     };
     let template = svelte_template!("login.template.compiled.cjs");
     templates

@@ -3,7 +3,7 @@ use here_now_common::{keys, public};
 #[tokio::main]
 async fn main() {
     let client = reqwest::Client::new();
-    let (private_key, public_key) = keys::init();
+    let (_private_key, public_key) = keys::init();
     let res = client
         .post("http://0.0.0.0:9000/_create_device")
         .json(&public::CreateDevicePayload {
@@ -15,8 +15,9 @@ async fn main() {
         .unwrap();
 
     println!("{:?}", res);
-    
+
     let device_id = res.json::<String>().await.unwrap();
-    
+
     println!("device_id = {device_id:?}");
+    println!("log in http://0.0.0.0:9000?device_id={device_id}");
 }

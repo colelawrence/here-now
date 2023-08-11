@@ -1,7 +1,7 @@
 use std::{net::SocketAddr, sync::Arc};
 
-use axum::Extension;
 use axum::routing::post;
+use axum::Extension;
 use axum::{extract::State, response::Html, routing::get, Router};
 use axum_server::service::SendService;
 
@@ -14,8 +14,8 @@ use crate::http::OrInternalError;
 use crate::{config, prelude::*};
 
 pub mod app;
-mod dev_paths;
 mod data_browser;
+mod dev_paths;
 pub mod discord;
 mod edit;
 mod templates;

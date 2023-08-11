@@ -1,5 +1,6 @@
 /** `#[codegen(tags = "templates", template = "login")]` */
 export type LoginProps = {
+  note?: string | undefined | null | null | undefined;
   loginURLs: Array<LoginURL>;
 };
 /** `#[codegen(tags = "templates", template = "login")]` */
@@ -54,6 +55,7 @@ export function DiscordCallbackBot(inner: DiscordCallbackBot): DiscordCallbackBo
 }
 /** `#[codegen(tags = "templates")]` */
 export type DiscordCallbackQuery = {
+  /** The device id */
   state: HintedID;
   code?: string | undefined | null | null | undefined;
 } // flattened fields:
