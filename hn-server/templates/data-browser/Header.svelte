@@ -1,13 +1,22 @@
 <script lang="ts">
-    import { sanitizeHTML } from "../sanitizeHTML";
+  import { sanitizeHTML } from "../sanitizeHTML";
   import { PageHeader } from "./templates";
   export let header: PageHeader = { title: "Data Collections", links: [] };
 </script>
 
 <svelte:head>
   <title>{header.title}</title>
-  <link rel="shortcut icon" href="/duckyhn.png" type="image/png">
+  <link rel="shortcut icon" href="/duckyhn.png" type="image/png" />
 </svelte:head>
+
+<p class="dev-links">
+  <a href="/"><img src="/duckyhn.png" type="image/png" /> Config</a>
+  <a href="/dev/docs/hn_server/index.html" target="_blank">📦 Cargo Docs</a>
+  <a href="/dev/traces/search?service=hn-server" target="_blank"
+    ><img src="/dev/traces/static/jaeger-logo-ab11f618.svg" /> Traces</a
+  >
+  <a href="http://0.0.0.0:9000" target="_blank"><img src="http://0.0.0.0:9000/public/favicon.png" /> Public</a>
+</p>
 
 <h1>
   <div class="links">
@@ -29,7 +38,7 @@
     font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell,
       "Open Sans", "Helvetica Neue", sans-serif;
     max-width: 480px;
-    margin: 2rem auto;
+    margin: 0 auto 2rem;
   }
   :global(a) {
     color: dodgerblue;
@@ -61,7 +70,6 @@
     gap: 1rem;
   }
 
-
   .warning-flash {
     background-color: #fffae6;
     border: 1px solid #ffeb9c;
@@ -80,5 +88,31 @@
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+  }
+
+  .dev-links {
+    display: flex;
+    flex-direction: row;
+    gap: 0.4em;
+  }
+
+  .dev-links a {
+    display: flex;
+    gap: 0.4em;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    color: black;
+  }
+  .dev-links a:hover {
+    text-decoration: none;
+  }
+
+  .dev-links a img {
+    height: 1em;
+  }
+
+  .dev-links a:hover {
+    background: rgba(128, 128, 128, 0.2);
   }
 </style>
