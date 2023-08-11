@@ -4,7 +4,7 @@ use std::{
 };
 
 use axum::{
-    extract::Query,
+    extract::{FromRequest, FromRequestParts, Query},
     response::{Html, IntoResponse},
     routing::{get, post},
     Extension, Router,
@@ -13,8 +13,8 @@ use derive_codegen::Codegen;
 
 use here_now_common::{keys, public};
 use http::{header::LOCATION, StatusCode};
+use serde::de::DeserializeOwned;
 use tower_http::{services::ServeDir, trace::TraceLayer};
-use tracing::Instrument;
 
 use crate::{ecs::HintedID, http::OrInternalError, prelude::*, svelte_templates};
 
@@ -28,7 +28,10 @@ pub fn start_server_from_tcp_listener(
     info!(?addr, "starting public server");
     let handle = axum_server::Handle::new();
     let server = axum_server::from_tcp(listener).handle(handle.clone());
-    let (privk, publk) = keys::init();
+    // perhaps the client should need to download the public key everytime the server starts up?
+    // This would mean there should probably be some kind special respose indicating that the
+    // client needs to re-request a new public key for the server.
+    let local_keys = keys::init();
 
     let templates_path = get_crate_path()
         .join("templates")
@@ -37,8 +40,9 @@ pub fn start_server_from_tcp_listener(
 
     let app = Router::new()
         .route("/", get(login_page))
-        .route("/_public_key", get(public_key))
-        .route("/_create_device", post(create_device))
+        .route("/_public_key", get(get_public_key))
+        .route("/_create_device", post(post_create_device))
+        .route("/_mutate", post(post_mutate))
         .route("/login-discord", get(login_discord))
         .route("/callback-discord", get(callback_discord))
         .nest_service("/public", ServeDir::new(templates_path.join("./public")))
@@ -46,8 +50,7 @@ pub fn start_server_from_tcp_listener(
             info_span!("public-request", method = %request.method(), uri = %request.uri())
         }))
         .layer(Extension(app_ctx.clone()))
-        .layer(Extension(publk))
-        .layer(Extension(privk))
+        .layer(Extension(local_keys))
         .layer(Extension(svelte_templates::SvelteTemplates {
             dev_path: Arc::new(templates_path),
         }));
@@ -99,67 +102,147 @@ struct LoginDiscordQuery {
     device_id: Option<HintedID>,
 }
 
-async fn public_key(
-    Extension(publk): Extension<keys::PublicKeyKind>,
+#[instrument(skip_all)]
+async fn get_public_key(
+    Extension(local_keys): Extension<keys::LocalKeys>,
 ) -> HttpResult<impl IntoResponse> {
     use axum::response::*;
-    Ok(Json(publk))
+    Ok(Json(local_keys.public_key().clone()))
 }
 
-async fn create_device(
+struct Verified<T>(pub keys::net::VerifiedMessage<T>);
+
+enum VerifiedRejection {
+    InternalError,
+    Unauthorized,
+    BodyError(axum::extract::rejection::BytesRejection),
+    DeserializeError(anyhow::Error),
+    BadSignature(anyhow::Error),
+    // MissingVerifiedMessageContentType,
+}
+
+impl IntoResponse for VerifiedRejection {
+    fn into_response(self) -> axum::response::Response {
+        match self {
+            VerifiedRejection::Unauthorized => {
+                (StatusCode::UNAUTHORIZED, "Unauthorized").into_response()
+            }
+            VerifiedRejection::BadSignature(err) => {
+                (StatusCode::UNAUTHORIZED, format!("Bad Signature: {err:?}")).into_response()
+            }
+            VerifiedRejection::InternalError => {
+                (StatusCode::INTERNAL_SERVER_ERROR, "Internal Server Error").into_response()
+            }
+            VerifiedRejection::BodyError(err) => err.into_response(),
+            VerifiedRejection::DeserializeError(err) => (
+                StatusCode::BAD_REQUEST,
+                format!("Bad Request, failed to parse body: {err:?}"),
+            )
+                .into_response(),
+        }
+    }
+}
+
+#[async_trait]
+impl<T, S, B> FromRequest<S, B> for Verified<T>
+where
+    T: DeserializeOwned,
+    S: Send + Sync,
+    B: axum::body::HttpBody + Send + 'static,
+    B::Data: Send,
+    B::Error: Into<axum::BoxError>,
+{
+    type Rejection = VerifiedRejection;
+
+    #[instrument(skip_all, name = "Verified::from_request")]
+    async fn from_request(req: http::Request<B>, state: &S) -> Result<Self, Self::Rejection> {
+        let (mut parts, body) = req.into_parts();
+        let local_keys = Extension::<keys::LocalKeys>::from_request_parts(&mut parts, state)
+            .await
+            .map_err(|err| {
+                error!(?err, "failed to get local keys from request");
+                VerifiedRejection::InternalError
+            })?;
+
+        // http::Request::<B>::from_parts(parts, body) is a bit much, right?
+        let bytes =
+            axum::body::Bytes::from_request(http::Request::<B>::from_parts(parts, body), state)
+                .await
+                .map_err(|e| VerifiedRejection::BodyError(e))?;
+
+        let wire_msg = keys::net::WireMessage::from_bytes(&bytes)
+            .map_err(|e| VerifiedRejection::DeserializeError(e))?;
+        Ok(Verified(
+            local_keys
+                .recv::<T>(&wire_msg)
+                .map_err(|e| VerifiedRejection::BadSignature(e))?,
+        ))
+    }
+}
+
+async fn post_mutate(
+    Extension(app_ctx): Extension<AppCtx>,
+    Verified(message): Verified<public::Mutate>,
+) -> HttpResult<impl IntoResponse> {
+    warn!(sender = ?message.sender(), data = ?message.data(), "verified, now we need to do something for the client...");
+    Ok(axum::Json(serde_json::json!({
+        "sender": message.sender(),
+        "nonce": message.nonce(),
+        "data": message.data()
+    })))
+}
+
+#[instrument(skip_all)]
+async fn post_create_device(
     Extension(app_ctx): Extension<AppCtx>,
     // Extension(publk): Extension<keys::PublicKeyKind>,
     axum::Json(public::CreateDevicePayload { label, auth_key }): axum::Json<
         public::CreateDevicePayload,
     >,
 ) -> HttpResult<impl IntoResponse> {
-    async {
-        use axum::response::*;
-        let (tx, rx) = tokio::sync::oneshot::channel();
-        let tx = std::sync::Mutex::new(Some(tx));
-        app_ctx.run_system(
-            "create device",
-            move |mut entities: EntitiesViewMut,
-                  mut vm_hinted_id: ViewMut<HintedID>,
-                  mut vm_device_tag: ViewMut<ecs::DeviceTag>,
-                  mut vm_linked_creds: ViewMut<ecs::Linked<ecs::CredTag>>,
-                  mut vm_authorized_keys: ViewMut<ecs::AuthorizedKeys>| {
-                let device_id = HintedID::generate("web");
-                tx.lock()
-                    .unwrap()
-                    .take()
-                    .unwrap()
-                    .send(device_id.clone())
-                    .unwrap();
-                entities.add_entity(
-                    (
-                        &mut vm_device_tag,
-                        &mut vm_hinted_id,
-                        &mut vm_linked_creds,
-                        &mut vm_authorized_keys,
-                    ),
-                    (
-                        ecs::DeviceTag,
-                        device_id.clone(),
-                        ecs::Linked::new_with(None),
-                        ecs::AuthorizedKeys {
-                            keys: vec![ecs::AuthorizedKey {
-                                label: label.clone(),
-                                dev_info: None,
-                                key: auth_key.clone(),
-                            }],
-                        },
-                    ),
-                );
-            },
-        );
+    use axum::response::*;
+    let (tx, rx) = tokio::sync::oneshot::channel();
+    let tx = std::sync::Mutex::new(Some(tx));
+    app_ctx.run_system(
+        "create device",
+        move |mut entities: EntitiesViewMut,
+              mut vm_hinted_id: ViewMut<HintedID>,
+              mut vm_device_tag: ViewMut<ecs::DeviceTag>,
+              mut vm_linked_creds: ViewMut<ecs::Linked<ecs::CredTag>>,
+              mut vm_authorized_keys: ViewMut<ecs::AuthorizedKeys>| {
+            let device_id = HintedID::generate("web");
+            tx.lock()
+                .unwrap()
+                .take()
+                .unwrap()
+                .send(device_id.clone())
+                .unwrap();
+            entities.add_entity(
+                (
+                    &mut vm_device_tag,
+                    &mut vm_hinted_id,
+                    &mut vm_linked_creds,
+                    &mut vm_authorized_keys,
+                ),
+                (
+                    ecs::DeviceTag,
+                    device_id.clone(),
+                    ecs::Linked::new_with(None),
+                    ecs::AuthorizedKeys {
+                        keys: vec![ecs::AuthorizedKey {
+                            label: label.clone(),
+                            dev_info: None,
+                            key: auth_key.clone(),
+                        }],
+                    },
+                ),
+            );
+        },
+    );
 
-        let device_id = rx.await.context("device creation failed").err_500()?;
+    let device_id = rx.await.context("device creation failed").err_500()?;
 
-        Ok(Json(device_id))
-    }
-    .instrument(info_span!("create_device"))
-    .await
+    Ok(Json(device_id))
 }
 
 async fn login_discord(

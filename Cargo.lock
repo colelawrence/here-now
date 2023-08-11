@@ -1009,11 +1009,15 @@ dependencies = [
 name = "desktop"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "bonsaidb",
  "here-now-common",
  "reqwest",
  "serde",
+ "serde_json",
  "tokio",
+ "tracing",
+ "tracing-subscriber 0.3.17",
 ]
 
 [[package]]
@@ -1540,6 +1544,7 @@ dependencies = [
  "bonsaidb",
  "derive-codegen",
  "hpke",
+ "pot",
  "rand",
  "serde",
  "serde_json",

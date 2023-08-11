@@ -12,9 +12,10 @@ anyhow.workspace = true
 derive-codegen.workspace = true
 actionable = "0.2.0"
 bonsaidb = { workspace = true, default-features = false }
-hpke = { version = "0.10.0" }
+hpke = { version = "0.10.0", features = ["std"]}
 rand = "0.8.5"
 base64 = "0.21.2"
+pot = "2.0.0"
 
 [dev-dependencies]
 serde_json.workspace = true

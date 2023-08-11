@@ -14,6 +14,18 @@ pub mod public {
         pub label: Option<String>,
         pub auth_key: crate::keys::PublicKeyKind,
     }
+
+    // POST `/_mutate` endpoint
+    #[derive(Debug, Serialize, Deserialize)]
+    pub struct Mutate {
+        #[serde(rename = "m")]
+        pub messages: Vec<Message>,
+    }
+
+    #[derive(Debug, Serialize, Deserialize)]
+    pub enum Message {
+        Ping,
+    }
 }
 
 /// Set the current choice.
