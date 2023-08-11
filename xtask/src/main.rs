@@ -139,7 +139,7 @@ fn dev(jaeger: bool) {
         .arg("run")
         .arg("--quiet")
         .root_dir("./hn-server")
-        .watchable(true, "-w ./src -e rs")
+        .watchable(true, "-w ./src -w ../hn-common -e rs")
         .run_in_thread("watch and run hn-server Rust program");
 
     let web_assets = jod_thread::spawn(|| {

@@ -22,6 +22,8 @@ pub mod plugin;
 pub struct DeviceBundle {
     // what is the component for this again?
     c_linked_creds: LinkedBundle<ecs::CredTag>,
+    #[serde(default)]
+    c_authorized_keys: ecs::AuthorizedKeys,
 }
 #[ecs_bundle]
 #[derive(Debug, Default)]

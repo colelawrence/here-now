@@ -6,6 +6,7 @@ use crate::prelude::ecs_::*;
 use crate::prelude::*;
 
 pub mod import_export;
+use here_now_common::keys;
 pub use import_export::plugin::SavePlugin;
 
 pub mod hinted_id;
@@ -25,6 +26,23 @@ pub enum CredTag {
 pub struct Linked<Tag: 'static> {
     pub items: Vec<EntityId>,
     _mark: PhantomData<Tag>,
+}
+
+#[ecs_component("Device")]
+#[ecs_bundle(DeviceTag)]
+#[derive(Debug, Default)]
+pub struct AuthorizedKeys {
+    pub keys: Vec<AuthorizedKey>,
+}
+
+#[ecs_bundle(DeviceTag)]
+#[derive(Debug)]
+pub struct AuthorizedKey {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub label: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub dev_info: Option<String>,
+    pub key: keys::PublicKeyKind,
 }
 
 impl<Tag: 'static> Linked<Tag> {

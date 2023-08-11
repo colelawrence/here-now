@@ -6,13 +6,15 @@ use std::{
 use axum::{
     extract::Query,
     response::{Html, IntoResponse},
-    routing::get,
+    routing::{get, post},
     Extension, Router,
 };
 use derive_codegen::Codegen;
 
+use here_now_common::{keys, public};
 use http::{header::LOCATION, StatusCode};
 use tower_http::{services::ServeDir, trace::TraceLayer};
+use tracing::Instrument;
 
 use crate::{ecs::HintedID, http::OrInternalError, prelude::*, svelte_templates};
 
@@ -26,6 +28,7 @@ pub fn start_server_from_tcp_listener(
     info!(?addr, "starting public server");
     let handle = axum_server::Handle::new();
     let server = axum_server::from_tcp(listener).handle(handle.clone());
+    let (privk, publk) = keys::init();
 
     let templates_path = get_crate_path()
         .join("templates")
@@ -34,6 +37,8 @@ pub fn start_server_from_tcp_listener(
 
     let app = Router::new()
         .route("/", get(login_page))
+        .route("/_public_key", get(public_key))
+        .route("/_create_device", post(create_device))
         .route("/login-discord", get(login_discord))
         .route("/callback-discord", get(callback_discord))
         .nest_service("/public", ServeDir::new(templates_path.join("./public")))
@@ -41,6 +46,8 @@ pub fn start_server_from_tcp_listener(
             info_span!("public-request", method = %request.method(), uri = %request.uri())
         }))
         .layer(Extension(app_ctx.clone()))
+        .layer(Extension(publk))
+        .layer(Extension(privk))
         .layer(Extension(svelte_templates::SvelteTemplates {
             dev_path: Arc::new(templates_path),
         }));
@@ -89,6 +96,69 @@ fn generate_svelte_templates() {
 struct LoginDiscordParams {
     bot: Option<String>,
     device_id: Option<HintedID>,
+}
+
+async fn public_key(
+    Extension(publk): Extension<keys::PublicKeyKind>,
+) -> HttpResult<impl IntoResponse> {
+    use axum::response::*;
+    Ok(Json(publk))
+}
+
+async fn create_device(
+    Extension(app_ctx): Extension<AppCtx>,
+    // Extension(publk): Extension<keys::PublicKeyKind>,
+    axum::Json(public::CreateDevicePayload { label, auth_key }): axum::Json<
+        public::CreateDevicePayload,
+    >,
+) -> HttpResult<impl IntoResponse> {
+    async {
+        use axum::response::*;
+        let (tx, rx) = tokio::sync::oneshot::channel();
+        let tx = std::sync::Mutex::new(Some(tx));
+        app_ctx.run_system(
+            "create device",
+            move |mut entities: EntitiesViewMut,
+                  mut vm_hinted_id: ViewMut<HintedID>,
+                  mut vm_device_tag: ViewMut<ecs::DeviceTag>,
+                  mut vm_linked_creds: ViewMut<ecs::Linked<ecs::CredTag>>,
+                  mut vm_authorized_keys: ViewMut<ecs::AuthorizedKeys>| {
+                let device_id = HintedID::generate("web");
+                tx.lock()
+                    .unwrap()
+                    .take()
+                    .unwrap()
+                    .send(device_id.clone())
+                    .unwrap();
+                entities.add_entity(
+                    (
+                        &mut vm_device_tag,
+                        &mut vm_hinted_id,
+                        &mut vm_linked_creds,
+                        &mut vm_authorized_keys,
+                    ),
+                    (
+                        ecs::DeviceTag,
+                        device_id.clone(),
+                        ecs::Linked::new_with(None),
+                        ecs::AuthorizedKeys {
+                            keys: vec![ecs::AuthorizedKey {
+                                label: label.clone(),
+                                dev_info: None,
+                                key: auth_key.clone(),
+                            }],
+                        },
+                    ),
+                );
+            },
+        );
+
+        let device_id = rx.await.context("device creation failed").err_500()?;
+
+        Ok(Json(device_id))
+    }
+    .instrument(info_span!("create_device"))
+    .await
 }
 
 async fn login_discord(
@@ -266,7 +336,6 @@ async fn callback_discord(
                   mut vm_cred_tag: ViewMut<ecs::CredTag>,
                   mut vm_discord_cred: ViewMut<ecs::EcsDiscordCred>,
                   // device
-                  mut vm_device_tag: ViewMut<ecs::DeviceTag>,
                   mut vm_linked_creds: ViewMut<ecs::Linked<ecs::CredTag>>| {
                 let cred_id = HintedID::generate("cred");
                 let cred_entity_id = entities.add_entity(
@@ -294,15 +363,16 @@ async fn callback_discord(
                         linked_creds.as_mut().items.push(cred_entity_id);
                     }
                     None => {
-                        // insert
-                        entities.add_entity(
-                            (&mut vm_device_tag, &mut vm_hinted_id, &mut vm_linked_creds),
-                            (
-                                ecs::DeviceTag,
-                                device_id.clone(),
-                                ecs::Linked::new_with(Some(cred_entity_id)),
-                            ),
-                        );
+                        error!("unexpected new device");
+                        // // insert
+                        // entities.add_entity(
+                        //     (&mut vm_device_tag, &mut vm_hinted_id, &mut vm_linked_creds),
+                        //     (
+                        //         ecs::DeviceTag,
+                        //         device_id.clone(),
+                        //         ecs::Linked::new_with(Some(cred_entity_id)),
+                        //     ),
+                        // );
                     }
                 }
             },

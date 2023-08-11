@@ -4,6 +4,18 @@ use bonsaidb::core::{
 };
 use serde::{Deserialize, Serialize};
 
+pub mod keys;
+
+pub mod public {
+    use serde::{Deserialize, Serialize};
+
+    #[derive(Serialize, Deserialize)]
+    pub struct CreateDevicePayload {
+        pub label: Option<String>,
+        pub auth_key: crate::keys::PublicKeyKind,
+    }
+}
+
 /// Set the current choice.
 #[derive(Serialize, Deserialize, Debug)]
 pub struct SetChoice(pub Choice);

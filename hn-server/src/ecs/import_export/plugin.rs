@@ -7,6 +7,7 @@ pub struct SavePlugin(());
 
 impl Plugin for SavePlugin {
     fn build(&self, app: &mut AppBuilder) {
+        let _span = tracing::info_span!("ecs::SavePlugin::build").entered();
         let db: ArcResult<local::Database> = {
             let mut storage_conf = local::config::StorageConfiguration::default();
             // get from configuration in the future?

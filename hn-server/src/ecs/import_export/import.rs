@@ -7,6 +7,7 @@ type ViewMutCred<'a> = (ViewMut<'a, ecs::CredTag>, ViewMut<'a, ecs::EcsDiscordCr
 type ViewMutDevice<'a> = (
     ViewMut<'a, ecs::DeviceTag>,
     ViewMut<'a, ecs::Linked<ecs::CredTag>>,
+    ViewMut<'a, ecs::AuthorizedKeys>,
 );
 
 #[ecs_unique]
@@ -85,7 +86,7 @@ fn import_devices(
     map: &mut HashMap<HintedID, EntityId>,
     mut entities: &mut EntitiesViewMut,
     vm_hinted_id: &mut ViewMut<HintedID>,
-    (vm_device_tag, vm_linked_creds): &mut ViewMutDevice,
+    (vm_device_tag, vm_linked_creds, vm_authorized_keys): &mut ViewMutDevice,
     //
 ) -> Result<()> {
     let _span = tracing::info_span!("import_devices from bonsai").entered();
@@ -93,7 +94,10 @@ fn import_devices(
         .query()
         .context("getting all devices")?
     {
-        // let doc = cred.to_document().context("cred to document")?;
+        let DeviceBundle {
+            c_authorized_keys,
+            c_linked_creds,
+        } = device.contents;
         map.insert(
             device.header.id.clone(),
             (&mut entities).add_entity(
@@ -101,18 +105,18 @@ fn import_devices(
                     &mut *vm_hinted_id,
                     &mut *vm_device_tag,
                     &mut *vm_linked_creds,
+                    &mut *vm_authorized_keys,
                 ),
                 (
                     device.header.id,
                     ecs::DeviceTag,
                     ecs::Linked::new_with(
-                        device
-                            .contents
-                            .c_linked_creds
+                        c_linked_creds
                             .items
                             .into_iter()
                             .map(|id| *map.get(&id).expect("linked cred exists")),
                     ),
+                    c_authorized_keys,
                 ),
             ),
         );

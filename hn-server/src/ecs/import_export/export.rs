@@ -5,6 +5,7 @@ type ViewCred<'a> = (View<'a, ecs::CredTag>, View<'a, ecs::EcsDiscordCred>);
 type ViewDevice<'a> = (
     View<'a, ecs::DeviceTag>,
     View<'a, ecs::Linked<ecs::CredTag>>,
+    View<'a, ecs::AuthorizedKeys>,
 );
 
 pub(super) fn export_all(
@@ -83,7 +84,7 @@ fn export_changed_devices(
     last_import: &mut super::import::LastImport,
     v_hinted_id: &View<HintedID>,
     v_cred_tag: &View<ecs::CredTag>,
-    (v_device_tag, v_linked_creds): &ViewDevice,
+    (v_device_tag, v_linked_creds, v_authorized_keys): &ViewDevice,
     //
 ) {
     let _span = tracing::info_span!("export_changed_devices").entered();
@@ -95,12 +96,14 @@ fn export_changed_devices(
             }
             if v_hinted_id.is_inserted_or_modified(entity)
                 || v_linked_creds.is_inserted_or_modified(entity)
+                || v_authorized_keys.is_inserted_or_modified(entity)
             {
                 Some((
                     // saying "?" means that if we miss something then we will not come back to this
                     // but that should be okay, because we'll check again when the status has changed.
                     v_hinted_id.get(entity).ok()?,
                     v_linked_creds.get(entity).ok()?,
+                    v_authorized_keys.get(entity).ok()?,
                 ))
             } else {
                 None
@@ -108,7 +111,7 @@ fn export_changed_devices(
         })
     };
 
-    for (id, linked_creds) in updated {
+    for (id, linked_creds, authorized_keys) in updated {
         let _span = info_span!("updating device document", ?id).entered();
         let mut items = Vec::<HintedID>::new();
         for entity_id in linked_creds.items.iter() {
@@ -137,6 +140,7 @@ fn export_changed_devices(
                     items,
                     _mark: PhantomData,
                 },
+                c_authorized_keys: authorized_keys.clone(),
             },
             db,
         ) {
