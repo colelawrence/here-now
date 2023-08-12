@@ -5,7 +5,11 @@ use crate::prelude::*;
 #[async_trait]
 impl Mutation for public::CreateDeviceMutation {
     #[instrument(skip(app_ctx), name = "create device mutation")]
-    async fn mutate(&self, sender: &keys::PublicKeyKind, app_ctx: AppCtx) -> MutateResult<Self> {
+    async fn mutate(
+        &self,
+        sender: &keys::PublicKeyKind,
+        app_ctx: AppCtx,
+    ) -> public::MutateResult<Self> {
         let (tx, rx) = tokio::sync::oneshot::channel();
         let tx = std::sync::Mutex::new(Some(tx));
         let label = self.label.clone();
