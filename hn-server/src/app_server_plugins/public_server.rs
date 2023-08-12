@@ -181,15 +181,24 @@ where
 }
 
 async fn post_mutate(
-    Extension(app_ctx): Extension<AppCtx>,
+    // Extension(app_ctx): Extension<AppCtx>,
+    Extension(local_keys): Extension<keys::LocalKeys>,
     Verified(message): Verified<public::Mutate>,
 ) -> HttpResult<impl IntoResponse> {
     warn!(sender = ?message.sender(), data = ?message.data(), "verified, now we need to do something for the client...");
-    Ok(axum::Json(serde_json::json!({
-        "sender": message.sender(),
-        "nonce": message.nonce(),
-        "data": message.data()
-    })))
+    // Ok(axum::Json(serde_json::json!({
+    //     "sender": message.sender(),
+    //     "nonce": message.nonce(),
+    //     "data": message.data()
+    // })))
+    let wire = match message.data() {
+        public::Mutate::Ping => local_keys
+            .send(&public::MutateResponse::Pong, message.sender())
+            .context("signing pong message")
+            .err_500()?,
+    };
+
+    Ok(axum::body::Bytes::from(wire.to_bytes()))
 }
 
 #[instrument(skip_all)]

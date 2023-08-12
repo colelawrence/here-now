@@ -15,16 +15,16 @@ pub mod public {
         pub auth_key: crate::keys::PublicKeyKind,
     }
 
-    // POST `/_mutate` endpoint
+    /// POST `/_mutate` endpoint
+    /// See [MutateResponse]
     #[derive(Debug, Serialize, Deserialize)]
-    pub struct Mutate {
-        #[serde(rename = "m")]
-        pub messages: Vec<Message>,
+    pub enum Mutate {
+        Ping,
     }
 
     #[derive(Debug, Serialize, Deserialize)]
-    pub enum Message {
-        Ping,
+    pub enum MutateResponse {
+        Pong,
     }
 }
 
