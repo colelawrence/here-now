@@ -8,8 +8,16 @@ pub(super) async fn start() {
         "http://0.0.0.0:9000".to_string(),
     );
 
-    dbg!(client
-        .send(public::Mutate::Ping)
+    let resp = client.send(public::Ping).await.expect("pinged server");
+
+    dbg!(resp);
+
+    let resp = client
+        .send(public::CreateDeviceMutation {
+            label: "desktop".to_string(),
+        })
         .await
-        .expect("pinged server"));
+        .expect("created device on server");
+
+    dbg!(resp);
 }

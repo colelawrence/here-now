@@ -34,7 +34,7 @@ impl DeviceClient {
     }
 
     #[tracing::instrument]
-    pub async fn send(&self, msg: public::Mutate) -> Result<public::MutateResponse> {
+    pub async fn send<M: public::Mutation>(&self, msg: M) -> Result<public::MutateResult<M>> {
         let server_key = self
             .get_server_key()
             .await
@@ -45,7 +45,7 @@ impl DeviceClient {
             .post(format!("{}/_mutate", self.server_base_url))
             .body(
                 self.local_keys
-                    .send(&msg, &server_key)
+                    .send::<&public::Mutate>(&msg.into_request(), &server_key)
                     .context("for body to send")?
                     .to_bytes(),
             )
@@ -59,7 +59,7 @@ impl DeviceClient {
 
         let verified = self
             .local_keys
-            .recv::<public::MutateResponse>(&wire)
+            .recv::<public::MutateResult<M>>(&wire)
             .context("reading and parsing mutate response")?;
 
         if let Err(err) = expect_serde_eq(verified.sender(), &server_key) {

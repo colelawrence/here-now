@@ -130,7 +130,11 @@ pub fn init() -> LocalKeys {
 }
 
 pub mod net {
-    use std::time::{Duration, Instant, SystemTime};
+    use std::{
+        any::type_name,
+        marker::PhantomData,
+        time::{Duration, Instant, SystemTime},
+    };
 
     use super::*;
     use anyhow::Context;
@@ -147,9 +151,9 @@ pub mod net {
         pub fn public_key(&self) -> &super::PublicKeyKind {
             &self.1
         }
-        pub fn send<T: serde::Serialize>(
+        pub fn send<T: EncryptableMessage>(
             &self,
-            msg: &T,
+            msg: T,
             rx_pk: &super::PublicKeyKind,
         ) -> anyhow::Result<WireMessage> {
             encrypt_msg(
@@ -167,15 +171,52 @@ pub mod net {
             &self,
             msg: &WireMessage,
         ) -> anyhow::Result<VerifiedMessage<T>> {
-            decrypt_msg(&self.0, msg)
+            decrypt_msg(&self.0, msg).with_context(|| format!("decrypting {}", type_name::<T>()))
+        }
+    }
+
+    pub struct RawWireResult<E>(Vec<u8>, PhantomData<E>);
+
+    impl<E> RawWireResult<E> {
+        pub fn from_ok<S: serde::Serialize>(input: S) -> Self {
+            let ok: Result<S, ()> = Ok(input);
+            Self(
+                pot::to_vec(&ok).expect("could not serialize message!"),
+                PhantomData,
+            )
+        }
+        pub fn from_err(input: E) -> Self
+        where
+            E: serde::Serialize,
+        {
+            let err: Result<(), E> = Err(input);
+            Self(
+                pot::to_vec(&err).expect("could not serialize message!"),
+                PhantomData,
+            )
+        }
+    }
+
+    pub trait EncryptableMessage {
+        fn into_bytes(self) -> Vec<u8>;
+    }
+
+    impl<S: serde::Serialize> EncryptableMessage for &S {
+        fn into_bytes(self) -> Vec<u8> {
+            pot::to_vec(self).expect("could not serialize message!")
+        }
+    }
+    impl<E> EncryptableMessage for RawWireResult<E> {
+        fn into_bytes(self) -> Vec<u8> {
+            self.0
         }
     }
 
     // Given a message and associated data, returns an encapsulated key, ciphertext, and tag. The
     // ciphertext is encrypted with the shared AEAD context
-    fn encrypt_msg<T: serde::Serialize>(
+    fn encrypt_msg<T: EncryptableMessage>(
         header: &MessageHeader,
-        msg: &T,
+        msg: T,
         rx_pk: &PublicKeyKind,
         tx_sk: &PrivateKeyKind,
         tx_pk: &PublicKeyKind,
@@ -203,7 +244,7 @@ pub mod net {
                 .context("invalid server pubkey!")?;
 
                 // On success, seal_in_place_detached() will encrypt the plaintext in place
-                let mut msg_copy = pot::to_vec(msg).context("serializing message")?;
+                let mut msg_copy = msg.into_bytes();
                 let tag = sender_ctx
                     .seal_in_place_detached(&mut msg_copy, &associated_data)
                     .context("encryption failed!")?;
@@ -236,7 +277,7 @@ pub mod net {
             .context("parsing header")?;
 
         let tag = AeadTag::<Aead>::from_bytes(&wire_message.tag_bytes)
-            .expect("could not deserialize AEAD tag!");
+            .context("could not deserialize AEAD tag!")?;
         let encapped_key =
             <Kem as KemTrait>::EncappedKey::from_bytes(&wire_message.encapped_key_bytes)
                 .context("could not deserialize the encapsulated pubkey!")?;
@@ -267,8 +308,12 @@ pub mod net {
             }
         };
 
-        let data =
-            pot::from_slice(&plaintext).context("deserializing plaintext into message type")?;
+        let data = pot::from_slice(&plaintext).with_context(|| {
+            format!(
+                "deserializing plaintext into message type: {:?}",
+                String::from_utf8_lossy(&plaintext)
+            )
+        })?;
 
         Ok(VerifiedMessage { header, data })
     }
@@ -293,7 +338,12 @@ pub mod net {
             pot::to_vec(self).expect("could not serialize wire message!")
         }
         pub fn from_bytes(serialized: &[u8]) -> anyhow::Result<Self> {
-            pot::from_slice(serialized).context("deserializing WireMessage from bytes")
+            pot::from_slice(serialized).with_context(|| {
+                format!(
+                    "deserializing WireMessage from pot bytes: {:?}",
+                    String::from_utf8_lossy(serialized)
+                )
+            })
         }
     }
 
