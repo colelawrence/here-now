@@ -1,0 +1,195 @@
+import { Theme } from "../theme.slint";
+import { HNScrollViewHorizontal } from "../ScrollView.slint";
+import { DemoWindow } from "../demo-window.slint";
+
+export struct ScreenShareOption {
+    id: string,
+    // e.g. window title ""
+    display-name: string,
+    icon: image,
+    preview: image,
+}
+export struct ScreenShareGroup {
+    // e.g. "Display" or app name like "Code" or "Figma"
+    display-name: string,
+    icon: image,
+    options: [ScreenShareOption],
+}
+
+component HNDialogButton inherits TouchArea {
+    in property<string> display-text: "display-text";
+    height: text.preferred-height + 8px;
+    width: text.preferred-width + 8px;
+    Rectangle {
+        background: root.pressed ? Theme.background-call.brighter(40%) : root.has-hover ? Theme.background-call.brighter(20%) : Theme.background-call;
+        border-radius: Theme.radius-window;
+    }
+    text := Text {
+        text: root.display-text;
+    }
+}
+
+component ShareOption {
+    in property <bool> selected: false;
+    callback clicked();
+    in property <image> icon: @image-url("./group-displays.png");
+    in property <ScreenShareOption> option: {
+        id: "display:0",
+        display-name: "Display 1",
+        preview: @image-url("./example/display-1.png"), 
+    };
+
+    height: 140px;
+    width: 200px;
+
+    touch := TouchArea {
+        clicked => { root.clicked(); }
+        Rectangle {
+            border-color: white;
+            border-radius: 13px;
+            border-width: root.selected ? 2px : 0px;
+            background: touch.pressed ? gray.darker(20%) : touch.has-hover ? gray.darker(40%) : rgba(128, 128, 128, 0.0);
+            padding: 10px;
+
+            animate background, border-width {
+                duration: 100ms;
+                easing: cubic-bezier(0.250, 0.460, 0.450, 0.940); // ease-in quad
+            }
+
+            VerticalLayout {
+                alignment: center;
+                Rectangle {
+                    Image {
+                        source: root.option.preview;
+                        width: parent.width - 20px;
+                        height: parent.height - 20px;
+                        image-fit: contain;
+                    }
+
+                    Image {
+                        // bottom right
+                        x: parent.width - self.width - 10px;
+                        y: parent.height - self.height - 10px;
+
+                        source: root.icon;
+                        width: 30px;
+                        height: 30px;
+                        image-fit: contain;
+                    }
+                }
+                Text {
+                    text: root.option.display-name;
+                    horizontal-alignment: center;
+                }
+            }
+        }
+    }
+}
+
+struct SelectedScreen {
+    id: string,
+    display-name: string,
+}
+
+export component HereNowScreenShareSelectorInner inherits Rectangle {
+    min-width: 120px;
+    callback choose-screen-share(string);
+    callback cancel();
+    property <SelectedScreen> selected: { id: "", display-name: "" };
+    in property <bool> groups-loading: true;
+    in property <[ScreenShareGroup]> groups-model: [
+        { display-name: "Displays", icon: @image-url("./group-displays.png"), options: [
+                { id: "display:0", preview: @image-url("./example/display-1.png"), display-name: "Display 1" },
+                { id: "display:1", preview: @image-url("./example/display-2.png"), display-name: "Display 2" },
+        ]},
+        { display-name: "Code", icon: @image-url("./example/vscode.png"), options: [
+                { id: "2003", preview: @image-url("./example/display-1.png"), display-name: "Code" },
+        ]},
+        { display-name: "Figma", icon: @image-url("./example/figma.png"), options: [
+                { id: "1287", preview: @image-url("./example/window-figma.png"), display-name: "Figma" },
+        ]}
+    ];
+
+    VerticalLayout {
+        spacing: 12px;
+
+        HorizontalLayout {
+            alignment: center;
+            popup-label := Rectangle {
+                border-radius: 3px;
+                width: titleText.preferred-width + 8px;
+                height: titleText.preferred-height + 8px;
+                background: rgba(0, 0, 0, 0.9);
+                // border-width: 2px;
+                border-color: black;
+                titleText := Text {
+                    text: "Share";
+                    color: white;
+                    font-size: 24px;
+                    font-weight: 600;
+                    horizontal-alignment: center;
+                }
+
+                if root.groups-loading: Rectangle {
+                    // bleh...
+                    x: popup-label.width;
+                    z: 10;
+                    width: text.preferred-width + Theme.spaceX * 2;
+                    height: text.preferred-height + Theme.spaceY * 2;
+                    text := Text {
+                        text: "Loading...";
+                    }
+                }
+            }
+        }
+
+        Rectangle {
+            border-radius: 15px;
+            border-width: 1px;
+            border-color: Theme.background-call.brighter(20%);
+            background: Theme.background-call;
+
+            height: 200px; // magic number trying not to introduce vertical scrolling
+            max-width: 600px;
+
+            HNScrollViewHorizontal {
+                HorizontalLayout {
+                    padding: 20px;
+                    spacing: 12px;
+                    for group in root.groups-model: HorizontalLayout {
+                        spacing: 12px;
+                        for option in group.options: ShareOption {
+                            icon: group.icon;
+                            option: option;
+                            selected: root.selected.id == option.id;
+                            clicked => { root.selected = { id: option.id, display-name: option.display-name }; }
+                        }
+                    }
+                }
+            }
+        }
+
+        HorizontalLayout {
+            spacing: 12px;
+            alignment: space-between;
+
+            HNDialogButton {
+                display-text: "Cancel";
+                clicked => { root.cancel(); }
+            }
+            HNDialogButton {
+                display-text: "Share \{root.selected.display-name}";
+                enabled: root.selected.id != "";
+                clicked => {
+                    if (root.selected.id != "") {
+                        root.choose-screen-share(root.selected.id);
+                    }
+                }
+            }
+        }
+    }
+}
+
+export component Demo inherits DemoWindow { 
+    HereNowScreenShareSelectorInner {}
+}

@@ -1,0 +1,239 @@
+import {
+    HorizontalBox, Button, VerticalBox,
+    GroupBox, ListView, CheckBox,
+    ScrollView, StandardListView,
+    StandardButton, TextEdit
+} from "std-widgets.slint";
+import { activity-status, importance, connection-status } from "../generated.slint";
+import { PCaller, Person, PAction, Types } from "../types.slint";
+import { HNScrollView, HNScrollViewHorizontal } from "../ScrollView.slint";
+import { Theme } from "../theme.slint";
+import { DemoWindow } from "../demo-window.slint";
+
+// Random links
+// https://remotion.com/blog/building-a-macos-remote-control-engine
+
+
+component HNPersonText inherits Text {
+    // #generate.ts(enum): "importance": PRIMARY, SECONDARY
+    in property <int> text-importance;
+    in property <int> person-activity-status;
+    font-size: 12px;
+    font-weight: 600;
+    color: Theme.text-body;
+    opacity: self.text-importance == importance.SECONDARY ? 50% : 100%;
+}
+
+
+component HereNowPerson inherits TouchArea {
+    in property <Person> person;
+    in property <[PAction]> actions;
+    callback action-clicked(string);
+
+    property <color> background: root.pressed ? Theme.background-body.darker(40%) : root.has-hover ? Theme.background-body.darker(5%) : transparent;
+
+    // for background color
+    Rectangle {
+        background: root.background;
+        border-radius: 4px;
+    }
+
+    HorizontalLayout {
+        padding: 5px;
+        spacing: 7px;
+        alignment: start;
+        // status avatar
+        Rectangle {
+            width: 20px;
+            height: 20px;
+            if person.activity-status == activity-status.IN-CALL: Rectangle {
+                property <length> size: 8px;
+                width: self.size;
+                height: self.size;
+                border-radius: self.size / 2;
+                x: (parent.width - self.size) * 0.5;
+                y: (parent.height - self.size) * 0.5;
+                background: Theme.in-call-color;
+                opacity: 83%;
+            }
+
+            if person.activity-status == activity-status.ONLINE || person.activity-status == activity-status.AWAY: Rectangle {
+                border-radius: 4px;
+                background: palegoldenrod;
+                if person.person-display-icon-image != Theme.icon-none: Rectangle {
+                    clip: true;
+                    border-radius: 3px;
+                    Image {
+                        width: parent.width;
+                        height: parent.height;
+                        source: person.person-display-icon-image;
+                    }
+                }
+
+                // knockout
+                Rectangle {
+                    width: 10px;
+                    height: 10px;
+                    x: parent.width - 5px;
+                    y: parent.height - 5px;
+                    border-radius: 5px;
+                    background: Theme.background-body;
+                }
+
+                if person.activity-status == activity-status.ONLINE: Rectangle {
+                    width: 6px;
+                    height: 6px;
+                    x: parent.width - self.width / 2;
+                    y: parent.height - self.height / 2;
+                    border-radius: self.width / 2;
+                    background: #7EC03A;
+                }
+
+                if person.activity-status == activity-status.AWAY: Rectangle {
+                    width: 6px;
+                    height: 6px;
+                    x: parent.width - self.width / 2;
+                    y: parent.height - self.height / 2;
+                    border-radius: self.width / 2;
+                    border-width: 1px;
+                    border-color: #C89000;
+                }
+            }
+
+            if person.activity-status == activity-status.OFFLINE: Rectangle {
+                property <length> size: 8px;
+                width: self.size;
+                height: self.size;
+                border-radius: self.size;
+                x: (parent.width - self.size) * 0.5;
+                y: (parent.height - self.size) * 0.5;
+                border-color: gray;
+                border-width: 1px;
+            }
+        }
+
+        VerticalLayout {
+            alignment: center;
+            HNPersonText {
+                text-importance: importance.PRIMARY;
+                text: person.person-display-name;
+            }
+        }
+
+        if person.custom-status-display != "": VerticalLayout {
+            alignment: center;
+            HNPersonText {
+                text-importance: importance.SECONDARY;
+                text: person.custom-status-display;
+            }
+        }
+
+        HorizontalLayout {
+            spacing: 2px;
+            alignment: start;
+            if person.activity-status-icon-image != Theme.icon-none: VerticalLayout {
+                alignment: center;
+                Image {
+                    width: 12px;
+                    height: 12px;
+                    source: person.activity-status-icon-image;
+                }
+            }
+
+            if person.activity-status-display != "": VerticalLayout {
+                alignment: center;
+                HNPersonText {
+                    text-importance: importance.SECONDARY;
+                    text: person.activity-status-display;
+                }
+            }
+        }
+    }
+
+    // actions
+    HorizontalLayout {
+        // spacing: 2px;
+        alignment: end;
+        visible: root.has-hover;
+        padding-right: 4px;
+
+        for action in root.actions: actionTouch := TouchArea {
+            clicked => { root.action-clicked(action.code); }
+            // mouse-cursor: pointer;
+            Rectangle {
+                border-radius: 3px;
+                background: root.background.darker(actionTouch.pressed ? 20% : actionTouch.has-hover ? 10% : 0%);
+                // GroupBox {}
+                Rectangle {
+                    border-radius: 5px;
+                    y: -self.height - 2px;
+                    z: 2;
+                    width: actionText.preferred-width + 8px;
+                    height: actionText.preferred-height + 8px;
+                    visible: actionTouch.has-hover;
+                    background: black;
+                    // border-width: 2px;
+                    border-color: black;
+                    actionText := Text {
+                        text: action.display;
+                        letter-spacing: 0.2px;
+                        font-size: actionTouch.has-hover ? 16px : 2px;
+                        font-weight: 600;
+                        horizontal-alignment: center;
+                    }
+                }
+                VerticalLayout {
+                    padding-left: 8px;
+                    padding-right: 8px;
+                    alignment: center;
+                    Text {
+                        horizontal-alignment: center;
+                        text: action.icon;
+                    }
+                }
+            }
+        }
+    }
+}
+
+global ExampleIcons {
+    out property <image> icon-figma: @image-url("./example/figma.png");
+    out property <image> icon-vscode: @image-url("./example/vscode.png");
+}
+
+export component HereNowPeopleListInner {
+    property <[Person]> people-model: [
+        Types.person(1900, activity-status.ONLINE, false, "Cole", @image-url("./example/cole.jpg"), "", ExampleIcons.icon-figma, "Figma"),
+        Types.person(1001, activity-status.IN-CALL, false, "Justin", Theme.icon-none, "Open to pairing until 5pm", ExampleIcons.icon-vscode, "Code"),
+        Types.person(1002, activity-status.IN-CALL, false, "Pete", Theme.icon-none, "", ExampleIcons.icon-vscode, "Code"),
+        Types.person(1003, activity-status.ONLINE, false, "Claire", @image-url("./example/claire.jpg"), "", ExampleIcons.icon-figma, "Figma"),
+        Types.person(1004, activity-status.AWAY, false, "Geoff", @image-url("./example/steve.jpg"), "", ExampleIcons.icon-figma, "Figma"),
+        Types.person(1005, activity-status.OFFLINE, false, "Henry", Theme.icon-none, "", Theme.icon-none, ""),
+    ];
+
+    Rectangle {
+        background: Theme.background-body;
+        border-radius: Theme.radius-window;
+    }
+
+    VerticalLayout {
+        // enabled: true;
+        for person in root.people-model: touch := HereNowPerson {
+            clicked => {
+                debug("clicked", person.id, person.person-display-name)
+            }
+            action-clicked(code) => {
+                debug("action", code, person.id, person.person-display-name)
+            }
+            person: person;
+            actions: person.activity-status == activity-status.ONLINE || person.activity-status == activity-status.IN-CALL || person.activity-status == activity-status.AWAY ? [
+                Types.action("WAVE", "👋", "Wave"),
+                Types.action("TALK", "🎙️", "Talk")
+            ] : [];
+        }
+    }
+}
+
+export component Demo inherits DemoWindow {
+    HereNowPeopleListInner {}
+}

@@ -22,3 +22,6 @@
 [submodule "vendor/bonsaidb"]
 	path = vendor/bonsaidb
 	url = https://github.com/khonsulabs/bonsaidb.git
+[submodule "vendor/slint"]
+	path = vendor/slint
+	url = https://github.com/colelawrence/slint

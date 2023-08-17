@@ -1,0 +1,16 @@
+// Consider: Generating our own md from tailwind / generator stuff we've previously built
+// See https://github.com/slint-ui/slint/blob/7b26d6e58f9f98d15042445a6671b599685457d6/internal/compiler/widgets/material-base/md.slint
+export global Theme {
+    in-out property <length> spaceX: 8px;
+    in-out property <length> spaceY: 8px;
+    in-out property <length> radius-window: 4px;
+    in-out property <image> app-icon: @image-url("./app_icon.png");
+    in-out property <image> icon-none: @image-url("./none.png");
+    in-out property <color> text-body: #222;
+    in-out property <color> background-body: white;
+    in-out property <color> background-body-transparent: rgba(255, 255, 255, 0);
+    in-out property <color> background-call: rgba(42, 42, 42, 0.9);
+    in-out property <color> background-call-transparent: rgba(42, 42, 42, 0);
+    in-out property <color> in-call-color: #074DFF;
+    // https://cubic-bezier.com/#.53,.01,.53,.99
+}

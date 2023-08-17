@@ -22,6 +22,7 @@
     }
   ],
   "settings": {
+    "slint.preview.style": "fluent",
     "files.exclude": {
       "hn-server/protocols": true,
       "design-tools": true,

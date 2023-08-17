@@ -1,10 +1,32 @@
 [workspace]
-members = ["xtask", "hn-server", "hn-desktop", "hn-app", "hn-common"]
-exclude = ["vendor/shipyard", "vendor/quickjs-rs", "vendor/tracing-opentelemetry", "vendor/bonsaidb"]
+members = [
+  "xtask",
+  "hn-server",
+  "hn-desktop",
+  "hn-app",
+  "hn-common",
+  'vendor/slint/api/rs/build',
+  'vendor/slint/api/rs/slint',
+  'vendor/slint/internal/backends/winit',
+  'vendor/slint/internal/backends/qt',
+  'vendor/slint/internal/backends/selector',
+  'vendor/slint/internal/compiler',
+  'vendor/slint/internal/core',
+  'vendor/slint/internal/interpreter',
+  'vendor/slint/tools/lsp',
+]
+exclude = [
+  "vendor/shipyard",
+  "vendor/quickjs-rs",
+  "vendor/tracing-opentelemetry",
+  "vendor/bonsaidb",
+  "vendor/slint",
+]
 resolver = "2"
 
 [workspace.package]
 version = "0.0.1"
+rust-version = "1.70.0"
 edition = "2021"
 authors = ["Cole Lawrence <cole@colelawrence.com>"]
 license = "Apache-2.0 OR MIT"
@@ -18,9 +40,28 @@ derive-codegen = { path = "vendor/derive-codegen/derive-codegen", version = "*" 
 i-codegen-derive = { path = "vendor/derive-codegen/derive", version = "*" }
 i-codegen-code = { path = "vendor/derive-codegen/code", version = "*" }
 shipyard_app = { path = "vendor/shipyard_app", version = "*" }
-shipyard = { path = "vendor/shipyard", version = "*", features = ["proc", "tracing"] }
+shipyard = { path = "vendor/shipyard", version = "*", features = [
+  "proc",
+  "tracing",
+] }
 bonsaidb = { path = "vendor/bonsaidb/crates/bonsaidb", version = "0.4.0" }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 tracing = "0.1.37"
 anyhow = "1.0"
+
+# for slint
+resvg = { version= "0.32.0", default-features = false }
+fontdb = { version = "0.13.1", features = ["fontconfig"] }
+yeslogic-fontconfig-sys = { version = "3.2.0", features = ["dlopen"] }
+
+# optimizations borrowed from the slint project
+
+[profile.release]
+lto = true
+panic = "abort"
+
+[profile.dev]
+debug = 1
+opt-level = 2
+panic = "abort"

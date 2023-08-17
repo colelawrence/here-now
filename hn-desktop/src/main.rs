@@ -10,6 +10,7 @@ mod prelude {
 mod device;
 mod device_client;
 mod local_keys;
+mod slint_main;
 
 #[tokio::main]
 async fn main() {
@@ -22,6 +23,10 @@ async fn main() {
     let main_plugin = device_plugin::DevicePlugin(sender);
     let workload = app.add_plugin_workload(main_plugin);
     let main_loop = tokio::spawn(hn_app::app_ctx::start_loop(app, workload, recv));
+
+    // must be launched on the main thread for winit to work on macOS
+    slint_main::slint_main();
+
     // must await or the nested jobs get canceled with an opaque "background task failed" error.
     main_loop.await.todo(f!("desktop loop exit error"));
 }

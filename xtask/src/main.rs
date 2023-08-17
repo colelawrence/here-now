@@ -160,6 +160,8 @@ fn dev(jaeger: bool) {
 fn dev_desktop(jaeger: bool) {
     let server = Cmd::new("cargo")
         .env("HERE_NOW_LOG", "debug,!pot,!nebari")
+        .env("SLINT_DEBUG_PERFORMANCE", "refresh_lazy,overlay")
+        .env("SLINT_NO_QT", "1")
         .env_if(
             jaeger,
             "JAEGER_COLLECTOR_ENDPOINT",

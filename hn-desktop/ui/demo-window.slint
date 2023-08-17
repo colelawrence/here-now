@@ -1,0 +1,19 @@
+
+export component DemoWindow inherits Window {
+    Image {
+        source: @image-url("./demo-assets/coles-background.jpg");
+        image-fit: cover;
+        width: root.width;
+        height: root.height;
+    }
+
+    height: 500px;
+    width: 800px;
+
+    VerticalLayout {
+        padding: 20px;
+
+        @children
+    }
+
+}

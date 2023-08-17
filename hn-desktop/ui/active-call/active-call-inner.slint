@@ -1,0 +1,61 @@
+import { activity-status, importance, connection-status } from "../generated.slint";
+import { PCaller, Person, Types } from "../types.slint";
+import { HNScrollViewHorizontal } from "../ScrollView.slint";
+import { Theme } from "../theme.slint";
+import { DemoWindow } from "../demo-window.slint";
+
+// https://slint-ui.com/releases/1.0.2/docs/rust/slint/docs/debugging_techniques/index.html
+
+component ActiveCaller {
+    in property <PCaller> caller: Types.caller(1001, connection-status.CONNECTED, "Justin", Theme.icon-none, true, @image-url("./example/video-cole.png"), true, false);
+
+    height: 140px;
+    width: 200px;
+
+    Rectangle {
+        border-radius: 13px;
+        border-color: orange;
+        border-width: root.caller.audio-feed-active ? 4px : 0px;
+        background: gray;
+        clip: true;
+        Image {
+            source: root.caller.video-feed-image;
+            width: parent.width;
+            height: parent.height;
+            image-fit: cover;
+        }
+    }
+}
+
+export component HereNowActiveCallInner {
+    in property <[PCaller]> caller-model: [
+        Types.caller(1001, connection-status.CONNECTED, "Justin", Theme.icon-none, true, @image-url("./example/video-cole.png"), true, false),
+        Types.caller(1002, connection-status.CONNECTED, "Pete", Theme.icon-none, true, Theme.icon-none, true, true),
+        Types.caller(1004, connection-status.CONNECTING, "Geoff", Theme.icon-none, false, Theme.icon-none, false, false),
+    ];
+
+    winTouch := TouchArea {
+        Rectangle {
+            border-radius: 15px;
+            border-width: 1px;
+            border-color: winTouch.has-hover ? Theme.background-call.brighter(20%) : Theme.background-call-transparent.brighter(20%);
+            background: winTouch.has-hover ? Theme.background-call : Theme.background-call-transparent;
+            animate background, border-color { 
+                duration: 200ms;
+                easing: cubic-bezier(0.455, 0.030, 0.515, 0.955);
+            }
+        }
+    }
+
+    HorizontalLayout {
+        padding: 20px;
+        spacing: 12px;
+        for caller in root.caller-model: ActiveCaller {
+            caller: caller;
+        }
+    }
+}
+
+export component Demo inherits DemoWindow { 
+    HereNowActiveCallInner {}
+}

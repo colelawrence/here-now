@@ -1,0 +1,145 @@
+component ScrollBar inherits Rectangle {
+    in-out property <bool> horizontal;
+    in-out property<length> maximum;
+    in-out property<length> page-size;
+    // this is always negative and bigger than  -maximum
+    in-out property<length> value;
+    in-out property<bool> enabled <=> touch.enabled;
+
+    state_layer := Rectangle {
+        background: gray; // background
+        border-radius: 4px;
+        opacity: 0;
+        visible: handle.width > 0 && handle.height > 0;
+        animate opacity { duration: 250ms; easing: ease; }
+    }
+
+    handle := Rectangle {
+        x: !root.horizontal ? 0phx : (root.width - handle.width) * (-root.value / root.maximum);
+        y: root.horizontal ? 0phx : (root.height - handle.height) * (-root.value / root.maximum);
+        width: !root.horizontal ? parent.width : root.maximum <= 0phx ? 0phx : max(32px, parent.width * max(root.page-size / (root.maximum + root.page-size)));
+        height: root.horizontal ? parent.height : root.maximum <= 0phx ? 0phx : max(32px, parent.height * (root.page-size / (root.maximum + root.page-size)));
+
+        container := Rectangle {
+            width: 100%;
+            height: 100%;
+            border-radius: 4px;
+            // border-color: blue;
+            background: gray;
+            border-width: 1px;
+            opacity: 60%;
+        }
+    }
+
+    touch := TouchArea {
+        property <length> pressed-value;
+
+        width: parent.width;
+        height: parent.height;
+
+        pointer-event(event) => {
+            if (event.button == PointerEventButton.left && event.kind == PointerEventKind.down) {
+                self.pressed-value = -root.value;
+            }
+        }
+        moved => {
+            if (self.enabled && self.pressed) {
+                root.value = -max(0px, min(root.maximum, self.pressed-value + (
+                            root.horizontal ? (touch.mouse-x - touch.pressed-x) * (root.maximum / (root.width - handle.width))
+                            : (touch.mouse-y - touch.pressed-y) * (root.maximum / (root.height - handle.height))
+                )));
+            }
+        }
+    }
+
+    states [
+        disabled when !touch.enabled : {
+            container.border-color: green;
+            handle.opacity: 0.12;
+        }
+        hover when touch.has-hover : {
+            state-layer.opacity: 0.08;
+        }
+        pressed when touch.has-hover : {
+            state-layer.opacity: 0.12;
+        }
+    ]
+}
+
+// Scrollview contains a viewport that is bigger than the view and can be scrolled.
+export component HNScrollView {
+    in-out property <length> viewport-height <=> fli.viewport-height;
+    in-out property <length> viewport-y <=> fli.viewport-y;
+    out property <length> visible-height <=> fli.height;
+    in property <bool> enabled: true;
+    in-out property <bool> has-focus;
+    property <bool> is-scrolling: visible-height < viewport-height;
+
+    min-height: 50px;
+    min-width: 50px;
+    horizontal-stretch: 1;
+    vertical-stretch: 1;
+    preferred-height: 100%;
+    preferred-width: 100%;
+
+    fli := Flickable {
+        x:0;y:0;
+        interactive: false;
+        viewport-y <=> vbar.value;
+        width: is-scrolling ? parent.width - vbar.width - 4px : parent.width;
+        height: parent.height;
+
+        @children
+    }
+
+    vbar := ScrollBar {
+        visible: is-scrolling;
+        width: 6px;
+        x: fli.width + fli.x + 2px;
+        y: fli.y + 3px;
+        height: fli.height - 3px;
+        horizontal: false;
+        maximum: fli.viewport-height - fli.height;
+        page-size: fli.height;
+        enabled: root.enabled;
+    }
+}
+
+// Scrollview contains a viewport that is bigger than the view and can be scrolled.
+export component HNScrollViewHorizontal {
+    in-out property <length> viewport-width <=> fli.viewport-width;
+    in-out property <length> viewport-x <=> fli.viewport-x;
+    out property <length> visible-width <=> fli.width;
+    in property <bool> enabled: true;
+    in-out property <bool> has-focus;
+    property <bool> is-scrolling: visible-width < viewport-width;
+
+    min-height: 50px;
+    min-width: 50px;
+    horizontal-stretch: 1;
+    vertical-stretch: 1;
+    preferred-height: 100%;
+    preferred-width: 100%;
+
+    fli := Flickable {
+        x: 0; y: 0;
+        interactive: false;
+        viewport-x <=> hbar.value;
+        width: parent.width;
+        height: is-scrolling ? parent.height - hbar.height - 4px : parent.height;
+
+        @children
+    }
+
+    hbar := ScrollBar {
+        visible: is-scrolling;
+        height: 6px;
+        x: fli.x + 3px;
+        y: fli.height + fli.y + 2px;
+        width: fli.width - 3px;
+        horizontal: true;
+        maximum: fli.viewport-width - fli.width;
+        page-size: fli.width;
+        enabled: root.enabled;
+    }
+}

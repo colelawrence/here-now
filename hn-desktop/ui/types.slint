@@ -1,0 +1,86 @@
+export struct Person  {
+    id: int,
+    // #generate.ts(enum): "activity-status": IN_CALL, ONLINE, AWAY, DO_NOT_DISTURB, OFFLINE
+    activity-status: int,
+    visually-muted: bool,
+    person-display-name: string,
+    person-display-icon-image: image,
+    custom-status-display: string,
+    activity-status-icon-image: image,
+    activity-status-display: string,
+}
+
+export struct PAction  {
+    code: string,
+    icon: string,
+    display: string,
+}
+
+export struct PCaller {
+    person-id: int,
+    // #generate.ts(enum): "connection-status": CONNECTING, CONNECTED
+    connection-status: int,
+    person-display-name: string,
+    person-display-icon-image: image,
+    video-feed-on: bool,
+    video-feed-image: image,
+    audio-feed-on: bool,
+    audio-feed-active: bool, // talking
+}
+
+// Useful for Slint defaults
+export global Types {
+    function action(
+        code: string,
+        icon: string,
+        display: string,
+    ) -> PAction {
+        return {
+            code: code,
+            icon: icon,
+            display: display,
+        };
+    }
+    function person(
+        id: int,
+        activity-status: int,
+        visually-muted: bool,
+        person-display-name: string,
+        person-display-icon-image: image,
+        custom-status-display: string,
+        activity-status-icon-image: image,
+        activity-status-display: string,
+    ) -> Person {
+        return {
+            id: id,
+            activity-status: activity-status,
+            visually-muted: visually-muted,
+            person-display-name: person-display-name,
+            person-display-icon-image: person-display-icon-image,
+            custom-status-display: custom-status-display,
+            activity-status-icon-image: activity-status-icon-image,
+            activity-status-display: activity-status-display
+        };
+    }
+    function caller(
+        person-id: int,
+        connection-status: int,
+        person-display-name: string,
+        person-display-icon-image: image,
+        video-feed-on: bool,
+        video-feed-image: image,
+        audio-feed-on: bool,
+        audio-feed-active: bool, // talking
+    ) -> PCaller {
+        return {
+            person-id: person-id,
+            connection-status: connection-status,
+            person-display-name: person-display-name,
+            person-display-icon-image: person-display-icon-image,
+            video-feed-on: video-feed-on,
+            video-feed-image: video-feed-image,
+            audio-feed-on: audio-feed-on,
+            audio-feed-active: audio-feed-active,
+        };
+    }
+}

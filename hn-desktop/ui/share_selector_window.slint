@@ -1,0 +1,12 @@
+import { HereNowScreenShareSelectorInner, ScreenShareGroup } from "./screen-share/screen-share-selector-inner.slint";
+
+export component HereNowScreenShareSelectorWindow inherits Window {
+    no-frame: true;
+    min-width: 120px;
+    in property <[ScreenShareGroup]> groups-model: [];
+    callback choose-screen-share(string);
+    HereNowScreenShareSelectorInner {
+        groups-model: root.groups-model;
+        choose-screen-share(id) => { root.choose-screen-share(id); }
+    }
+}
