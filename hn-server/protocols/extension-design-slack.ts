@@ -19,16 +19,14 @@ async function test() {
       key: "setup-discord",
       title: "Setup Discord",
       known_params: [
-        iam.UIItem.INPUT(
-          iam.UIInput({
-            key: "discord-client-id",
-            label: "Application ID",
-            type: iam.UIInputType.TEXT({
-              examples: ["1132773161985908787", "1024467966416388126"],
-              format_description: `Discord's "Application ID" or also called "Client ID".`
-            }),
+        iam.UIItem.INPUT({
+          key: "discord-client-id",
+          label: "Application ID",
+          type: iam.UIInputType.TEXT({
+            examples: ["1132773161985908787", "1024467966416388126"],
+            format_description: `Discord's "Application ID" or also called "Client ID".`,
           }),
-        ),
+        }),
       ],
     })
   })

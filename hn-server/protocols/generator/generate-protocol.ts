@@ -1,4 +1,4 @@
-import { Code, gen } from "https://deno.land/x/derive_codegen@v0.0.4-1/mod.ts";
+import { Code, gen } from "https://deno.land/x/derive_codegen@v0.0.4-2/mod.ts";
 import { parse } from "https://deno.land/std@0.194.0/flags/mod.ts";
 
 const { _: [jsonInput], ...args } = parse(Deno.args, {
@@ -9,6 +9,8 @@ const { _: [jsonInput], ...args } = parse(Deno.args, {
     includeLocationsRelativeTo: undefined,
   },
 });
+
+Code.docStringSettings.skip_rust_attrs = true
 
 function convert(input: gen.Input): gen.Output {
   const outputFiles = new Map<string, { importIdent: string }>();

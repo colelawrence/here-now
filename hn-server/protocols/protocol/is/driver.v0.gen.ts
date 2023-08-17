@@ -1,132 +1,6 @@
 /** serde_json::Value */
 type Value = unknown;
-/**
- * `#[serde(transparent)]`
- *
- * `#[codegen(tags = "protocol-global")]`
- *
- * [Source `hn-server/src/data.rs:8`](hn-server/src/data.rs)
- */
-export type UsrString = string
-/**
- * `#[serde(transparent)]`
- *
- * `#[codegen(tags = "protocol-global")]`
- *
- * [Source `hn-server/src/data.rs:8`](hn-server/src/data.rs)
- */
-export function UsrString(inner: string): UsrString {
-  return inner;
-}
-/**
- * `#[serde(transparent)]`
- *
- * `#[codegen(tags = "protocol-global")]`
- *
- * [Source `hn-server/src/data.rs:12`](hn-server/src/data.rs)
- */
-export type DevString = string
-/**
- * `#[serde(transparent)]`
- *
- * `#[codegen(tags = "protocol-global")]`
- *
- * [Source `hn-server/src/data.rs:12`](hn-server/src/data.rs)
- */
-export function DevString(inner: string): DevString {
-  return inner;
-}
-/**
- * `#[codegen(as = "`${string}//${string}`", tags = "protocol-global")]`
- *
- * [Source `hn-server/src/data.rs:16`](hn-server/src/data.rs)
- */
-export type GlobalID = `${string}//${string}`;
-/**
- * `#[codegen(as = "`${string}//${string}`", tags = "protocol-global")]`
- *
- * [Source `hn-server/src/data.rs:16`](hn-server/src/data.rs)
- */
-export function GlobalID(value: GlobalID): GlobalID {
-  return value;
-}
-/**
- * `#[serde(transparent)]`
- *
- * `#[codegen(tags = "protocol-global")]`
- *
- * [Source `hn-server/src/data.rs:19`](hn-server/src/data.rs)
- */
-export type ChannelID = string
-/**
- * `#[serde(transparent)]`
- *
- * `#[codegen(tags = "protocol-global")]`
- *
- * [Source `hn-server/src/data.rs:19`](hn-server/src/data.rs)
- */
-export function ChannelID(inner: string): ChannelID {
-  return inner;
-}
-/**
- * `#[serde(transparent)]`
- *
- * `#[codegen(tags = "protocol-global")]`
- *
- * [Source `hn-server/src/data.rs:23`](hn-server/src/data.rs)
- */
-export type Key = string
-/**
- * `#[serde(transparent)]`
- *
- * `#[codegen(tags = "protocol-global")]`
- *
- * [Source `hn-server/src/data.rs:23`](hn-server/src/data.rs)
- */
-export function Key(inner: string): Key {
-  return inner;
-}
-/**
- * `#[serde(transparent)]`
- *
- * `#[codegen(tags = "protocol-global")]`
- *
- * [Source `hn-server/src/data.rs:27`](hn-server/src/data.rs)
- */
-export type KeyTarget = string
-/**
- * `#[serde(transparent)]`
- *
- * `#[codegen(tags = "protocol-global")]`
- *
- * [Source `hn-server/src/data.rs:27`](hn-server/src/data.rs)
- */
-export function KeyTarget(inner: string): KeyTarget {
-  return inner;
-}
-/**
- * `#[serde(transparent)]`
- *
- * `#[codegen(tags = "protocol-global")]`
- *
- * [Source `hn-server/src/data.rs:31`](hn-server/src/data.rs)
- */
-export type LiveID = string
-/**
- * `#[serde(transparent)]`
- *
- * `#[codegen(tags = "protocol-global")]`
- *
- * [Source `hn-server/src/data.rs:31`](hn-server/src/data.rs)
- */
-export function LiveID(inner: string): LiveID {
-  return inner;
-}
-/**
- * `#[codegen(tags = "protocol-driver")]`
- *
- * [Source `hn-server/src/data.rs:38`](hn-server/src/data.rs)
- */
+/** [Source `hn-server/src/data.rs:38`](hn-server/src/data.rs) */
 // deno-lint-ignore no-namespace
 export namespace Out {
   export type ApplyFns<R = void> = {
@@ -176,18 +50,10 @@ export namespace Out {
     return { DECLARE_SERVICE: value }
   }
 }
-/**
- * `#[codegen(tags = "protocol-driver")]`
- *
- * [Source `hn-server/src/data.rs:38`](hn-server/src/data.rs)
- */
+/** [Source `hn-server/src/data.rs:38`](hn-server/src/data.rs) */
 export type Out =
   | Out.DECLARE_SERVICE
-/**
- * `#[codegen(tags = "protocol-driver")]`
- *
- * [Source `hn-server/src/data.rs:52`](hn-server/src/data.rs)
- */
+/** [Source `hn-server/src/data.rs:52`](hn-server/src/data.rs) */
 // deno-lint-ignore no-namespace
 export namespace In {
   export type ApplyFns<R = void> = {
@@ -233,10 +99,48 @@ export namespace In {
     return { CREATE_SERVICE: value }
   }
 }
-/**
- * `#[codegen(tags = "protocol-driver")]`
- *
- * [Source `hn-server/src/data.rs:52`](hn-server/src/data.rs)
- */
+/** [Source `hn-server/src/data.rs:52`](hn-server/src/data.rs) */
 export type In =
   | In.CREATE_SERVICE
+/** [Source `hn-server/src/data.rs:8`](hn-server/src/data.rs) */
+export type UsrString = string
+/** [Source `hn-server/src/data.rs:8`](hn-server/src/data.rs) */
+export function UsrString(inner: string): UsrString {
+  return inner;
+}
+/** [Source `hn-server/src/data.rs:12`](hn-server/src/data.rs) */
+export type DevString = string
+/** [Source `hn-server/src/data.rs:12`](hn-server/src/data.rs) */
+export function DevString(inner: string): DevString {
+  return inner;
+}
+/** [Source `hn-server/src/data.rs:16`](hn-server/src/data.rs) */
+export type GlobalID = `${string}//${string}`;
+/** [Source `hn-server/src/data.rs:16`](hn-server/src/data.rs) */
+export function GlobalID(value: GlobalID): GlobalID {
+  return value;
+}
+/** [Source `hn-server/src/data.rs:19`](hn-server/src/data.rs) */
+export type ChannelID = string
+/** [Source `hn-server/src/data.rs:19`](hn-server/src/data.rs) */
+export function ChannelID(inner: string): ChannelID {
+  return inner;
+}
+/** [Source `hn-server/src/data.rs:23`](hn-server/src/data.rs) */
+export type Key = string
+/** [Source `hn-server/src/data.rs:23`](hn-server/src/data.rs) */
+export function Key(inner: string): Key {
+  return inner;
+}
+/** [Source `hn-server/src/data.rs:27`](hn-server/src/data.rs) */
+export type KeyTarget = string
+/** [Source `hn-server/src/data.rs:27`](hn-server/src/data.rs) */
+export function KeyTarget(inner: string): KeyTarget {
+  return inner;
+}
+/** [Source `hn-server/src/data.rs:31`](hn-server/src/data.rs) */
+export type LiveID = string
+/** [Source `hn-server/src/data.rs:31`](hn-server/src/data.rs) */
+export function LiveID(inner: string): LiveID {
+  return inner;
+}

@@ -1,132 +1,6 @@
 /** serde_json::Value */
 type Value = unknown;
-/**
- * `#[serde(transparent)]`
- *
- * `#[codegen(tags = "protocol-global")]`
- *
- * [Source `hn-server/src/data.rs:8`](hn-server/src/data.rs)
- */
-export type UsrString = string
-/**
- * `#[serde(transparent)]`
- *
- * `#[codegen(tags = "protocol-global")]`
- *
- * [Source `hn-server/src/data.rs:8`](hn-server/src/data.rs)
- */
-export function UsrString(inner: string): UsrString {
-  return inner;
-}
-/**
- * `#[serde(transparent)]`
- *
- * `#[codegen(tags = "protocol-global")]`
- *
- * [Source `hn-server/src/data.rs:12`](hn-server/src/data.rs)
- */
-export type DevString = string
-/**
- * `#[serde(transparent)]`
- *
- * `#[codegen(tags = "protocol-global")]`
- *
- * [Source `hn-server/src/data.rs:12`](hn-server/src/data.rs)
- */
-export function DevString(inner: string): DevString {
-  return inner;
-}
-/**
- * `#[codegen(as = "`${string}//${string}`", tags = "protocol-global")]`
- *
- * [Source `hn-server/src/data.rs:16`](hn-server/src/data.rs)
- */
-export type GlobalID = `${string}//${string}`;
-/**
- * `#[codegen(as = "`${string}//${string}`", tags = "protocol-global")]`
- *
- * [Source `hn-server/src/data.rs:16`](hn-server/src/data.rs)
- */
-export function GlobalID(value: GlobalID): GlobalID {
-  return value;
-}
-/**
- * `#[serde(transparent)]`
- *
- * `#[codegen(tags = "protocol-global")]`
- *
- * [Source `hn-server/src/data.rs:19`](hn-server/src/data.rs)
- */
-export type ChannelID = string
-/**
- * `#[serde(transparent)]`
- *
- * `#[codegen(tags = "protocol-global")]`
- *
- * [Source `hn-server/src/data.rs:19`](hn-server/src/data.rs)
- */
-export function ChannelID(inner: string): ChannelID {
-  return inner;
-}
-/**
- * `#[serde(transparent)]`
- *
- * `#[codegen(tags = "protocol-global")]`
- *
- * [Source `hn-server/src/data.rs:23`](hn-server/src/data.rs)
- */
-export type Key = string
-/**
- * `#[serde(transparent)]`
- *
- * `#[codegen(tags = "protocol-global")]`
- *
- * [Source `hn-server/src/data.rs:23`](hn-server/src/data.rs)
- */
-export function Key(inner: string): Key {
-  return inner;
-}
-/**
- * `#[serde(transparent)]`
- *
- * `#[codegen(tags = "protocol-global")]`
- *
- * [Source `hn-server/src/data.rs:27`](hn-server/src/data.rs)
- */
-export type KeyTarget = string
-/**
- * `#[serde(transparent)]`
- *
- * `#[codegen(tags = "protocol-global")]`
- *
- * [Source `hn-server/src/data.rs:27`](hn-server/src/data.rs)
- */
-export function KeyTarget(inner: string): KeyTarget {
-  return inner;
-}
-/**
- * `#[serde(transparent)]`
- *
- * `#[codegen(tags = "protocol-global")]`
- *
- * [Source `hn-server/src/data.rs:31`](hn-server/src/data.rs)
- */
-export type LiveID = string
-/**
- * `#[serde(transparent)]`
- *
- * `#[codegen(tags = "protocol-global")]`
- *
- * [Source `hn-server/src/data.rs:31`](hn-server/src/data.rs)
- */
-export function LiveID(inner: string): LiveID {
-  return inner;
-}
-/**
- * `#[codegen(tags = "protocol-iam")]`
- *
- * [Source `hn-server/src/data.rs:72`](hn-server/src/data.rs)
- */
+/** [Source `hn-server/src/data.rs:72`](hn-server/src/data.rs) */
 // deno-lint-ignore no-namespace
 export namespace InputValueType {
   export type ApplyFns<R = void> = {
@@ -184,38 +58,22 @@ export namespace InputValueType {
     return { CHOICE: value }
   }
 }
-/**
- * `#[codegen(tags = "protocol-iam")]`
- *
- * [Source `hn-server/src/data.rs:72`](hn-server/src/data.rs)
- */
+/** [Source `hn-server/src/data.rs:72`](hn-server/src/data.rs) */
 export type InputValueType =
   | InputValueType.TEXT
   | InputValueType.CHOICE
-/**
- * `#[codegen(tags = "protocol-iam")]`
- *
- * [Source `hn-server/src/data.rs:78`](hn-server/src/data.rs)
- */
+/** [Source `hn-server/src/data.rs:78`](hn-server/src/data.rs) */
 export type InputValue = {
   input_key: KeyTarget;
   "r#type": InputValueType;
   /** Context for this value? */
   reason: DevString;
 };
-/**
- * `#[codegen(tags = "protocol-iam")]`
- *
- * [Source `hn-server/src/data.rs:78`](hn-server/src/data.rs)
- */
+/** [Source `hn-server/src/data.rs:78`](hn-server/src/data.rs) */
 export function InputValue(inner: InputValue): InputValue {
   return inner;
 }
-/**
- * `#[codegen(tags = "protocol-iam")]`
- *
- * [Source `hn-server/src/data.rs:104`](hn-server/src/data.rs)
- */
+/** [Source `hn-server/src/data.rs:104`](hn-server/src/data.rs) */
 // deno-lint-ignore no-namespace
 export namespace In {
   export type ApplyFns<R = void> = {
@@ -262,18 +120,10 @@ export namespace In {
     return { ASK: value }
   }
 }
-/**
- * `#[codegen(tags = "protocol-iam")]`
- *
- * [Source `hn-server/src/data.rs:104`](hn-server/src/data.rs)
- */
+/** [Source `hn-server/src/data.rs:104`](hn-server/src/data.rs) */
 export type In =
   | In.ASK
-/**
- * `#[codegen(tags = "protocol-iam")]`
- *
- * [Source `hn-server/src/data.rs:123`](hn-server/src/data.rs)
- */
+/** [Source `hn-server/src/data.rs:123`](hn-server/src/data.rs) */
 // deno-lint-ignore no-namespace
 export namespace Out {
   export type ApplyFns<R = void> = {
@@ -385,22 +235,14 @@ export namespace Out {
     return { RESOLVE: value }
   }
 }
-/**
- * `#[codegen(tags = "protocol-iam")]`
- *
- * [Source `hn-server/src/data.rs:123`](hn-server/src/data.rs)
- */
+/** [Source `hn-server/src/data.rs:123`](hn-server/src/data.rs) */
 export type Out =
   | Out.IDENTIFY
   | Out.UI
   | Out.OFFER
   | Out.RAISE
   | Out.RESOLVE
-/**
- * `#[codegen(tags = "protocol-iam")]`
- *
- * [Source `hn-server/src/data.rs:168`](hn-server/src/data.rs)
- */
+/** [Source `hn-server/src/data.rs:168`](hn-server/src/data.rs) */
 // deno-lint-ignore no-namespace
 export namespace UIItem {
   export type ApplyFns<R = void> = {
@@ -468,39 +310,22 @@ export namespace UIItem {
     return { WARNING: value }
   }
 }
-/**
- * `#[codegen(tags = "protocol-iam")]`
- *
- * [Source `hn-server/src/data.rs:168`](hn-server/src/data.rs)
- */
+/** [Source `hn-server/src/data.rs:168`](hn-server/src/data.rs) */
 export type UIItem =
   | UIItem.INPUT
   | UIItem.CONTENT
   | UIItem.WARNING
-/**
- * `#[codegen(tags = "protocol-iam")]`
- *
- * [Source `hn-server/src/data.rs:178`](hn-server/src/data.rs)
- */
+/** [Source `hn-server/src/data.rs:178`](hn-server/src/data.rs) */
 export type UIInput = {
   key: Key;
   label: UsrString;
-  /** `#[serde(rename = "type")]` */
   type: UIInputType;
 };
-/**
- * `#[codegen(tags = "protocol-iam")]`
- *
- * [Source `hn-server/src/data.rs:178`](hn-server/src/data.rs)
- */
+/** [Source `hn-server/src/data.rs:178`](hn-server/src/data.rs) */
 export function UIInput(inner: UIInput): UIInput {
   return inner;
 }
-/**
- * `#[codegen(tags = "protocol-iam")]`
- *
- * [Source `hn-server/src/data.rs:186`](hn-server/src/data.rs)
- */
+/** [Source `hn-server/src/data.rs:186`](hn-server/src/data.rs) */
 // deno-lint-ignore no-namespace
 export namespace UIContent {
   export type ApplyFns<R = void> = {
@@ -558,19 +383,11 @@ export namespace UIContent {
     return { PARAGRAPH: value }
   }
 }
-/**
- * `#[codegen(tags = "protocol-iam")]`
- *
- * [Source `hn-server/src/data.rs:186`](hn-server/src/data.rs)
- */
+/** [Source `hn-server/src/data.rs:186`](hn-server/src/data.rs) */
 export type UIContent =
   | UIContent.HEADING
   | UIContent.PARAGRAPH
-/**
- * `#[codegen(tags = "protocol-iam")]`
- *
- * [Source `hn-server/src/data.rs:197`](hn-server/src/data.rs)
- */
+/** [Source `hn-server/src/data.rs:197`](hn-server/src/data.rs) */
 // deno-lint-ignore no-namespace
 export namespace UIInputType {
   export type ApplyFns<R = void> = {
@@ -613,17 +430,9 @@ export namespace UIInputType {
   }
   export type TEXT = {
     TEXT: {
-      /**
-       * e.g. `"+1 (913) 555-1234"`, `"+1 (917) 555-4000"`, `"+1 (816) 555-9000"`
-       *
-       * `#[serde(default, skip_serializing_if = "Vec::is_empty")]`
-       */
+      /** e.g. `"+1 (913) 555-1234"`, `"+1 (917) 555-4000"`, `"+1 (816) 555-9000"` */
       examples?: Array<string> | null | undefined;
-      /**
-       * e.g. `"Full phone number with country code"`
-       *
-       * `#[serde(default, skip_serializing_if = "Option::is_none")]`
-       */
+      /** e.g. `"Full phone number with country code"` */
       format_description?: string | undefined | null | null | undefined;
     };
   };
@@ -639,19 +448,11 @@ export namespace UIInputType {
     return { CHOICE: value }
   }
 }
-/**
- * `#[codegen(tags = "protocol-iam")]`
- *
- * [Source `hn-server/src/data.rs:197`](hn-server/src/data.rs)
- */
+/** [Source `hn-server/src/data.rs:197`](hn-server/src/data.rs) */
 export type UIInputType =
   | UIInputType.TEXT
   | UIInputType.CHOICE
-/**
- * `#[codegen(tags = "protocol-iam")]`
- *
- * [Source `hn-server/src/data.rs:218`](hn-server/src/data.rs)
- */
+/** [Source `hn-server/src/data.rs:218`](hn-server/src/data.rs) */
 export type UIInputChoice = {
   key: Key;
   /** Label for this choice such as `"On"` or `"Off"`. */
@@ -660,16 +461,52 @@ export type UIInputChoice = {
    * Optionally supply additional inputs
    * that can be set for when this choice is selected.
    * This enables a configuration approach similar to enums in Rust.
-   *
-   * `#[serde(default, skip_serializing_if = "Vec::is_empty")]`
    */
   inputs?: Array<UIInput> | null | undefined;
 };
-/**
- * `#[codegen(tags = "protocol-iam")]`
- *
- * [Source `hn-server/src/data.rs:218`](hn-server/src/data.rs)
- */
+/** [Source `hn-server/src/data.rs:218`](hn-server/src/data.rs) */
 export function UIInputChoice(inner: UIInputChoice): UIInputChoice {
+  return inner;
+}
+/** [Source `hn-server/src/data.rs:8`](hn-server/src/data.rs) */
+export type UsrString = string
+/** [Source `hn-server/src/data.rs:8`](hn-server/src/data.rs) */
+export function UsrString(inner: string): UsrString {
+  return inner;
+}
+/** [Source `hn-server/src/data.rs:12`](hn-server/src/data.rs) */
+export type DevString = string
+/** [Source `hn-server/src/data.rs:12`](hn-server/src/data.rs) */
+export function DevString(inner: string): DevString {
+  return inner;
+}
+/** [Source `hn-server/src/data.rs:16`](hn-server/src/data.rs) */
+export type GlobalID = `${string}//${string}`;
+/** [Source `hn-server/src/data.rs:16`](hn-server/src/data.rs) */
+export function GlobalID(value: GlobalID): GlobalID {
+  return value;
+}
+/** [Source `hn-server/src/data.rs:19`](hn-server/src/data.rs) */
+export type ChannelID = string
+/** [Source `hn-server/src/data.rs:19`](hn-server/src/data.rs) */
+export function ChannelID(inner: string): ChannelID {
+  return inner;
+}
+/** [Source `hn-server/src/data.rs:23`](hn-server/src/data.rs) */
+export type Key = string
+/** [Source `hn-server/src/data.rs:23`](hn-server/src/data.rs) */
+export function Key(inner: string): Key {
+  return inner;
+}
+/** [Source `hn-server/src/data.rs:27`](hn-server/src/data.rs) */
+export type KeyTarget = string
+/** [Source `hn-server/src/data.rs:27`](hn-server/src/data.rs) */
+export function KeyTarget(inner: string): KeyTarget {
+  return inner;
+}
+/** [Source `hn-server/src/data.rs:31`](hn-server/src/data.rs) */
+export type LiveID = string
+/** [Source `hn-server/src/data.rs:31`](hn-server/src/data.rs) */
+export function LiveID(inner: string): LiveID {
   return inner;
 }
