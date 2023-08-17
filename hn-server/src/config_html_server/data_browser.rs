@@ -2,6 +2,7 @@ use std::{collections::HashMap, time::SystemTime};
 
 use axum::{extract::Path, response::Html, routing::get, Extension, Router};
 use derive_codegen::Codegen;
+use hn_app::_ecs_::*;
 use tokio::sync::oneshot;
 
 use crate::{config::Settings, ecs::HintedID, http::OrInternalError, prelude::*, svelte_templates};

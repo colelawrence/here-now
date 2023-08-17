@@ -4,7 +4,7 @@ use axum::{
     Extension,
 };
 
-use here_now_common::keys::{self};
+use hn_common::keys::{self};
 use http::StatusCode;
 use serde::de::DeserializeOwned;
 

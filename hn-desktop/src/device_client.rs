@@ -1,5 +1,5 @@
 use crate::prelude::*;
-use here_now_common::{
+use hn_common::{
     keys::{self, net::WireMessage},
     public,
 };

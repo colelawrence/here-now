@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use here_now_common::{keys, public};
+use hn_common::{keys, public};
 
 use crate::app_ctx::AppCtx;
 

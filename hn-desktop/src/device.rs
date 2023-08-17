@@ -1,4 +1,4 @@
-use here_now_common::public;
+use hn_common::public;
 
 use crate::{device_client::DeviceClient, local_keys};
 

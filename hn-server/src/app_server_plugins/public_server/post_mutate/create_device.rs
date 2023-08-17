@@ -1,6 +1,6 @@
 use super::*;
-use crate::prelude::ecs_::*;
 use crate::prelude::*;
+use hn_app::_ecs_::*;
 
 #[async_trait]
 impl Mutation for public::CreateDeviceMutation {

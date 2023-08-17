@@ -1,4 +1,6 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
+
+use hn_app::{app_ctx::LocalDatabase, database_plugin::LastImport};
 
 use super::*;
 
@@ -10,19 +12,8 @@ type ViewMutDevice<'a> = (
     ViewMut<'a, ecs::AuthorizedKeys>,
 );
 
-#[ecs_unique]
-#[derive(Default)]
-pub(super) struct LastImport(HashSet<EntityId>);
-
-impl LastImport {
-    /// For use to skip exporting entities that were changed as a result of insert from disk
-    pub(super) fn skip_once(&mut self, entity_id: EntityId) -> bool {
-        self.0.remove(&entity_id)
-    }
-}
-
 pub(super) fn import_all(
-    uv_local_database: UniqueView<super::plugin::LocalDatabase>,
+    uv_local_database: UniqueView<LocalDatabase>,
     mut last_import: UniqueViewMut<LastImport>,
     mut entities: EntitiesViewMut,
     (mut vm_hinted_id, mut vm_cred, mut vm_device): ViewMutAll,

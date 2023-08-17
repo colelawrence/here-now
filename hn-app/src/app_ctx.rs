@@ -1,11 +1,22 @@
+use std::sync::Arc;
+
 use anyhow::anyhow;
+use bonsaidb::local;
 use futures::Future;
 
+use shipyard::{Component, IntoWorkloadSystem, UniqueView, WorkloadSystem};
+use shipyard_app::{App, AppBuilder};
 use tokio::sync::Mutex;
 
-use crate::prelude::*;
+use crate::_ecs_::*;
+use crate::_result_::*;
+use crate::_tracing_::*;
 
 pub type CommandSender = tokio::sync::mpsc::UnboundedSender<Command>;
+
+pub use cmd_loop::start_loop;
+
+mod cmd_loop;
 
 pub struct Command {
     pub reason: &'static str,
@@ -147,18 +158,37 @@ impl Plugin for AppCtxPlugin {
         });
 
         app.add_reset_system(
-            keep_db_up_to_date,
+            keep_app_ctx_db_up_to_date,
             "update database reference when database is created",
         );
     }
 }
 
-fn keep_db_up_to_date(
-    uv_database: UniqueView<ecs::import_export::plugin::LocalDatabase>,
+fn keep_app_ctx_db_up_to_date(
+    uv_database: UniqueView<LocalDatabase>,
     mut uvm_app_ctx: UniqueViewMut<AppCtx>,
 ) {
     if uv_database.is_inserted_or_modified() {
-        let mut db_lock = uvm_app_ctx.as_mut().db.blocking_lock();
+        let mut db_lock = uvm_app_ctx
+            .as_mut()
+            .db
+            .try_lock()
+            .expect("TODO: lucky lock?");
         *db_lock = uv_database.get_database();
+    }
+}
+
+#[ecs_unique]
+pub struct LocalDatabase(pub(crate) ArcResult<local::Database>);
+
+impl LocalDatabase {
+    pub fn get_database(&self) -> ArcResult<local::Database> {
+        self.0.clone()
+    }
+}
+
+impl AsRef<Result<local::Database>> for LocalDatabase {
+    fn as_ref(&self) -> &Result<local::Database> {
+        &self.0
     }
 }

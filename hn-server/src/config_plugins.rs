@@ -1,10 +1,7 @@
-#[derive(Component)]
-#[track(All)]
-pub struct ConfigDirectoryPath(pub Option<PathBuf>);
-
 use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
 
 use crate::prelude::*;
+use hn_app::_ecs_::*;
 
 use std::{
     collections::{hash_map, HashMap},
@@ -12,6 +9,10 @@ use std::{
     path::PathBuf,
     time::Duration,
 };
+
+#[derive(Component)]
+#[track(All)]
+pub struct ConfigDirectoryPath(pub Option<PathBuf>);
 
 /// Required for your [ConfigFilePlugin] to work.
 /// Update the [ConfigDirectoryPath] unique to change the directory.
@@ -216,6 +217,7 @@ mod config_file_plugin {
     use std::any::type_name;
 
     use crate::prelude::*;
+    use hn_app::_ecs_::*;
 
     use super::{
         internal, ConfigDirectoryPlugin, ConfigFileContent, ConfigFileContentError,
@@ -395,6 +397,7 @@ mod tests {
     use std::str::FromStr;
 
     use crate::{app_ctx, prelude::*};
+    use hn_app::{_ecs_::*, app_ctx::AppCtxPlugin};
 
     #[derive(Component, Clone)]
     #[track(All)]
@@ -450,7 +453,7 @@ mod tests {
         test_logger();
         let default_conf_folder = get_crate_path().join("../conf");
         let (sender, mut recv) = tokio::sync::mpsc::unbounded_channel();
-        let app = test_app4(
+        let app = test_ecs::test_app4(
             AppCtxPlugin(sender),
             super::ConfigDirectoryPlugin {
                 default_path: Some(default_conf_folder),

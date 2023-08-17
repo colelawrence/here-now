@@ -2,11 +2,11 @@
 
 use std::marker::PhantomData;
 
-use crate::prelude::ecs_::*;
 use crate::prelude::*;
+use hn_app::_ecs_::*;
 
 pub mod import_export;
-use here_now_common::keys;
+use hn_common::keys;
 pub use import_export::plugin::SavePlugin;
 
 pub mod hinted_id;

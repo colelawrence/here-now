@@ -4,7 +4,7 @@ use tracing_subscriber::prelude::*;
 
 static DEFAULT_HERE_NOW_LOG_ENV: &'static str = "debug,hyper=warn,pot=warn,nebari=warn";
 
-pub(super) fn expect_init_logger() {
+pub fn expect_init_logger(service_name: &str) {
     // Something like http://localhost:14268/api/traces
     let jaeger_collector_endpoint_var = std::env::var("JAEGER_COLLECTOR_ENDPOINT");
     let env_filter = tracing_subscriber::EnvFilter::try_from_env("HERE_NOW_LOG")
@@ -12,7 +12,6 @@ pub(super) fn expect_init_logger() {
 
     if let Ok(jaeger_collector_endpoint) = jaeger_collector_endpoint_var {
         global::set_text_map_propagator(opentelemetry_jaeger::Propagator::new());
-        let service_name = "hn-server";
 
         let tracer = opentelemetry_jaeger::new_collector_pipeline()
             .with_service_name(service_name)
@@ -43,7 +42,6 @@ pub(super) fn expect_init_logger() {
     }
 }
 
-#[cfg(test)]
 pub fn test_logger() {
     // in case a test needs logging
     use tracing_subscriber as ts;

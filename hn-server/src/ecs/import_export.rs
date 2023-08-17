@@ -2,8 +2,8 @@ use std::marker::PhantomData;
 
 use super::HintedID;
 use crate::prelude::bonsai_::*;
-use crate::prelude::ecs_::*;
 use crate::prelude::*;
+use hn_app::_ecs_::*;
 
 #[derive(schema::Schema)]
 #[schema(name = "DBSchema", collections = [CredBundle, DeviceBundle])]

@@ -8,8 +8,11 @@ publish = false
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-here-now-common.workspace = true
+hn-app.workspace = true
+hn-common.workspace = true
 serde.workspace = true
+shipyard.workspace = true
+shipyard_app.workspace = true
 bonsaidb = { workspace = true, default-features = false, features = [] }
 tokio = { version = "1.28", features = ["full"] }
 reqwest = { version = "0.11.18", features = ["json", "serde_json"] }

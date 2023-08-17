@@ -15,7 +15,7 @@ mod schema {
         document::{CollectionDocument, Emit},
         schema::{Collection, CollectionViewSchema, Schema, View, ViewMapResult},
     };
-    use here_now_common::Choice;
+    use hn_common::Choice;
     use serde::{Deserialize, Serialize};
 
     #[derive(Schema, Debug)]
@@ -117,7 +117,7 @@ mod webserver {
     use cfg_if::cfg_if;
     use futures::{stream::FuturesUnordered, StreamExt};
     use hyper::{header, server::conn::Http, Body, Request, Response, StatusCode};
-    use here_now_common::whole_percent;
+    use hn_common::whole_percent;
     use serde::{Deserialize, Serialize};
     use tera::Tera;
     use tower_http::{services::ServeDir, set_header::SetResponseHeaderLayer};

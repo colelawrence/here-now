@@ -21,6 +21,12 @@ enum Args {
         #[clap(long)]
         jaeger: bool,
     },
+    /// Run desktop for development
+    DevDesktop {
+        /// Connect to jaeger
+        #[clap(long)]
+        jaeger: bool,
+    },
     /// Assorted lint fixes
     Fix,
     /// Develop loop for protocol definitions
@@ -49,6 +55,7 @@ fn main() {
         Args::WebBuild { watch } => web_build(watch),
         Args::Jaeger { docker, proxied } => jaeger(docker, proxied).join(),
         Args::Dev { jaeger } => dev(jaeger),
+        Args::DevDesktop { jaeger } => dev_desktop(jaeger),
         Args::Fix => fix(),
         Args::Doc => doc(),
         Args::Docker { bash } => build_docker(bash),
@@ -139,7 +146,7 @@ fn dev(jaeger: bool) {
         .arg("run")
         .arg("--quiet")
         .root_dir("./hn-server")
-        .watchable(true, "-w ./src -w ../hn-common -e rs")
+        .watchable(true, "-w ./src -w ../hn-common -w ../hn-app -e rs")
         .run_in_thread("watch and run hn-server Rust program");
 
     let web_assets = jod_thread::spawn(|| {
@@ -147,6 +154,23 @@ fn dev(jaeger: bool) {
     });
 
     web_assets.join();
+    server.join();
+}
+
+fn dev_desktop(jaeger: bool) {
+    let server = Cmd::new("cargo")
+        .env("HERE_NOW_LOG", "debug,!pot,!nebari")
+        .env_if(
+            jaeger,
+            "JAEGER_COLLECTOR_ENDPOINT",
+            "http://localhost:14268/api/traces",
+        )
+        .arg("run")
+        .arg("--quiet")
+        .root_dir("./hn-desktop")
+        .watchable(true, "-w ./src -w ../hn-common -w ../hn-app -e rs")
+        .run_in_thread("watch and run hn-desktop Rust program");
+
     server.join();
 }
 

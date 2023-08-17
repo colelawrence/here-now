@@ -1,16 +1,10 @@
-use std::{collections::BTreeSet, time::Duration};
-
-use prelude::ResultExt;
+use hn_app::_result_::ResultExt;
+use hn_app::app_ctx;
 use shipyard_app::AppBuilder;
-use tokio::{self, sync::Mutex};
-use tracing::{info_span, Instrument};
-
-mod app_ctx;
-mod hmm;
+use tokio::{self};
 
 mod data;
-
-mod logging;
+mod hmm;
 mod prelude;
 
 mod config_plugins;
@@ -23,112 +17,13 @@ pub mod svelte_templates;
 #[tokio::main]
 async fn main() {
     // can we make this configurable with reloading?
-    logging::expect_init_logger();
+    hn_app::logging::expect_init_logger("hn-server");
 
     let mut app = shipyard_app::App::new();
-    let (sender, mut recv) = tokio::sync::mpsc::unbounded_channel();
+    let (sender, recv) = tokio::sync::mpsc::unbounded_channel();
     let main_plugin = MainPlugin(sender);
     let workload = app.add_plugin_workload(main_plugin);
-    let main_loop = tokio::spawn(async move {
-        use crate::prelude::*;
-        let app: Arc<Mutex<App>> = Arc::new(Mutex::new(app));
-
-        {
-            let app_clone = app.clone();
-            let app = app.lock().await;
-            // re-insert app into world so it can be referenced
-            app.run(|mut uvm_app_ctx: UniqueViewMut<AppCtx>| {
-                uvm_app_ctx.as_mut().set_app(app_clone);
-            });
-
-            // initial kick off
-            workload.run(&app);
-        }
-
-        let mut i = 0usize;
-        while let Some(app_ctx::Command {
-            reason,
-            immediate,
-            system,
-            dedup,
-        }) = recv.recv().await
-        {
-            i += 1;
-            // async block so we can instrument with tracing
-            async {
-                if !immediate {
-                    // channel might continue growing?
-                    tokio::time::sleep(Duration::from_millis(17))
-                        .instrument(info_span!("sleep to wait for additional commands"))
-                        .await;
-                }
-
-                let mut seen = BTreeSet::<(String, &'static str)>::new();
-                seen.extend(dedup.map(|s| (s, reason)));
-
-                let (name, builder) = async {
-                    let name = format!("command-{i}");
-                    let mut builder = WorkloadBuilder::new(name.clone());
-                    builder = builder.with_system(system);
-
-                    while let Ok(app_ctx::Command {
-                        reason,
-                        immediate: _,
-                        system,
-                        dedup,
-                    }) = recv.try_recv()
-                    {
-                        if let Some(dedup_str) = dedup {
-                            let val = (dedup_str, reason);
-                            if seen.contains(&val) {
-                                debug!(i, reason, dedup = val.0, "skipping duplicate command");
-                                continue;
-                            }
-
-                            seen.insert(val);
-                        }
-
-                        debug!(?i, ?reason, "adding command");
-                        builder = builder.with_system(system);
-                    }
-
-                    (name, builder)
-                }
-                .instrument(info_span!("collect commands into workload"))
-                .await;
-
-                {
-                    let app = app
-                        .lock()
-                        .instrument(info_span!("lock app for commands"))
-                        .await;
-                    async {
-                        let info = builder.add_to_world(&app.world).expect("adding workload");
-                        app.world
-                            .run_workload(name)
-                            .todo(f!("run collected commands workload {:?}", info));
-                    }
-                    .instrument(info_span!("run collected commands workload"))
-                    .await
-                }
-
-                {
-                    let app = app
-                        .lock()
-                        .instrument(info_span!("lock app for update loop"))
-                        .await;
-                    info_span!("run update loop").in_scope(|| {
-                        workload.run(&app);
-                    });
-                }
-            }
-            .instrument(tracing::info_span!("running command", ?i, ?reason))
-            .await
-        }
-
-        debug!(?i, "closed");
-    });
-
+    let main_loop = tokio::spawn(app_ctx::start_loop(app, workload, recv));
     // must await or the nested jobs get canceled with an opaque "background task failed" error.
     main_loop.await.todo(format_args!("app loop exit error"));
 }
@@ -158,6 +53,7 @@ mod config_html_server_plugins {
     use std::path::PathBuf;
 
     use crate::{config::Settings, config_html_server, prelude::*};
+    use hn_app::_ecs_::*;
 
     pub struct ConfigHtmlServerPlugin {
         pub config_dir: PathBuf,

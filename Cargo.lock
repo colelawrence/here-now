@@ -1011,10 +1011,13 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bonsaidb",
- "here-now-common",
+ "hn-app",
+ "hn-common",
  "reqwest",
  "serde",
  "serde_json",
+ "shipyard",
+ "shipyard_app",
  "tokio",
  "tracing",
  "tracing-subscriber 0.3.17",
@@ -1535,22 +1538,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "95505c38b4572b2d910cecb0281560f54b440a19336cbbcb27bf6ce6adc6f5a8"
 
 [[package]]
-name = "here-now-common"
-version = "0.1.0"
-dependencies = [
- "actionable",
- "anyhow",
- "base64 0.21.2",
- "bonsaidb",
- "derive-codegen",
- "hpke",
- "pot",
- "rand",
- "serde",
- "serde_json",
-]
-
-[[package]]
 name = "hermit-abi"
 version = "0.1.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1584,6 +1571,44 @@ dependencies = [
 ]
 
 [[package]]
+name = "hn-app"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bonsaidb",
+ "env_logger",
+ "futures",
+ "i-hn-app-proc",
+ "opentelemetry",
+ "opentelemetry-jaeger",
+ "rayon",
+ "reqwest",
+ "shipyard",
+ "shipyard_app",
+ "tokio",
+ "toml_edit",
+ "tracing",
+ "tracing-opentelemetry",
+ "tracing-subscriber 0.3.17",
+]
+
+[[package]]
+name = "hn-common"
+version = "0.1.0"
+dependencies = [
+ "actionable",
+ "anyhow",
+ "base64 0.21.2",
+ "bonsaidb",
+ "derive-codegen",
+ "hpke",
+ "pot",
+ "rand",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "hn-server"
 version = "0.1.0"
 dependencies = [
@@ -1598,7 +1623,8 @@ dependencies = [
  "directories",
  "env_logger",
  "futures",
- "here-now-common",
+ "hn-app",
+ "hn-common",
  "hpke",
  "http",
  "i-hn-server-proc",
@@ -1608,8 +1634,6 @@ dependencies = [
  "minijinja-autoreload",
  "notify 6.0.1",
  "once_cell",
- "opentelemetry",
- "opentelemetry-jaeger",
  "quick-js",
  "rayon",
  "reqwest",
@@ -1626,8 +1650,6 @@ dependencies = [
  "tower-http",
  "tower-layer",
  "tracing",
- "tracing-opentelemetry",
- "tracing-subscriber 0.3.17",
  "tree-sitter",
  "tree-sitter-rust",
  "tree-sitter-typescript",
@@ -1773,6 +1795,15 @@ dependencies = [
  "serde_derive_internals",
  "serde_json",
  "syn 2.0.28",
+]
+
+[[package]]
+name = "i-hn-app-proc"
+version = "0.0.0"
+dependencies = [
+ "derive-codegen",
+ "proc-macro2",
+ "quote",
 ]
 
 [[package]]
