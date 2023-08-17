@@ -49,6 +49,8 @@ export namespace Out {
   export function DECLARE_SERVICE(value: DECLARE_SERVICE["DECLARE_SERVICE"]): DECLARE_SERVICE {
     return { DECLARE_SERVICE: value }
   }
+  /** TODO: Is this replaceable by "OFFER" semantics? */
+  DECLARE_SERVICE.content = (value: DECLARE_SERVICE["DECLARE_SERVICE"]) => value;
 }
 /** [Source `hn-server/src/data.rs:38`](hn-server/src/data.rs) */
 export type Out =
@@ -98,6 +100,7 @@ export namespace In {
   export function CREATE_SERVICE(value: CREATE_SERVICE["CREATE_SERVICE"]): CREATE_SERVICE {
     return { CREATE_SERVICE: value }
   }
+  CREATE_SERVICE.content = (value: CREATE_SERVICE["CREATE_SERVICE"]) => value;
 }
 /** [Source `hn-server/src/data.rs:52`](hn-server/src/data.rs) */
 export type In =

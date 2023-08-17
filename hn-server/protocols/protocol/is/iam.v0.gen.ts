@@ -49,6 +49,7 @@ export namespace InputValueType {
   export function TEXT(value: TEXT["TEXT"]): TEXT {
     return { TEXT: value }
   }
+  TEXT.content = (value: TEXT["TEXT"]) => value;
   export type CHOICE = {
     CHOICE: {
       choice_key?: KeyTarget | undefined | null | null | undefined;
@@ -57,6 +58,7 @@ export namespace InputValueType {
   export function CHOICE(value: CHOICE["CHOICE"]): CHOICE {
     return { CHOICE: value }
   }
+  CHOICE.content = (value: CHOICE["CHOICE"]) => value;
 }
 /** [Source `hn-server/src/data.rs:72`](hn-server/src/data.rs) */
 export type InputValueType =
@@ -119,6 +121,7 @@ export namespace In {
   export function ASK(value: ASK["ASK"]): ASK {
     return { ASK: value }
   }
+  ASK.content = (value: ASK["ASK"]) => value;
 }
 /** [Source `hn-server/src/data.rs:104`](hn-server/src/data.rs) */
 export type In =
@@ -188,6 +191,7 @@ export namespace Out {
   export function IDENTIFY(value: IDENTIFY["IDENTIFY"]): IDENTIFY {
     return { IDENTIFY: value }
   }
+  IDENTIFY.content = (value: IDENTIFY["IDENTIFY"]) => value;
   export type UI = {
     UI: {
       key: Key;
@@ -199,6 +203,7 @@ export namespace Out {
   export function UI(value: UI["UI"]): UI {
     return { UI: value }
   }
+  UI.content = (value: UI["UI"]) => value;
   /** Alternative of DECLARE_SERVICE? */
   export type OFFER = {
     /** Alternative of DECLARE_SERVICE? */
@@ -212,6 +217,8 @@ export namespace Out {
   export function OFFER(value: OFFER["OFFER"]): OFFER {
     return { OFFER: value }
   }
+  /** Alternative of DECLARE_SERVICE? */
+  OFFER.content = (value: OFFER["OFFER"]) => value;
   export type RAISE = {
     RAISE: {
       key: Key;
@@ -225,6 +232,7 @@ export namespace Out {
   export function RAISE(value: RAISE["RAISE"]): RAISE {
     return { RAISE: value }
   }
+  RAISE.content = (value: RAISE["RAISE"]) => value;
   export type RESOLVE = {
     RESOLVE: {
       raise_key: KeyTarget;
@@ -234,6 +242,7 @@ export namespace Out {
   export function RESOLVE(value: RESOLVE["RESOLVE"]): RESOLVE {
     return { RESOLVE: value }
   }
+  RESOLVE.content = (value: RESOLVE["RESOLVE"]) => value;
 }
 /** [Source `hn-server/src/data.rs:123`](hn-server/src/data.rs) */
 export type Out =
@@ -294,12 +303,14 @@ export namespace UIItem {
   export function INPUT(value: UIInput): INPUT {
     return { INPUT: value };
   }
+  INPUT.content = (value: UIInput) => value;
   export type CONTENT = {
     CONTENT: UIContent
   };
   export function CONTENT(value: UIContent): CONTENT {
     return { CONTENT: value };
   }
+  CONTENT.content = (value: UIContent) => value;
   export type WARNING = {
     WARNING: {
       summarized?: UIContent | undefined | null | null | undefined;
@@ -309,6 +320,7 @@ export namespace UIItem {
   export function WARNING(value: WARNING["WARNING"]): WARNING {
     return { WARNING: value }
   }
+  WARNING.content = (value: WARNING["WARNING"]) => value;
 }
 /** [Source `hn-server/src/data.rs:168`](hn-server/src/data.rs) */
 export type UIItem =
@@ -374,6 +386,7 @@ export namespace UIContent {
   export function HEADING(value: HEADING["HEADING"]): HEADING {
     return { HEADING: value }
   }
+  HEADING.content = (value: HEADING["HEADING"]) => value;
   export type PARAGRAPH = {
     PARAGRAPH: {
       content: UsrString;
@@ -382,6 +395,7 @@ export namespace UIContent {
   export function PARAGRAPH(value: PARAGRAPH["PARAGRAPH"]): PARAGRAPH {
     return { PARAGRAPH: value }
   }
+  PARAGRAPH.content = (value: PARAGRAPH["PARAGRAPH"]) => value;
 }
 /** [Source `hn-server/src/data.rs:186`](hn-server/src/data.rs) */
 export type UIContent =
@@ -439,6 +453,7 @@ export namespace UIInputType {
   export function TEXT(value: TEXT["TEXT"]): TEXT {
     return { TEXT: value }
   }
+  TEXT.content = (value: TEXT["TEXT"]) => value;
   export type CHOICE = {
     CHOICE: {
       choices: Array<UIInputChoice>;
@@ -447,6 +462,7 @@ export namespace UIInputType {
   export function CHOICE(value: CHOICE["CHOICE"]): CHOICE {
     return { CHOICE: value }
   }
+  CHOICE.content = (value: CHOICE["CHOICE"]) => value;
 }
 /** [Source `hn-server/src/data.rs:197`](hn-server/src/data.rs) */
 export type UIInputType =
