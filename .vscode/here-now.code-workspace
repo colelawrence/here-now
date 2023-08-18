@@ -42,6 +42,8 @@
       "**/design-tokens/references/**": true,
       "**/vendor/quickjs-rs/**": true,
       "**/out/**": true,
+      // ignore xtask from other projects
+      "**/*/xtask/**": true,
       "**/node_modules": true,
       "**/bower_components": true,
       "**/*.code-search": true
