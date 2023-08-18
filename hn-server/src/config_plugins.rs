@@ -94,7 +94,7 @@ mod internal {
         for (path, read_res) in updated_files {
             match uvm_dir_file_content.path_to_version_and_body.entry(path) {
                 hash_map::Entry::Occupied(mut found) => {
-                    let mut found_mut = found.get_mut();
+                    let found_mut = found.get_mut();
                     found_mut.0 += 1;
                     found_mut.1 = read_res;
                 }
@@ -280,7 +280,7 @@ mod config_file_plugin {
             };
 
             if let Some(update_with) = update {
-                let mut target = uvm_file_content.as_mut();
+                let target = uvm_file_content.as_mut();
                 target.content_opt =
                     update_with.map(|(version, full_path, read_res)| ConfigFileContentInner {
                         is_unlinked: false,

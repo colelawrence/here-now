@@ -9,6 +9,8 @@ default = []
 docs = ["clap/unstable-doc"]
 
 [dependencies]
+hn-tracing.workspace = true
+tracing.workspace = true
 clap = { version = "4.3.18", features = ["derive"] }
 current_platform = "0.2.0"
 # devx-cmd properly cleans up child processes for us

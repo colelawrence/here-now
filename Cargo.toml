@@ -3,8 +3,10 @@ members = [
   "xtask",
   "hn-server",
   "hn-desktop",
+  "hn-desktop-ui",
   "hn-app",
   "hn-common",
+  "hn-tracing",
   'vendor/slint/api/rs/build',
   'vendor/slint/api/rs/slint',
   'vendor/slint/internal/backends/winit',
@@ -36,6 +38,7 @@ documentation = ""
 [workspace.dependencies]
 hn-app = { path = "./hn-app", version = "*" }
 hn-common = { path = "./hn-common", version = "*" }
+hn-tracing = { path = "./hn-tracing", version = "*" }
 derive-codegen = { path = "vendor/derive-codegen/derive-codegen", version = "*" }
 i-codegen-derive = { path = "vendor/derive-codegen/derive", version = "*" }
 i-codegen-code = { path = "vendor/derive-codegen/code", version = "*" }
@@ -48,6 +51,7 @@ bonsaidb = { path = "vendor/bonsaidb/crates/bonsaidb", version = "0.4.0" }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 tracing = "0.1.37"
+tokio = { version = "1.29.1", features = ["full"] }
 anyhow = "1.0"
 
 # for slint

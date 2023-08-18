@@ -34,7 +34,9 @@ const ASCII_RESET: &str = "\x1b[0m";
 
 impl CommandExt for devx_cmd::Cmd {
     #[track_caller]
+    #[tracing::instrument]
     fn run_it(&mut self, reason: &str) {
+        tracing::span::Span::current().record("name", &reason);
         eprintln!("${ASCII_CYAN} {self:?}\n{ASCII_DIM}{reason}{ASCII_RESET}");
         self.run()
             .map_err(|err| {
@@ -43,7 +45,9 @@ impl CommandExt for devx_cmd::Cmd {
             .unwrap();
     }
     #[track_caller]
+    #[tracing::instrument]
     fn run_in_thread(&mut self, reason: &'static str) -> JoinHandle {
+        let current_span = tracing::span::Span::current();
         eprintln!("${ASCII_CYAN} {self:?}\n{ASCII_DIM}{reason}{ASCII_RESET}");
         let mut child = self
             .spawn()
@@ -51,11 +55,16 @@ impl CommandExt for devx_cmd::Cmd {
             .unwrap();
         let self_debug = format!("{self:?}");
         jod_thread::spawn(move || {
-            child.wait().map_err(|err| {
-                format!("Command for {reason:?} in thread exited with non-zero code: {self_debug:?}\n{err:#?}")
-            }).unwrap()
+            let _span = current_span.enter();
+            match child.wait() {
+                Err(err) => {
+                    tracing::error!(reason, self_debug, "Command in thread exited with non-zero code: {err:#?}");
+                }
+                Ok(_) => {}
+            }
         })
     }
+
     #[track_caller]
     fn run_with_printer(
         &mut self,

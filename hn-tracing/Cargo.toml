@@ -1,24 +1,16 @@
 [package]
-name = "hn-app"
+name = "hn-tracing"
 version = "0.1.0"
 edition = "2021"
 description = "Common code for here now frontend and backend"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-shipyard.workspace = true
-shipyard_app.workspace = true
-anyhow.workspace = true
-bonsaidb = { workspace = true, default-features = false }
 tracing.workspace = true
-i-hn-app-proc = { version = "0.0.0", path = "./proc" }
-env_logger = "0.10.0"
 tokio.workspace = true
-toml_edit = { version = "0.19.12", features = ["serde"] }
+env_logger = "0.10.0"
 tracing-subscriber = { version = "0.3.17", features = ["env-filter"] }
 tracing-opentelemetry = { version = "0.19.0", path = "../vendor/tracing-opentelemetry" }
 opentelemetry = { version = "0.19.0", features = ["rt-tokio"] }
 opentelemetry-jaeger = { version = "0.18.0", features = ["rt-tokio", "reqwest_collector_client"] }
 reqwest = { version = "0.11.18", features = ["json", "serde_json"] }
-rayon = "1.7.0"
-futures = "0.3.28"

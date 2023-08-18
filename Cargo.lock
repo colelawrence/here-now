@@ -1479,16 +1479,31 @@ dependencies = [
  "bonsaidb",
  "hn-app",
  "hn-common",
+ "hn-tracing",
  "reqwest",
  "serde",
  "serde_json",
  "shipyard",
  "shipyard_app",
+ "tokio",
+ "tracing",
+ "tracing-subscriber 0.3.17",
+]
+
+[[package]]
+name = "desktop-ui"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "hn-app",
+ "hn-common",
+ "hn-tracing",
+ "serde",
+ "serde_json",
  "slint",
  "slint-build",
  "tokio",
  "tracing",
- "tracing-subscriber 0.3.17",
 ]
 
 [[package]]
@@ -2441,6 +2456,7 @@ dependencies = [
  "futures",
  "hn-app",
  "hn-common",
+ "hn-tracing",
  "hpke",
  "http",
  "i-hn-server-proc",
@@ -2472,6 +2488,20 @@ dependencies = [
  "urlencoding",
  "ustr",
  "xid",
+]
+
+[[package]]
+name = "hn-tracing"
+version = "0.1.0"
+dependencies = [
+ "env_logger",
+ "opentelemetry",
+ "opentelemetry-jaeger",
+ "reqwest",
+ "tokio",
+ "tracing",
+ "tracing-opentelemetry",
+ "tracing-subscriber 0.3.17",
 ]
 
 [[package]]
@@ -7312,9 +7342,11 @@ dependencies = [
  "clap",
  "current_platform",
  "devx-cmd",
+ "hn-tracing",
  "jod-thread",
  "serde",
  "serde_json",
+ "tracing",
 ]
 
 [[package]]

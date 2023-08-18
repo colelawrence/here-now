@@ -10,6 +10,7 @@ publish = false
 [dependencies]
 hn-common.workspace = true
 hn-app.workspace = true
+hn-tracing.workspace = true
 derive-codegen.workspace = true
 serde.workspace = true
 shipyard.workspace = true
@@ -24,8 +25,8 @@ quick-js = { version = "0.4.2-alpha.0", path = "../vendor/quickjs-rs", features 
 env_logger = "0.10.0"
 futures = "0.3.28"
 maud = { version = "0.25.0", features = ["axum"] }
-tokio = { version = "1.29.1", features = ["full"] }
 tower-http = { version = "0.4.1", features = ["fs", "trace"] }
+tokio.workspace = true
 tracing.workspace = true
 toml_edit = { version = "0.19.12", features = ["serde"] }
 minijinja = { version = "1.0.3", features = ["loader", "multi_template"] }

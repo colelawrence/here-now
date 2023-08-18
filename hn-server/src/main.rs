@@ -17,7 +17,7 @@ pub mod svelte_templates;
 #[tokio::main]
 async fn main() {
     // can we make this configurable with reloading?
-    hn_app::logging::expect_init_logger("hn-server");
+    hn_tracing::expect_init_logger("hn-server");
 
     let mut app = shipyard_app::App::new();
     let (sender, recv) = tokio::sync::mpsc::unbounded_channel();

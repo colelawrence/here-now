@@ -1,3 +1,8 @@
+use std::{path::PathBuf, rc::Rc, sync::Arc};
+
+use slint::{ComponentHandle, VecModel};
+use tracing::*;
+
 mod ui {
     slint::include_modules!();
 }
@@ -19,13 +24,11 @@ mod screen_share {
     }
 }
 
-use std::{path::PathBuf, rc::Rc, sync::Arc};
-
-use slint::{ComponentHandle, VecModel};
-
-pub fn slint_main() {
-    let a =
-        Arc::<ui::HereNowMainWindow>::new(ui::HereNowMainWindow::new().expect("created window"));
+fn main() {
+    hn_tracing::expect_init_logger("hn-desktop-ui");
+    let a = info_span!("create main window").in_scope(|| {
+        Arc::<ui::HereNowMainWindow>::new(ui::HereNowMainWindow::new().expect("created window"))
+    });
     a.on_start_screen_share({
         let groups_model = Rc::new(VecModel::<screen_share::ScreenShareGroup>::from(vec![]));
         let screen_share_window = Arc::<screen_share::ScreenShareWindow>::new(
@@ -44,6 +47,7 @@ pub fn slint_main() {
 
         // let groups_model = groups_model.clone();
         move || {
+            let _span = info_span!("on start screen share").entered();
             println!("Start screen share");
 
             // let mut share_plugin = ShareMediaPlugin::default();
@@ -69,12 +73,15 @@ pub fn slint_main() {
             });
         }
     });
-    a.on_close(|| {
-        std::process::exit(0);
+
+    let a_clone = a.clone();
+    a.on_close(move || {
+        let _span = warn_span!("closing application").entered();
+        a_clone.hide().expect("hide window");
     });
     // a.set_groups_model(groups_model.into());
-    a.show().unwrap();
-    println!("Done!");
+    a.show().expect("show window");
+    slint::run_event_loop().expect("run event loop");
 }
 
 // fn create_share_group_for_slint(

@@ -3,6 +3,7 @@ use devx_cmd::Cmd;
 use std::fmt::Write;
 use std::process::Command;
 use std::{collections::BTreeMap, ops::Rem};
+use tracing::*;
 
 use command_ext::{get_project_root_dir, CommandExt};
 
@@ -23,6 +24,12 @@ enum Args {
     },
     /// Run desktop for development
     DevDesktop {
+        /// Connect to jaeger
+        #[clap(long)]
+        jaeger: bool,
+    },
+    /// Run desktop ui for development
+    DevDesktopUi {
         /// Connect to jaeger
         #[clap(long)]
         jaeger: bool,
@@ -49,13 +56,19 @@ enum Args {
 }
 
 fn main() {
+    hn_tracing::expect_init_logger_jaeger(
+        "hn-xtask",
+        Some("http://localhost:14268/api/traces".to_string()),
+    );
     let args = Args::parse();
+    let _span = info_span!("main", ?args).entered();
 
     match args {
         Args::WebBuild { watch } => web_build(watch),
         Args::Jaeger { docker, proxied } => jaeger(docker, proxied).join(),
         Args::Dev { jaeger } => dev(jaeger),
         Args::DevDesktop { jaeger } => dev_desktop(jaeger),
+        Args::DevDesktopUi { jaeger } => dev_desktop_ui(jaeger).join(),
         Args::Fix => fix(),
         Args::Doc => doc(),
         Args::Docker { bash } => build_docker(bash),
@@ -86,6 +99,7 @@ fn jaeger(docker: bool, proxied: bool) -> jod_thread::JoinHandle {
     }
 }
 
+#[instrument]
 fn web_build(watch: bool) {
     eprintln!("Building web dependencies, watch={watch:?}");
 
@@ -134,6 +148,7 @@ fn web_build(watch: bool) {
     svelte_generator_data_browser.join();
 }
 
+#[instrument]
 fn dev(jaeger: bool) {
     let server = Cmd::new("cargo")
         .env("HERE_NOW_LOG", "debug,!pot,!nebari")
@@ -157,8 +172,25 @@ fn dev(jaeger: bool) {
     server.join();
 }
 
-fn dev_desktop(jaeger: bool) {
-    let server = Cmd::new("cargo")
+#[instrument]
+fn dev_desktop_backend(jaeger: bool) -> jod_thread::JoinHandle {
+    Cmd::new("cargo")
+        .env("HERE_NOW_LOG", "debug,!pot,!nebari")
+        .env_if(
+            jaeger,
+            "JAEGER_COLLECTOR_ENDPOINT",
+            "http://localhost:14268/api/traces",
+        )
+        .arg("run")
+        .arg("--quiet")
+        .root_dir("./hn-desktop")
+        .watchable(true, "-w ./src -w ../hn-common -w ../hn-app -e rs")
+        .run_in_thread("watch and run hn-desktop Rust program")
+}
+
+#[instrument]
+fn dev_desktop_ui(jaeger: bool) -> jod_thread::JoinHandle {
+    Cmd::new("cargo")
         .env("HERE_NOW_LOG", "debug,!pot,!nebari")
         .env("SLINT_DEBUG_PERFORMANCE", "refresh_lazy,overlay")
         .env("SLINT_NO_QT", "1")
@@ -169,13 +201,21 @@ fn dev_desktop(jaeger: bool) {
         )
         .arg("run")
         .arg("--quiet")
-        .root_dir("./hn-desktop")
-        .watchable(true, "-w ./src -w ../hn-common -w ../hn-app -e rs")
-        .run_in_thread("watch and run hn-desktop Rust program");
-
-    server.join();
+        .root_dir("./hn-desktop-ui")
+        .watchable(true, "-w ./src -w ../vendor/slint -w ./ui -e rs,slint")
+        .run_in_thread("watch and run hn-desktop-ui Rust program")
 }
 
+#[instrument]
+fn dev_desktop(jaeger: bool) {
+    let desktop = dev_desktop_backend(jaeger);
+    let ui = dev_desktop_ui(jaeger);
+
+    desktop.join();
+    ui.join();
+}
+
+#[instrument]
 fn dev_protocol() {
     devx_cmd::Cmd::new("cargo")
         .args(
@@ -187,6 +227,7 @@ fn dev_protocol() {
         .run_it("watching and generating protocol code");
 }
 
+#[instrument]
 fn fix() {
     Cmd::new("cargo")
         .args("fix --allow-dirty --allow-staged".split(' '))
@@ -199,6 +240,7 @@ fn fix() {
         .run_it("format rust files in workspace");
 }
 
+#[instrument]
 fn doc() {
     Cmd::new("cargo")
         .args("+nightly doc --workspace --open".split(' '))
@@ -211,6 +253,7 @@ fn doc() {
         .run_it("generate and open docs");
 }
 
+#[instrument]
 fn build_docker(bash: bool) {
     let tag = "herenow/server";
     // docker build --file=./Dockerfile.here-now -t herenow/server .  && docker run -it herenow/server /bin/bash
