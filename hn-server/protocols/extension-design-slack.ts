@@ -30,9 +30,44 @@ async function test() {
         }),
       ],
     })
+
+    ch0.in.iam.ASK({
+       offer_key: "setup-discord",
+       given_params: [
+
+       ]
+    })
+    // operator specifies client id
+
+    setup.UI({
+      key: "setup-discord",
+      items: [
+        {
+          CONTENT: {
+            PARAGRAPH: {
+              content: "Grab your client secret from discord.com/applications/1132773161985908787/oauth2"
+            }
+          }
+        },
+        {
+          INPUT: {
+            key: "discord-client-secret",
+            label: "Application Secret",
+            type: { TEXT: {} },
+          },
+        },
+        {
+          INPUT: {
+            key: "discord-client-redirect",
+            label: "OAuth 2 Redirect URL",
+            type: { TEXT: {} },
+          },
+        },
+      ],
+    })
   })
 
-  ch0.in.iam.ASK({
+  ch0.in.iam.START({
     offer_key: "setup-discord",
     channel: "2",
     given_params: [],
@@ -50,19 +85,17 @@ async function test() {
         {
           INPUT: {
             key: "akwjklawdj",
-            label: "client-id"
-          }
-        }
-      ]
+            label: "client-id",
+          },
+        },
+      ],
     })
 
     setup.RAISE({
       key: "need-client-id",
       related_input_keys: ["akwjklawdj"],
-      ui_key: "setup"
-      
+      ui_key: "setup",
     })
-
   })
 }
 
