@@ -1,0 +1,178 @@
+import { Theme } from "./theme.slint";
+// https://slint-ui.com/releases/1.0.2/docs/rust/slint/docs/debugging_techniques/index.html
+
+component TextHeading inherits Text {
+    font-size: Theme.text-ui-heading-size;
+    font-family: Theme.text-ui-heading-family;
+    font-weight: Theme.text-ui-heading-weight;
+    color: Theme.text-body;
+}
+component HnText inherits Text {
+    font-size: Theme.text-content-size;
+    font-family: Theme.text-content-family;
+    font-weight: Theme.text-content-weight;
+    color: Theme.text-body;
+}
+
+component HnButton inherits TouchArea {
+    in property <string> text: "Label";
+    Rectangle {
+        padding: 4px;
+        min-width: text.width + 8px;
+        border-color: transparent;
+        border-width: 3px;
+        text := Text {
+            font-size: Theme.text-ui-button-size;
+            font-family: Theme.text-ui-button-family;
+            font-weight: Theme.text-ui-button-weight;
+            color: root.has-hover ? Theme.text-body : Theme.text-body.brighter(5);
+            text: root.text;
+            animate color {
+                duration: 0.2s;
+                easing: ease-in-out;
+            }
+        }
+    }
+}
+
+component HnTextInput inherits TouchArea {
+    in property <string> label: "Label";
+    in property <string> placeholder: "";
+    in property <[string]> examples: [];
+    in property <string> original_value: "";
+    in-out property <string> value <=> input.text;
+    vertical-stretch: 0;
+
+    clicked => {
+        input.focus();
+    }
+
+    VerticalLayout {
+        spacing: 4px;
+        HorizontalLayout {
+            alignment: start;
+            spacing: 4px;
+            Text {
+                vertical-stretch: 0;
+                font-size: Theme.text-ui-label-size;
+                font-family: Theme.text-ui-label-family;
+                font-weight: Theme.text-ui-label-weight;
+                color: Theme.text-body;
+                text: root.label;
+            }
+            if root.original_value != root.value: HnButton {
+                vertical-stretch: 0;
+                text: "Reset";
+                clicked => {
+                    root.value = root.original_value;
+                }
+            }
+        }
+        field := Rectangle {
+            padding: 4px;
+            min-height: Theme.text-ui-input-size + field.padding * 2;
+            border-width: 1px;
+            border-color: input.has-focus ? Theme.text-ui-input-active-border : Theme.text-ui-input-inactive-border;
+            border-radius: 3px;
+            vertical-stretch: 0;
+            input := TextInput {
+                y: field.padding;
+                x: field.padding;
+                font-size: Theme.text-ui-input-size;
+                font-family: Theme.text-ui-input-family;
+                font-weight: Theme.text-ui-input-weight + (root.original_value != root.value ? 100 : 0);
+                color: root.original_value != root.value ? Theme.text-body : Theme.text-body.brighter(2);
+            }
+        }
+        if examples.length > 0: HorizontalLayout {
+            alignment: start;
+            spacing: 4px;
+            HnText {
+                text: "For example ";
+            }
+            for example in examples: HnButton {
+                text: example;
+                clicked => {
+                    root.value = example;
+                }
+            }
+        }
+    }
+}
+
+export component HereNowSettingsWindow inherits Window {
+    always-on-top: true;
+    position-x: 1700px;
+    position-y: 400px;
+    min-width: 120px;
+    preferred-width: 420px;
+    title: "Here Now";
+    no-frame: true;
+    background: transparent;
+    in-out property <string> server_url: "http://localhost:9000";
+    in-out property <string> server_url_2: "https://open.herenow.dev";
+    out property <string> server_url_updated: self.server_url;
+    out property <string> server_url_2_updated: self.server_url_2;
+
+    winTouch := TouchArea {
+        property <bool> applying: false;
+        moved => {
+            if (self.applying) {
+                root.position-x = root.position-x + (winTouch.mouse-x - winTouch.pressed-x);
+                root.position-y = root.position-y + (winTouch.mouse-y - winTouch.pressed-y);
+            }
+            self.applying = !self.applying;
+        }
+    }
+    
+    Rectangle {
+        width: root.width;
+        height: root.height;
+        background: Theme.background-body;
+        border-radius: 3px;
+    }
+
+    VerticalLayout {
+        padding: 20px;
+        spacing: 12px;
+
+        HorizontalLayout {
+            VerticalLayout {
+                alignment: center;
+                Image {
+                    width: 32px;
+                    height: 32px;
+                    source: @image-url("./rubber_ducky_illustration.png");
+                }
+            }
+            VerticalLayout {
+                alignment: center;
+                padding-top: 5px;
+                TextHeading {
+                    text: "Here Now Settings";
+                }
+            }
+        }
+
+        HnTextInput {
+            vertical-stretch: 0;
+            label: "Server URL";
+            original-value: root.server_url;
+            value <=> root.server_url_updated;
+            examples: ["http://localhost:9000", "https://api.herenow.io"];
+        }
+
+        HnTextInput {
+            vertical-stretch: 0;
+            label: "Server URL 2";
+            original-value: root.server_url_2;
+            value <=> root.server_url_2_updated;
+            examples: ["http://localhost:9000", "https://api.herenow.io"];
+        }
+
+        Rectangle {
+            vertical-stretch: 1;
+        }
+    }
+}
+
