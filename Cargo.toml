@@ -17,6 +17,7 @@ members = [
   'vendor/slint/internal/compiler',
   'vendor/slint/internal/core',
   'vendor/slint/internal/interpreter',
+  'vendor/slint/tools/viewer',
   'vendor/slint/tools/lsp',
 ]
 exclude = [

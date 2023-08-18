@@ -1,6 +1,7 @@
 use clap::{self, Parser};
 use devx_cmd::Cmd;
 use std::fmt::Write;
+use std::path::PathBuf;
 use std::process::Command;
 use std::{collections::BTreeMap, ops::Rem};
 use tracing::*;
@@ -27,6 +28,10 @@ enum Args {
         /// Connect to jaeger
         #[clap(long)]
         jaeger: bool,
+    },
+    View {
+        /// Which file
+        file: PathBuf,
     },
     /// Assorted lint fixes
     Fix,
@@ -62,6 +67,7 @@ fn main() {
         Args::Jaeger { docker, proxied } => jaeger(docker, proxied).join(),
         Args::Dev { jaeger } => dev(jaeger),
         Args::DevDesktop { jaeger } => dev_desktop(jaeger),
+        Args::View { file } => viewer(file),
         Args::Fix => fix(),
         Args::Doc => doc(),
         Args::Docker { bash } => build_docker(bash),
@@ -185,6 +191,19 @@ fn dev_desktop(jaeger: bool) {
             "-w ./src -w ../hn-common -w ../hn-app -w ../hn-desktop-ui-messages -w ../hn-desktop-ui -w ../hn-desktop-executor -e rs",
         )
         .run_in_thread("watch and run hn-desktop Rust program");
+}
+
+#[instrument]
+fn viewer(file: PathBuf) {
+    Cmd::new("cargo")
+        .env("SLINT_DEBUG_PERFORMANCE", "refresh_lazy,overlay")
+        .env("SLINT_NO_QT", "1")
+        .arg("run")
+        .arg("--quiet")
+        .arg2("-p", "slint-viewer")
+        .arg("--")
+        .arg(file)
+        .run_in_thread("preview slint file with slint-viewer");
 }
 
 #[instrument]
