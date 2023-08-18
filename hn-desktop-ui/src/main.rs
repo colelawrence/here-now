@@ -1,9 +1,13 @@
-use std::{path::PathBuf, rc::Rc, sync::Arc};
+use std::{rc::Rc, sync::Arc};
 
 use slint::{ComponentHandle, VecModel};
 use tracing::*;
 
 mod ui {
+    pub use hn_desktop_ui_messages::*;
+}
+
+mod slint_ui {
     slint::include_modules!();
 }
 
@@ -27,7 +31,9 @@ mod screen_share {
 fn main() {
     hn_tracing::expect_init_logger("hn-desktop-ui");
     let a = info_span!("create main window").in_scope(|| {
-        Arc::<ui::HereNowMainWindow>::new(ui::HereNowMainWindow::new().expect("created window"))
+        Arc::<slint_ui::HereNowMainWindow>::new(
+            slint_ui::HereNowMainWindow::new().expect("created window"),
+        )
     });
     a.on_start_screen_share({
         let groups_model = Rc::new(VecModel::<screen_share::ScreenShareGroup>::from(vec![]));

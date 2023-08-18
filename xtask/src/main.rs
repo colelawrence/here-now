@@ -173,7 +173,7 @@ fn dev(jaeger: bool) {
 }
 
 #[instrument]
-fn dev_desktop_backend(jaeger: bool) -> jod_thread::JoinHandle {
+fn dev_desktop_executor(jaeger: bool) -> jod_thread::JoinHandle {
     Cmd::new("cargo")
         .env("HERE_NOW_LOG", "debug,!pot,!nebari")
         .env_if(
@@ -184,7 +184,10 @@ fn dev_desktop_backend(jaeger: bool) -> jod_thread::JoinHandle {
         .arg("run")
         .arg("--quiet")
         .root_dir("./hn-desktop")
-        .watchable(true, "-w ./src -w ../hn-common -w ../hn-app -e rs")
+        .watchable(
+            true,
+            "-w ./src -w ../hn-common -w ../hn-app -w ../hn-desktop-ui-messages -e rs",
+        )
         .run_in_thread("watch and run hn-desktop Rust program")
 }
 
@@ -202,13 +205,16 @@ fn dev_desktop_ui(jaeger: bool) -> jod_thread::JoinHandle {
         .arg("run")
         .arg("--quiet")
         .root_dir("./hn-desktop-ui")
-        .watchable(true, "-w ./src -w ../vendor/slint -w ./ui -e rs,slint")
+        .watchable(
+            true,
+            "-w ./src -w ../vendor/slint -w ../hn-desktop-ui-messages -w ./ui -e rs,slint",
+        )
         .run_in_thread("watch and run hn-desktop-ui Rust program")
 }
 
 #[instrument]
 fn dev_desktop(jaeger: bool) {
-    let desktop = dev_desktop_backend(jaeger);
+    let desktop = dev_desktop_executor(jaeger);
     let ui = dev_desktop_ui(jaeger);
 
     desktop.join();

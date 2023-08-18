@@ -11,6 +11,7 @@ publish = false
 hn-app.workspace = true
 hn-common.workspace = true
 hn-tracing.workspace = true
+hn-desktop-ui-messages.workspace = true
 tracing.workspace = true
 serde.workspace = true
 tokio.workspace = true

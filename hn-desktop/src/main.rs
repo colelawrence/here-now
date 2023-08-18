@@ -7,6 +7,10 @@ mod prelude {
     pub use hn_common::keys;
 }
 
+mod ui {
+    pub use hn_desktop_ui_messages::*;
+}
+
 mod device;
 mod device_client;
 mod local_keys;

@@ -1479,6 +1479,7 @@ dependencies = [
  "bonsaidb",
  "hn-app",
  "hn-common",
+ "hn-desktop-ui-messages",
  "hn-tracing",
  "reqwest",
  "serde",
@@ -1487,7 +1488,6 @@ dependencies = [
  "shipyard_app",
  "tokio",
  "tracing",
- "tracing-subscriber 0.3.17",
 ]
 
 [[package]]
@@ -1497,6 +1497,7 @@ dependencies = [
  "anyhow",
  "hn-app",
  "hn-common",
+ "hn-desktop-ui-messages",
  "hn-tracing",
  "serde",
  "serde_json",
@@ -2440,6 +2441,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "hn-desktop-ui-messages"
+version = "0.1.0"
+dependencies = [
+ "i-hn-desktop-ui-messages-proc",
+ "serde",
+ "tracing",
+]
+
+[[package]]
 name = "hn-server"
 version = "0.1.0"
 dependencies = [
@@ -2648,6 +2658,14 @@ name = "i-hn-app-proc"
 version = "0.0.0"
 dependencies = [
  "derive-codegen",
+ "proc-macro2",
+ "quote",
+]
+
+[[package]]
+name = "i-hn-desktop-ui-messages-proc"
+version = "0.0.0"
+dependencies = [
  "proc-macro2",
  "quote",
 ]

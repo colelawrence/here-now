@@ -58,7 +58,11 @@ impl CommandExt for devx_cmd::Cmd {
             let _span = current_span.enter();
             match child.wait() {
                 Err(err) => {
-                    tracing::error!(reason, self_debug, "Command in thread exited with non-zero code: {err:#?}");
+                    tracing::error!(
+                        reason,
+                        self_debug,
+                        "Command in thread exited with non-zero code: {err:#?}"
+                    );
                 }
                 Ok(_) => {}
             }

@@ -1,0 +1,21 @@
+[package]
+name = "i-hn-desktop-ui-messages-proc"
+description = "Proc-macro supporting the `hn-desktop-ui-messages` crate."
+version = "0.0.0"
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+documentation.workspace = true
+publish = false
+
+[lib]
+doc = false
+proc-macro = true
+
+[dependencies]
+quote = "1.0.2"
+
+[dependencies.proc-macro2]
+version = "1.0.66"
+default-features = false
