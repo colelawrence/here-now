@@ -202,6 +202,9 @@ fn viewer(file: PathBuf) {
         .arg("--quiet")
         .arg2("-p", "slint-viewer")
         .arg("--")
+        .arg("--auto-reload")
+        .arg2("--style", "fluent")
+        .arg2("--backend", "winit")
         .arg(file)
         .run_in_thread("preview slint file with slint-viewer");
 }
