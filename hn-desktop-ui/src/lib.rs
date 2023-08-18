@@ -7,6 +7,13 @@ mod slint_ui {
     slint::include_modules!();
 }
 
+mod settings {
+    slint::slint! {
+        import { HereNowSettingsWindow } from "ui/settings_window.slint";
+        export component SettingsWindow inherits HereNowSettingsWindow {}
+    }
+}
+
 mod screen_share {
     slint::slint! {
         import { ScreenShareGroup, HereNowScreenShareSelectorInner } from "ui/screen-share/screen-share-selector-inner.slint";
@@ -26,7 +33,7 @@ mod screen_share {
 
 struct MainUI {
     window: slint::Weak<slint_ui::HereNowMainWindow>,
-    screen_share_window: slint::Weak<screen_share::ScreenShareWindow>,
+    settings_window: slint::Weak<settings::SettingsWindow>,
 }
 
 unsafe impl Sync for MainUI {}
@@ -38,13 +45,14 @@ impl ui::SendToUI for MainUI {
         match msg {
             ui::ToUI::ShowMainWindow => self
                 .window
-                .upgrade_in_event_loop(|window| {
+                .upgrade_in_event_loop(move |window| {
                     window.show().expect("show window");
                 })
                 .expect("upgrade in event loop"),
-            ui::ToUI::ShowScreenShare => self
-                .screen_share_window
-                .upgrade_in_event_loop(|window| {
+            ui::ToUI::ShowSettings(settings) => self
+                .settings_window
+                .upgrade_in_event_loop(move |window| {
+                    warn!(?settings, "apply settings values");
                     window.show().expect("show window");
                 })
                 .expect("upgrade in event loop"),
@@ -63,38 +71,21 @@ pub fn main_blocking(
     });
 
     let executor = Rc::new(send_to_executor);
+    let settings_window = Rc::new(
+        info_span!("create settings window")
+            .in_scope(|| settings::SettingsWindow::new().expect("created window")),
+    );
+    let main_ui = MainUI {
+        settings_window: settings_window.as_weak(),
+        window: a.as_weak(),
+    };
+    set_ui(Box::new(main_ui));
 
-    a.on_start_screen_share({
-        let groups_model = Rc::new(VecModel::<screen_share::ScreenShareGroup>::from(vec![]));
-        let screen_share_window = Rc::<screen_share::ScreenShareWindow>::new(
-            screen_share::ScreenShareWindow::new().unwrap(),
-        );
-        screen_share_window.set_groups_model(groups_model.clone().into());
-        let screen_share_window_weak = screen_share_window.as_weak();
-        let executor_clone = executor.clone();
-        screen_share_window.on_close(move || {
-            let _ = screen_share_window_weak.unwrap().hide();
-            executor_clone.send_to_executor(ui::ToExecutor::HidScreenShare);
-        });
-        let screen_share_window_weak = screen_share_window.as_weak();
-        screen_share_window.on_choose_screen_share(move |share_id| {
-            println!("Add share {share_id:?}");
-            let _ = screen_share_window_weak.unwrap().hide();
-        });
-
-        let main_ui = MainUI {
-            screen_share_window: screen_share_window.as_weak(),
-            window: a.as_weak(),
-        };
-
-        set_ui(Box::new(main_ui));
-
-        std::mem::forget(screen_share_window);
-
+    a.on_show_settings({
         let executor_clone = executor.clone();
         move || {
-            info_span!("on start screen share").in_scope(|| {
-                executor_clone.send_to_executor(ui::ToExecutor::OpenScreenShare);
+            info_span!("on show settings").in_scope(|| {
+                executor_clone.send_to_executor(ui::ToExecutor::OpenSettings);
             });
         }
     });
@@ -112,26 +103,3 @@ pub fn main_blocking(
 
     tracing::error!("unexpected exit of slint event loop");
 }
-
-// fn create_share_group_for_slint(
-//     // item: here_now_sdk::share_list::ShareListGroup,
-//     icon_path: PathBuf,
-// ) -> screen_share::ScreenShareGroup {
-//     screen_share::ScreenShareGroup {
-//         display_name: item.display_name.into(),
-//         options: Rc::new(slint::VecModel::<screen_share::ScreenShareOption>::from(
-//             item.items
-//                 .into_iter()
-//                 .map(|opt| screen_share::ScreenShareOption {
-//                     display_name: opt.display_name.into(),
-//                     id: opt.id.into(),
-//                     // icon: ,
-//                     // preview: ,
-//                     ..Default::default()
-//                 })
-//                 .collect::<Vec<_>>(),
-//         ))
-//         .into(),
-//         icon: slint::Image::load_from_path(&icon_path).expect("found image"),
-//     }
-// }

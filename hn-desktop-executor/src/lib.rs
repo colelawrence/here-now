@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use hn_app::app_ctx::AppCtx;
-use shipyard::{UniqueViewMut, UniqueView};
+use shipyard::{UniqueView, UniqueViewMut};
 use shipyard_app::App;
 use tokio::sync::mpsc::UnboundedSender;
 
@@ -78,9 +78,12 @@ impl ui::SendToExecutor for Executor {
                     let _span = tracing::warn_span!("send to executor").entered();
                     let send_to_ui_clone = send_to_ui_clone.clone();
                     match &msg {
-                        ui::ToExecutor::OpenScreenShare => {
+                        ui::ToExecutor::OpenSettings => {
                             tracing::info!("start screen share");
-                            uvm_ui_messages.add(ui::ToUI::ShowScreenShare);
+                            uvm_ui_messages.add(ui::ToUI::ShowSettings(ui::Settings {
+                                server_url: ui::Setting::Value("http://localhost:9000".to_string()),
+                                server_url_2: ui::Setting::NoValue,
+                            }));
                         }
                         ui::ToExecutor::HidMainWindow => {
                             tracing::info!("hid main window");

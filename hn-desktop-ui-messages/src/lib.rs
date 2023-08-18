@@ -13,16 +13,30 @@ pub trait SendToExecutor: 'static + Send + Sync {
 #[serde(transparent)]
 pub struct UID(String);
 
+#[shared]
+pub struct Settings {
+    pub server_url: Setting<String>,
+    pub server_url_2: Setting<String>,
+}
+
+#[shared]
+pub enum Setting<T> {
+    Value(T),
+    NoValue,
+    Unchanged,
+}
+
 #[to_ui]
 pub enum ToUI {
     ShowMainWindow,
-    ShowScreenShare,
+    ShowSettings(Settings),
 }
 
 #[to_executor]
 pub enum ToExecutor {
-    OpenScreenShare,
+    OpenSettings,
+    UpdateSettings(Settings),
     OpenMainWindow,
     HidMainWindow,
-    HidScreenShare,
+    HidSettings,
 }

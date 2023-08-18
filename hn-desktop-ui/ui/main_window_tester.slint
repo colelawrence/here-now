@@ -14,11 +14,23 @@ import { HereNowActiveCallInner } from "./active-call/active-call-inner.slint";
 
 // https://slint-ui.com/releases/1.0.2/docs/rust/slint/docs/debugging_techniques/index.html
 
-component DraggableWindow inherits Window {
-    position-x: 1700px;
-    position-y: 300px;
+export component HereNowMainWindow inherits Window {
+    always-on-top: true;
+    position-x: 100px;
+    position-y: 100px;
+    min-width: 120px;
+    title: "Here Now";
+    icon: Theme.app-icon;
+    // Slint on winit has an even-odd rendering bug with loading fonts from Google Webfonts...
+    // default-font-family: "Montserrat";
+    default-font-weight: 400;
     no-frame: true;
+
+    callback start-screen-share();
+    callback close();
+
     background: transparent;
+
     winTouch := TouchArea {
         property <bool> applying: false;
         moved => {
@@ -29,20 +41,6 @@ component DraggableWindow inherits Window {
             self.applying = !self.applying;
         }
     }
-}
-
-export component HereNowMainWindow inherits DraggableWindow {
-    in property <bool> keep-on-top: true;
-    always-on-top: self.keep-on-top;
-    min-width: 120px;
-    title: "Here Now";
-    icon: Theme.app-icon;
-    // Slint on winit has an even-odd rendering bug with loading fonts from Google Webfonts...
-    // default-font-family: "Montserrat";
-    default-font-weight: 400;
-
-    callback show-settings();
-    callback close();
 
     VerticalLayout {
         spacing: 20px;
@@ -50,17 +48,32 @@ export component HereNowMainWindow inherits DraggableWindow {
 
         VerticalLayout {
             Button {
-                text: "Settings";
+                text: root.always-on-top ? "✓ Always on top" : "Make always on top";
+                checkable: true;
+                checked: root.always-on-top;
                 height: 30px;
-                width: 130px;
-                clicked => { root.show-settings(); }
+                width: 200px;
+                clicked => {
+                    root.always-on-top = !root.always-on-top;
+                }
+            }
+            Button {
+                text: "Share Screen";
+                height: 30px;
+                width: 200px;
+                clicked => { root.start-screen-share(); }
             }
             Button {
                 text: "Close";
                 height: 30px;
-                width: 130px;
+                width: 200px;
                 clicked => { root.close(); }
             }
         }
+
+        HereNowActiveCallInner {}
+        
+        // HereNowPeopleListInner {
+        // }
     }
 }
