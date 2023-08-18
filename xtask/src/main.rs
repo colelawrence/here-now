@@ -205,6 +205,8 @@ fn doc() {
         // ensure not to get wasm bindgen stuff
         // the server and the desktop should work on this architecture
         .arg2("--target", current_platform::CURRENT_PLATFORM)
+        // ugh... I don't know why the error occurs that there's a duplicate "crate".
+        .arg2("--exclude", "i-codegen-derive")
         .root_dir(".")
         .run_it("generate and open docs");
 }

@@ -108,10 +108,9 @@ mod iam {
         INTERACT {
             /// [Out::UI] key.
             ui_key: KeyTarget,
-            #[serde(rename = "type")]
             r#type: InteractionType,
         },
-        ASK {
+        START {
             offer_key: KeyTarget,
             channel: ChannelID,
             given_params: Vec<InputValueType>,

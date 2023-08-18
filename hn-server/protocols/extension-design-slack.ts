@@ -9,6 +9,7 @@ import { ch } from "./ch.ts"
 
 async function test() {
   const ch0 = ch({ iam })
+  const ch2 = ch({ iam })
 
   ch0.expect(({ iam: setup }) => {
     setup.IDENTIFY({
@@ -32,14 +33,36 @@ async function test() {
   })
 
   ch0.in.iam.ASK({
-    channel: "1",
-    given_params: [
-      {
-        CHOICE: {
-          choice_key,
-        },
-      },
-    ],
+    offer_key: "setup-discord",
+    channel: "2",
+    given_params: [],
+  })
+
+  ch2.expect(({ iam: setup }) => {
+    setup.IDENTIFY({
+      title: "Discord Setup (in progress)",
+    })
+
+    setup.UI({
+      key: "setup",
+      items: [
+        "Header",
+        {
+          INPUT: {
+            key: "akwjklawdj",
+            label: "client-id"
+          }
+        }
+      ]
+    })
+
+    setup.RAISE({
+      key: "need-client-id",
+      related_input_keys: ["akwjklawdj"],
+      ui_key: "setup"
+      
+    })
+
   })
 }
 

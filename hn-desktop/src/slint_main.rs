@@ -24,7 +24,8 @@ use std::{path::PathBuf, rc::Rc, sync::Arc};
 use slint::{ComponentHandle, VecModel};
 
 pub fn slint_main() {
-    let a = Arc::<ui::HereNowMainWindow>::new(ui::HereNowMainWindow::new().unwrap());
+    let a =
+        Arc::<ui::HereNowMainWindow>::new(ui::HereNowMainWindow::new().expect("created window"));
     a.on_start_screen_share({
         let groups_model = Rc::new(VecModel::<screen_share::ScreenShareGroup>::from(vec![]));
         let screen_share_window = Arc::<screen_share::ScreenShareWindow>::new(
@@ -72,7 +73,7 @@ pub fn slint_main() {
         std::process::exit(0);
     });
     // a.set_groups_model(groups_model.into());
-    a.run().unwrap();
+    a.show().unwrap();
     println!("Done!");
 }
 
