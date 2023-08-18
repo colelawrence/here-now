@@ -1,5 +1,5 @@
 [package]
-name = "hn-desktop-ui"
+name = "hn-desktop-executor"
 version = "0.1.0"
 edition.workspace = true
 license.workspace = true
@@ -12,12 +12,12 @@ hn-app.workspace = true
 hn-common.workspace = true
 hn-tracing.workspace = true
 ui.workspace = true
+tokio.workspace = true
 tracing.workspace = true
 serde.workspace = true
-tokio.workspace = true
+shipyard.workspace = true
+shipyard_app.workspace = true
+bonsaidb = { workspace = true, default-features = false, features = [] }
+reqwest = { version = "0.11.18", features = ["json", "serde_json"] }
 serde_json.workspace = true
 anyhow.workspace = true
-slint = { path = "../vendor/slint/api/rs/slint", version = "^1.0" }
-
-[build-dependencies]
-slint-build = { path = "../vendor/slint/api/rs/build", version = "^1.0" }

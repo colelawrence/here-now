@@ -14,6 +14,7 @@ pub async fn start_loop(
     app: App,
     workload: AppWorkload,
     mut recv: UnboundedReceiver<super::Command>,
+    mut each_loop: Option<impl FnMut(&App)>,
 ) {
     let app: Arc<Mutex<App>> = Arc::new(Mutex::new(app));
 
@@ -35,9 +36,14 @@ pub async fn start_loop(
         immediate,
         system,
         dedup,
+        span,
     }) = recv.recv().await
     {
         i += 1;
+        let _s = span.enter();
+        let loop_span = tracing::info_span!("running command", ?i, ?reason);
+        loop_span.follows_from(span.id());
+
         // async block so we can instrument with tracing
         async {
             if !immediate {
@@ -60,6 +66,7 @@ pub async fn start_loop(
                     immediate: _,
                     system,
                     dedup,
+                    span: _,
                 }) = recv.try_recv()
                 {
                     if let Some(dedup_str) = dedup {
@@ -104,9 +111,14 @@ pub async fn start_loop(
                 info_span!("run update loop").in_scope(|| {
                     workload.run(&app);
                 });
+                if let Some(ref mut each_loop) = each_loop.as_mut() {
+                    info_span!("run each loop").in_scope(|| {
+                        each_loop(&app);
+                    });
+                }
             }
         }
-        .instrument(tracing::info_span!("running command", ?i, ?reason))
+        .instrument(loop_span)
         .await
     }
 

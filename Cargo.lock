@@ -1475,35 +1475,10 @@ dependencies = [
 name = "desktop"
 version = "0.1.0"
 dependencies = [
- "anyhow",
- "bonsaidb",
- "hn-app",
- "hn-common",
+ "hn-desktop-executor",
+ "hn-desktop-ui",
  "hn-desktop-ui-messages",
  "hn-tracing",
- "reqwest",
- "serde",
- "serde_json",
- "shipyard",
- "shipyard_app",
- "tokio",
- "tracing",
-]
-
-[[package]]
-name = "desktop-ui"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "hn-app",
- "hn-common",
- "hn-desktop-ui-messages",
- "hn-tracing",
- "serde",
- "serde_json",
- "slint",
- "slint-build",
- "tokio",
  "tracing",
 ]
 
@@ -2438,6 +2413,42 @@ dependencies = [
  "rand",
  "serde",
  "serde_json",
+]
+
+[[package]]
+name = "hn-desktop-executor"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bonsaidb",
+ "hn-app",
+ "hn-common",
+ "hn-desktop-ui-messages",
+ "hn-tracing",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "shipyard",
+ "shipyard_app",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "hn-desktop-ui"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "hn-app",
+ "hn-common",
+ "hn-desktop-ui-messages",
+ "hn-tracing",
+ "serde",
+ "serde_json",
+ "slint",
+ "slint-build",
+ "tokio",
+ "tracing",
 ]
 
 [[package]]

@@ -28,12 +28,6 @@ enum Args {
         #[clap(long)]
         jaeger: bool,
     },
-    /// Run desktop ui for development
-    DevDesktopUi {
-        /// Connect to jaeger
-        #[clap(long)]
-        jaeger: bool,
-    },
     /// Assorted lint fixes
     Fix,
     /// Develop loop for protocol definitions
@@ -68,7 +62,6 @@ fn main() {
         Args::Jaeger { docker, proxied } => jaeger(docker, proxied).join(),
         Args::Dev { jaeger } => dev(jaeger),
         Args::DevDesktop { jaeger } => dev_desktop(jaeger),
-        Args::DevDesktopUi { jaeger } => dev_desktop_ui(jaeger).join(),
         Args::Fix => fix(),
         Args::Doc => doc(),
         Args::Docker { bash } => build_docker(bash),
@@ -173,9 +166,12 @@ fn dev(jaeger: bool) {
 }
 
 #[instrument]
-fn dev_desktop_executor(jaeger: bool) -> jod_thread::JoinHandle {
+fn dev_desktop(jaeger: bool) {
     Cmd::new("cargo")
         .env("HERE_NOW_LOG", "debug,!pot,!nebari")
+        .env("SLINT_DEBUG_PERFORMANCE", "refresh_lazy,overlay")
+        .env("DYLD_FALLBACK_LIBRARY_PATH", "~/lib:/usr/local/lib:/usr/lib")
+        .env("SLINT_NO_QT", "1")
         .env_if(
             jaeger,
             "JAEGER_COLLECTOR_ENDPOINT",
@@ -186,39 +182,9 @@ fn dev_desktop_executor(jaeger: bool) -> jod_thread::JoinHandle {
         .root_dir("./hn-desktop")
         .watchable(
             true,
-            "-w ./src -w ../hn-common -w ../hn-app -w ../hn-desktop-ui-messages -e rs",
+            "-w ./src -w ../hn-common -w ../hn-app -w ../hn-desktop-ui-messages -w ../hn-desktop-ui -w ../hn-desktop-executor -e rs",
         )
-        .run_in_thread("watch and run hn-desktop Rust program")
-}
-
-#[instrument]
-fn dev_desktop_ui(jaeger: bool) -> jod_thread::JoinHandle {
-    Cmd::new("cargo")
-        .env("HERE_NOW_LOG", "debug,!pot,!nebari")
-        .env("SLINT_DEBUG_PERFORMANCE", "refresh_lazy,overlay")
-        .env("SLINT_NO_QT", "1")
-        .env_if(
-            jaeger,
-            "JAEGER_COLLECTOR_ENDPOINT",
-            "http://localhost:14268/api/traces",
-        )
-        .arg("run")
-        .arg("--quiet")
-        .root_dir("./hn-desktop-ui")
-        .watchable(
-            true,
-            "-w ./src -w ../vendor/slint -w ../hn-desktop-ui-messages -w ./ui -e rs,slint",
-        )
-        .run_in_thread("watch and run hn-desktop-ui Rust program")
-}
-
-#[instrument]
-fn dev_desktop(jaeger: bool) {
-    let desktop = dev_desktop_executor(jaeger);
-    let ui = dev_desktop_ui(jaeger);
-
-    desktop.join();
-    ui.join();
+        .run_in_thread("watch and run hn-desktop Rust program");
 }
 
 #[instrument]

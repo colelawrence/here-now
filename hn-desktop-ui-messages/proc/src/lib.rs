@@ -15,7 +15,7 @@ pub fn to_ui(
     let doc = format!("📲 Message sent to the slint ui.\n");
     let mut output = TokenStream::from(quote::quote! {
         #[doc = #doc]
-        #[derive(Clone, serde::Serialize, serde::Deserialize)]
+        #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
     });
     output.extend(following.into_iter());
     proc_macro::TokenStream::from(output)
@@ -32,7 +32,7 @@ pub fn to_executor(
     let doc = format!("☎️ Message sent to the executor / backend.\n");
     let mut output = TokenStream::from(quote::quote! {
         #[doc = #doc]
-        #[derive(Clone, serde::Serialize, serde::Deserialize)]
+        #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
     });
     output.extend(following.into_iter());
     proc_macro::TokenStream::from(output)
@@ -49,7 +49,7 @@ pub fn shared(
     let doc = format!("Used in messages to the executor and to the ui.\n");
     let mut output = TokenStream::from(quote::quote! {
         #[doc = #doc]
-        #[derive(Clone, serde::Serialize, serde::Deserialize)]
+        #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
     });
     output.extend(following.into_iter());
     proc_macro::TokenStream::from(output)

@@ -1,11 +1,7 @@
-use std::{rc::Rc, sync::Arc};
+use std::rc::Rc;
 
 use slint::{ComponentHandle, VecModel};
 use tracing::*;
-
-mod ui {
-    pub use hn_desktop_ui_messages::*;
-}
 
 mod slint_ui {
     slint::include_modules!();
@@ -28,22 +24,57 @@ mod screen_share {
     }
 }
 
-fn main() {
-    hn_tracing::expect_init_logger("hn-desktop-ui");
+struct MainUI {
+    window: slint::Weak<slint_ui::HereNowMainWindow>,
+    screen_share_window: slint::Weak<screen_share::ScreenShareWindow>,
+}
+
+unsafe impl Sync for MainUI {}
+
+impl ui::SendToUI for MainUI {
+    #[tracing::instrument(skip(self))]
+    fn send_to_ui(&self, msg: ui::ToUI) {
+        info!(?msg, "send to ui");
+        match msg {
+            ui::ToUI::ShowMainWindow => self
+                .window
+                .upgrade_in_event_loop(|window| {
+                    window.show().expect("show window");
+                })
+                .expect("upgrade in event loop"),
+            ui::ToUI::ShowScreenShare => self
+                .screen_share_window
+                .upgrade_in_event_loop(|window| {
+                    window.show().expect("show window");
+                })
+                .expect("upgrade in event loop"),
+        }
+    }
+}
+
+pub fn main_blocking(
+    send_to_executor: Box<dyn ui::SendToExecutor>,
+    mut set_ui: impl FnMut(Box<dyn ui::SendToUI>),
+) {
     let a = info_span!("create main window").in_scope(|| {
-        Arc::<slint_ui::HereNowMainWindow>::new(
+        Rc::<slint_ui::HereNowMainWindow>::new(
             slint_ui::HereNowMainWindow::new().expect("created window"),
         )
     });
+
+    let executor = Rc::new(send_to_executor);
+
     a.on_start_screen_share({
         let groups_model = Rc::new(VecModel::<screen_share::ScreenShareGroup>::from(vec![]));
-        let screen_share_window = Arc::<screen_share::ScreenShareWindow>::new(
+        let screen_share_window = Rc::<screen_share::ScreenShareWindow>::new(
             screen_share::ScreenShareWindow::new().unwrap(),
         );
         screen_share_window.set_groups_model(groups_model.clone().into());
         let screen_share_window_weak = screen_share_window.as_weak();
+        let executor_clone = executor.clone();
         screen_share_window.on_close(move || {
             let _ = screen_share_window_weak.unwrap().hide();
+            executor_clone.send_to_executor(ui::ToExecutor::HidScreenShare);
         });
         let screen_share_window_weak = screen_share_window.as_weak();
         screen_share_window.on_choose_screen_share(move |share_id| {
@@ -51,43 +82,35 @@ fn main() {
             let _ = screen_share_window_weak.unwrap().hide();
         });
 
-        // let groups_model = groups_model.clone();
-        move || {
-            let _span = info_span!("on start screen share").entered();
-            println!("Start screen share");
+        let main_ui = MainUI {
+            screen_share_window: screen_share_window.as_weak(),
+            window: a.as_weak(),
+        };
 
-            // let mut share_plugin = ShareMediaPlugin::default();
-            // share_plugin.add_folder(
-            //     "Samples",
-            //     PathBuf::from("./plugins/here-now-share-media/samples"),
-            // );
-            // // todo: some kind of parallelism?
-            // match share_plugin.share_list(&ShareListOptions {}) {
-            //     Ok(list) => {
-            //         for item in list.groups {
-            //             let icon_path = PathBuf::from("ui/none.png");
-            //             groups_model.push(create_share_group_for_slint(item, icon_path))
-            //         }
-            //     }
-            //     Err(err) => eprintln!("Failed to get share list: {err:?}"),
-            // }
-            // TODO: load the screen share options from plugins
-            screen_share_window.show().unwrap();
-            let screen_share_window_weak = screen_share_window.as_weak();
-            screen_share_window.on_close(move || {
-                let _ = screen_share_window_weak.unwrap().hide();
+        set_ui(Box::new(main_ui));
+
+        std::mem::forget(screen_share_window);
+
+        let executor_clone = executor.clone();
+        move || {
+            info_span!("on start screen share").in_scope(|| {
+                executor_clone.send_to_executor(ui::ToExecutor::OpenScreenShare);
             });
         }
     });
 
     let a_clone = a.clone();
+    let executor_clone = executor.clone();
     a.on_close(move || {
-        let _span = warn_span!("closing application").entered();
-        a_clone.hide().expect("hide window");
+        info_span!("closing application").in_scope(|| {
+            a_clone.hide().expect("hide window");
+            executor_clone.send_to_executor(ui::ToExecutor::HidMainWindow);
+        })
     });
-    // a.set_groups_model(groups_model.into());
-    a.show().expect("show window");
+
     slint::run_event_loop().expect("run event loop");
+
+    tracing::error!("unexpected exit of slint event loop");
 }
 
 // fn create_share_group_for_slint(

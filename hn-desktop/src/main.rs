@@ -1,57 +1,54 @@
-use hn_app::_result_::*;
+use std::sync::{Arc, Mutex};
 
-mod prelude {
-    #![allow(unused)]
-    pub use anyhow::Context;
-    pub type Result<T = (), E = anyhow::Error> = std::result::Result<T, E>;
-    pub use hn_common::keys;
-}
-
-mod ui {
-    pub use hn_desktop_ui_messages::*;
-}
-
-mod device;
-mod device_client;
-mod local_keys;
-
-#[tokio::main]
-async fn main() {
+fn main() {
     hn_tracing::expect_init_logger("hn-desktop");
-    let mut app = shipyard_app::App::new();
-    let (sender, recv) = tokio::sync::mpsc::unbounded_channel();
-    let main_plugin = device_plugin::DevicePlugin(sender);
-    let workload = app.add_plugin_workload(main_plugin);
-    let main_loop = tokio::spawn(hn_app::app_ctx::start_loop(app, workload, recv));
 
-    // must await or the nested jobs get canceled with an opaque "background task failed" error.
-    main_loop.await.todo(f!("desktop loop exit error"));
+    let ui_holder = UIHolderMutex::empty();
+    let executor = hn_desktop_executor::main(Box::new(ui_holder.clone()));
+    hn_desktop_ui::main_blocking(executor, move |ui| {
+        ui_holder.set(ui);
+    });
 }
 
-mod device_plugin {
-    use std::{marker::PhantomData, path::PathBuf};
+/// A mutex holding ui so we can swap the ui receiver out
+#[derive(Clone)]
+struct UIHolderMutex {
+    ui: Arc<Mutex<Option<Box<dyn ui::SendToUI>>>>,
+    queue: Arc<Mutex<Vec<ui::ToUI>>>,
+}
 
-    use bonsaidb::core::schema;
-    use hn_app::{
-        _ecs_::*,
-        app_ctx::{AppCtxPlugin, Command},
-        database_plugin::LocalDatabasePlugin,
-    };
-
-    pub struct DevicePlugin(pub tokio::sync::mpsc::UnboundedSender<Command>);
-
-    // todo: add a collection for storing device keys
-    #[derive(schema::Schema)]
-    #[schema(name = "DesktopDBSchema", collections = [])]
-    pub struct DBSchema;
-
-    impl Plugin for DevicePlugin {
-        fn build(&self, builder: &mut AppBuilder) {
-            builder.add_plugin(AppCtxPlugin(self.0.clone()));
-            builder.add_plugin(LocalDatabasePlugin::<DBSchema> {
-                path: PathBuf::from("./data/desktop-db.bonsaidb"),
-                mark: PhantomData,
+impl UIHolderMutex {
+    fn empty() -> Self {
+        Self {
+            ui: Arc::new(Mutex::new(None)),
+            queue: Arc::new(Mutex::new(Vec::new())),
+        }
+    }
+    fn set(&self, new_ui: Box<dyn ui::SendToUI>) {
+        let mut ui = self.ui.lock().expect("can get a lock on ui");
+        *ui = Some(new_ui);
+        self.queue
+            .lock()
+            .expect("can get a lock on queue")
+            .drain(..)
+            .for_each(|msg| {
+                ui.as_ref().expect("ui has been set").send_to_ui(msg);
             });
+    }
+}
+
+impl ui::SendToUI for UIHolderMutex {
+    fn send_to_ui(&self, msg: ui::ToUI) {
+        let ui = self.ui.lock().expect("can get a lock on ui");
+        match ui.as_ref() {
+            Some(ui_sender) => ui_sender.send_to_ui(msg),
+            None => {
+                // add to queue
+                self.queue
+                    .lock()
+                    .expect("can get a lock on queue")
+                    .push(msg);
+            }
         }
     }
 }

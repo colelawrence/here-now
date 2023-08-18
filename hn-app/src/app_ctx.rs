@@ -23,6 +23,7 @@ pub struct Command {
     pub immediate: bool,
     pub dedup: Option<String>,
     pub system: WorkloadSystem,
+    pub span: tracing::Span,
 }
 
 pub trait AppSenderExt {
@@ -47,6 +48,34 @@ pub struct AppCtx {
     handle: tokio::runtime::Handle,
 }
 
+impl Command {
+    /// TODO: Figure out how to allow for FnOnce
+    ///
+    /// Future: Create a run_system_with_data version:
+    /// Allow for returning a Future with custom return value
+    /// don't accept a future, but return the future so we ca wait on
+    /// shipyard to become available and run the system.
+    pub fn new<B, R, S>(
+        reason: &'static str,
+        immediate: bool,
+        dedup: Option<String>,
+        cmd: S,
+    ) -> Self
+    where
+        S: IntoWorkloadSystem<B, R>,
+    {
+        Command {
+            reason,
+            immediate,
+            dedup,
+            system: cmd
+                .into_workload_system()
+                .todo(f!("expecting valid system")),
+            span: debug_span!("create command", reason, immediate).or_current(),
+        }
+    }
+}
+
 impl AppCtx {
     #[allow(unused)]
     /// TODO: Figure out how to allow for FnOnce
@@ -60,14 +89,7 @@ impl AppCtx {
         S: IntoWorkloadSystem<B, R>,
     {
         self.commands
-            .send(Command {
-                reason,
-                immediate: false,
-                dedup: None,
-                system: cmd
-                    .into_workload_system()
-                    .todo(f!("expecting valid system")),
-            })
+            .send(Command::new(reason, false, None, cmd))
             .todo(f!("attempting to schedule"));
     }
 
@@ -93,14 +115,7 @@ impl AppCtx {
         S: IntoWorkloadSystem<B, R>,
     {
         self.commands
-            .send(Command {
-                reason,
-                immediate: false,
-                dedup: Some(dedup),
-                system: cmd
-                    .into_workload_system()
-                    .todo(f!("expecting valid system")),
-            })
+            .send(Command::new(reason, false, Some(dedup), cmd))
             .todo(f!("attempting to schedule"));
     }
 
@@ -110,14 +125,7 @@ impl AppCtx {
         S: IntoWorkloadSystem<B, R>,
     {
         self.commands
-            .send(Command {
-                reason,
-                immediate: true,
-                dedup: None,
-                system: cmd
-                    .into_workload_system()
-                    .todo(f!("expecting valid system")),
-            })
+            .send(Command::new(reason, true, None, cmd))
             .todo(f!("attempting to schedule"));
     }
 
