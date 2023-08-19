@@ -8,28 +8,13 @@ mod slint_ui {
     pub use ui_settings_window::*;
 }
 
-mod screen_share {
-    slint::slint! {
-        import { ScreenShareGroup, HereNowScreenShareSelectorInner } from "ui/screen-share/screen-share-selector-inner.slint";
-        export component ScreenShareWindow inherits Window {
-            width: 600px;
-            in property <[ScreenShareGroup]> groups-model;
-            callback choose-screen-share(string);
-            callback close();
-            HereNowScreenShareSelectorInner {
-                groups-model: root.groups-model;
-                choose-screen-share(id) => { root.choose-screen-share(id); }
-                cancel => { root.close(); }
-            }
-        }
-    }
-}
-
 struct MainUI {
     main_window: slint::Weak<slint_ui::HereNowMainWindow>,
     settings_window: slint::Weak<slint_ui::HereNowSettingsWindow>,
 }
 
+// I need it so I can use it with the executor.
+// Let's see if any errors occur...
 unsafe impl Sync for MainUI {}
 
 impl ui::SendToUI for MainUI {
@@ -105,6 +90,6 @@ pub fn main_blocking(
 
     slint::run_event_loop().expect("run event loop");
 
-    // TODO: if all windows are hidden, then, the loopp will exit...
+    // TODO: if all windows are hidden, then, the loop will exit...
     tracing::error!("unexpected exit of slint event loop");
 }
