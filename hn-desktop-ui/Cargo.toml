@@ -17,7 +17,7 @@ serde.workspace = true
 tokio.workspace = true
 serde_json.workspace = true
 anyhow.workspace = true
+ui_main_window = { path = "./ui_main_window" }
+ui_settings_window = { path = "./ui_settings_window" }
 slint = { path = "../vendor/slint/api/rs/slint", version = "^1.0" }
 
-[build-dependencies]
-slint-build = { path = "../vendor/slint/api/rs/build", version = "^1.0" }

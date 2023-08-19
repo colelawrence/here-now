@@ -11,25 +11,9 @@ import { Theme } from "./theme.slint";
 import { HereNowScreenShareSelectorInner, ScreenShareGroup } from "./screen-share/screen-share-selector-inner.slint";
 import { HereNowPeopleListInner } from "./people-list/people-list-inner.slint";
 import { HereNowActiveCallInner } from "./active-call/active-call-inner.slint";
+import { DraggableWindow } from "draggable_window.slint";
 
 // https://slint-ui.com/releases/1.0.2/docs/rust/slint/docs/debugging_techniques/index.html
-
-component DraggableWindow inherits Window {
-    position-x: 1700px;
-    position-y: 300px;
-    no-frame: true;
-    background: transparent;
-    winTouch := TouchArea {
-        property <bool> applying: false;
-        moved => {
-            if (self.applying) {
-                root.position-x = root.position-x + (winTouch.mouse-x - winTouch.pressed-x);
-                root.position-y = root.position-y + (winTouch.mouse-y - winTouch.pressed-y);
-            }
-            self.applying = !self.applying;
-        }
-    }
-}
 
 export component HereNowMainWindow inherits DraggableWindow {
     in property <bool> keep-on-top: true;

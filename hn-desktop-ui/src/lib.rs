@@ -1,17 +1,11 @@
 use std::rc::Rc;
 
-use slint::{ComponentHandle, VecModel};
+use slint::ComponentHandle;
 use tracing::*;
 
 mod slint_ui {
-    slint::include_modules!();
-}
-
-mod settings {
-    slint::slint! {
-        import { HereNowSettingsWindow } from "ui/settings_window.slint";
-        export component SettingsWindow inherits HereNowSettingsWindow {}
-    }
+    pub use ui_main_window::*;
+    pub use ui_settings_window::*;
 }
 
 mod screen_share {
@@ -32,8 +26,8 @@ mod screen_share {
 }
 
 struct MainUI {
-    window: slint::Weak<slint_ui::HereNowMainWindow>,
-    settings_window: slint::Weak<settings::SettingsWindow>,
+    main_window: slint::Weak<slint_ui::HereNowMainWindow>,
+    settings_window: slint::Weak<slint_ui::HereNowSettingsWindow>,
 }
 
 unsafe impl Sync for MainUI {}
@@ -44,7 +38,7 @@ impl ui::SendToUI for MainUI {
         info!(?msg, "send to ui");
         match msg {
             ui::ToUI::ShowMainWindow => self
-                .window
+                .main_window
                 .upgrade_in_event_loop(move |window| {
                     window.show().expect("show window");
                 })
@@ -64,24 +58,34 @@ pub fn main_blocking(
     send_to_executor: Box<dyn ui::SendToExecutor>,
     mut set_ui: impl FnMut(Box<dyn ui::SendToUI>),
 ) {
-    let a = info_span!("create main window").in_scope(|| {
-        Rc::<slint_ui::HereNowMainWindow>::new(
-            slint_ui::HereNowMainWindow::new().expect("created window"),
-        )
+    let executor = Rc::new(send_to_executor);
+
+    let main_w = Rc::new(
+        info_span!("create main window")
+            .in_scope(|| slint_ui::HereNowMainWindow::new().expect("created window")),
+    );
+    let settings_w = Rc::new(
+        info_span!("create settings window")
+            .in_scope(|| slint_ui::HereNowSettingsWindow::new().expect("created window")),
+    );
+
+    set_ui(Box::new(MainUI {
+        settings_window: settings_w.as_weak(),
+        main_window: main_w.as_weak(),
+    }));
+
+    let settings_w_clone = settings_w.clone();
+    settings_w.on_close({
+        let executor_clone = executor.clone();
+        move || {
+            info_span!("on close settings").in_scope(|| {
+                settings_w_clone.hide().expect("close window");
+                executor_clone.send_to_executor(ui::ToExecutor::HidSettings);
+            });
+        }
     });
 
-    let executor = Rc::new(send_to_executor);
-    let settings_window = Rc::new(
-        info_span!("create settings window")
-            .in_scope(|| settings::SettingsWindow::new().expect("created window")),
-    );
-    let main_ui = MainUI {
-        settings_window: settings_window.as_weak(),
-        window: a.as_weak(),
-    };
-    set_ui(Box::new(main_ui));
-
-    a.on_show_settings({
+    main_w.on_show_settings({
         let executor_clone = executor.clone();
         move || {
             info_span!("on show settings").in_scope(|| {
@@ -90,16 +94,17 @@ pub fn main_blocking(
         }
     });
 
-    let a_clone = a.clone();
+    let main_w_clone = main_w.clone();
     let executor_clone = executor.clone();
-    a.on_close(move || {
+    main_w.on_close(move || {
         info_span!("closing application").in_scope(|| {
-            a_clone.hide().expect("hide window");
+            main_w_clone.hide().expect("hide window");
             executor_clone.send_to_executor(ui::ToExecutor::HidMainWindow);
         })
     });
 
     slint::run_event_loop().expect("run event loop");
 
+    // TODO: if all windows are hidden, then, the loopp will exit...
     tracing::error!("unexpected exit of slint event loop");
 }

@@ -1,4 +1,5 @@
 import { Theme } from "./theme.slint";
+import { DraggableWindow } from "draggable_window.slint";
 // https://slint-ui.com/releases/1.0.2/docs/rust/slint/docs/debugging_techniques/index.html
 
 component TextHeading inherits Text {
@@ -110,10 +111,8 @@ component HnTextInput inherits TouchArea {
     }
 }
 
-export component HereNowSettingsWindow inherits Window {
+export component HereNowSettingsWindow inherits DraggableWindow {
     always-on-top: true;
-    position-x: 1700px;
-    position-y: 100px;
     min-width: 120px;
     preferred-width: 420px;
     title: "Here Now";
@@ -127,17 +126,6 @@ export component HereNowSettingsWindow inherits Window {
 
     callback close();
     callback apply();
-
-    winTouch := TouchArea {
-        property <bool> applying: false;
-        moved => {
-            if (self.applying) {
-                root.position-x = root.position-x + (winTouch.mouse-x - winTouch.pressed-x);
-                root.position-y = root.position-y + (winTouch.mouse-y - winTouch.pressed-y);
-            }
-            self.applying = !self.applying;
-        }
-    }
     
     Rectangle {
         width: root.width;
