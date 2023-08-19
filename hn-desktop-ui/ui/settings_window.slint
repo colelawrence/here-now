@@ -16,16 +16,26 @@ component HnText inherits Text {
 
 component HnButton inherits TouchArea {
     in property <string> text: "Label";
+    in property <bool> primary: false;
     Rectangle {
-        padding: 4px;
-        min-width: text.width + 8px;
         border-color: transparent;
         border-width: 3px;
+        background: root.primary ? root.has-hover ? Theme.in-call-color : Theme.in-call-color.brighter(1) : transparent;
+        animate background {
+            duration: 0.2s;
+            easing: ease-in-out;
+        }
+    }
+    VerticalLayout {
+        padding-left: 4px;
+        padding-right: 4px;
+        min-width: text.width + 8px;
+        alignment: center;
         text := Text {
             font-size: Theme.text-ui-button-size;
             font-family: Theme.text-ui-button-family;
             font-weight: Theme.text-ui-button-weight;
-            color: root.has-hover ? Theme.text-body : Theme.text-body.brighter(5);
+            color: root.primary ? white : root.has-hover ? Theme.text-body : Theme.text-body.brighter(5);
             text: root.text;
             animate color {
                 duration: 0.2s;
@@ -102,7 +112,7 @@ component HnTextInput inherits TouchArea {
 
 export component HereNowSettingsWindow inherits Window {
     always-on-top: true;
-    position-x: 100px;
+    position-x: 1700px;
     position-y: 100px;
     min-width: 120px;
     preferred-width: 420px;
@@ -113,6 +123,10 @@ export component HereNowSettingsWindow inherits Window {
     in-out property <string> server_url_2: "https://herenow.covalent.team";
     out property <string> server_url_updated: self.server_url;
     out property <string> server_url_2_updated: self.server_url_2;
+    out property <bool> has-changes: self.server_url_2 != self.server_url_2_updated || self.server_url != self.server_url_updated;
+
+    callback close();
+    callback apply();
 
     winTouch := TouchArea {
         property <bool> applying: false;
@@ -130,6 +144,27 @@ export component HereNowSettingsWindow inherits Window {
         height: root.height;
         background: Theme.background-body;
         border-radius: 3px;
+    }
+
+    HorizontalLayout {
+        y: 0;
+        x: parent.width - self.width - 6px;
+        height: 24px;
+        alignment: end;
+        spacing: 6px;
+        if root.has-changes: HnButton {
+            text: "Apply";
+            primary: true;
+            clicked => {
+                root.apply();
+            }
+        }
+        HnButton {
+            text: root.has-changes ? "Discard" : "Close";
+            clicked => {
+                root.close();
+            }
+        }
     }
 
     VerticalLayout {
