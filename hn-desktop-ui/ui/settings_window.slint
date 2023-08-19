@@ -120,12 +120,16 @@ export component HereNowSettingsWindow inherits DraggableWindow {
     background: transparent;
     in-out property <string> server_url: "http://localhost:9000";
     in-out property <string> server_url_2: "https://herenow.covalent.team";
-    out property <string> server_url_updated: self.server_url;
+    out property <string> server_url_updated: "http://localhost:9001";
     out property <string> server_url_2_updated: self.server_url_2;
     out property <bool> has-changes: self.server_url_2 != self.server_url_2_updated || self.server_url != self.server_url_updated;
 
     callback close();
     callback apply();
+    public function reset() {
+        self.server_url_updated = self.server_url;
+        self.server_url_2_updated = self.server_url_2;
+    }
     
     Rectangle {
         width: root.width;

@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use hn_app::app_ctx::AppCtx;
+use hn_app::{_ecs_::ecs_unique, app_ctx::AppCtx};
 use shipyard::{UniqueView, UniqueViewMut};
 use shipyard_app::App;
 use tokio::sync::mpsc::UnboundedSender;
@@ -64,45 +64,102 @@ struct Executor {
     send_to_ui: Arc<Box<dyn ui::SendToUI>>,
 }
 
-impl ui::SendToExecutor for Executor {
-    #[tracing::instrument(skip(self))]
-    fn send_to_executor(&self, msg: ui::ToExecutor) {
-        use shipyard::*;
-        let send_to_ui_clone = self.send_to_ui.clone();
+impl Executor {
+    fn run<B, R, S>(&self, system: S)
+    where
+        S: shipyard::IntoWorkloadSystem<B, R>,
+    {
         self.sender
             .send(hn_app::app_ctx::Command::new(
                 "sent message to executor",
                 true,
                 None,
-                move |uv_app_ctx: UniqueView<AppCtx>, mut uvm_ui_messages: UniqueViewMut<device_plugin::UIMessages>| {
-                    let _span = tracing::warn_span!("send to executor").entered();
-                    let send_to_ui_clone = send_to_ui_clone.clone();
-                    match &msg {
-                        ui::ToExecutor::OpenSettings => {
-                            tracing::info!("start screen share");
-                            uvm_ui_messages.add(ui::ToUI::ShowSettings(ui::Settings {
-                                server_url: ui::Setting::Value("http://localhost:9000".to_string()),
-                                server_url_2: ui::Setting::NoValue,
-                            }));
-                        }
-                        ui::ToExecutor::HidMainWindow => {
-                            tracing::info!("hid main window");
-                            // immediately show it again
-                            uv_app_ctx.spawn(async move {
-                                tracing::warn!("waiting a second to reshow main window");
-                                tokio::time::sleep(std::time::Duration::from_millis(1000)).await;
-                                send_to_ui_clone.send_to_ui(ui::ToUI::ShowMainWindow);
-                                Ok(())
-                            });
-                            uvm_ui_messages.add(ui::ToUI::ShowMainWindow);
-                        }
-                        other => {
-                            tracing::warn!(?other, "unimplemented message");
-                        }
-                    }
-                },
+                system,
             ))
-            .expect("send to executor");
+            .expect("send to executor")
+    }
+    // fn send_to_ui(&self, to_ui: ui::ToUI) {
+    //     self.sender
+    //         .send(hn_app::app_ctx::Command::new(
+    //             "sent message to executor",
+    //             true,
+    //             None,
+    //             move |mut uvm_ui_messages: UniqueViewMut<device_plugin::UIMessages>| {
+    //                 uvm_ui_messages.add(to_ui.clone());
+    //             },
+    //         ))
+    //         .expect("send to executor")
+    // }
+}
+
+impl ui::SendToExecutor for Executor {
+    #[tracing::instrument(skip(self))]
+    fn send_to_executor(&self, msg: ui::ToExecutor) {
+        use shipyard::*;
+        match msg {
+            ui::ToExecutor::OpenSettings => {
+                tracing::info!("open settings window");
+                self.run(
+                    |mut uvm_ui_messages: UniqueViewMut<device_plugin::UIMessages>,
+                     uv_settings_url_1: UniqueView<device_plugin::SettingServerURL1>,
+                     uv_settings_url_2: UniqueView<device_plugin::SettingServerURL2>| {
+                        uvm_ui_messages.add(ui::ToUI::ShowSettings(ui::Settings {
+                            server_url: uv_settings_url_1
+                                .0
+                                .as_ref()
+                                .map(Clone::clone)
+                                .map(ui::Setting::Value)
+                                .unwrap_or(ui::Setting::NoValue),
+                            server_url_2: uv_settings_url_2
+                                .0
+                                .as_ref()
+                                .map(Clone::clone)
+                                .map(ui::Setting::Value)
+                                .unwrap_or(ui::Setting::NoValue),
+                        }));
+                    },
+                );
+            }
+            ui::ToExecutor::HidMainWindow => {
+                tracing::info!("hid main window");
+                let send_to_ui_clone = self.send_to_ui.clone();
+                std::thread::spawn(move || {
+                    // experiment to show we can re-show the main window
+                    tracing::warn!("waiting a second to reshow main window");
+                    std::thread::sleep(std::time::Duration::from_millis(1000));
+                    send_to_ui_clone.send_to_ui(ui::ToUI::ShowMainWindow);
+                });
+            }
+            ui::ToExecutor::HidSettings => {
+                tracing::info!("hid settings window");
+                // to do: update the status of whether the settings window is open
+            }
+            ui::ToExecutor::OpenMainWindow => {
+                tracing::info!("open main window");
+                self.send_to_ui.send_to_ui(ui::ToUI::ShowMainWindow);
+            }
+            ui::ToExecutor::UpdateSettings(settings) => {
+                self.run(
+                    move |mut uvm_ui_messages: UniqueViewMut<device_plugin::UIMessages>,
+                          mut uvm_settings_url_1: UniqueViewMut<
+                        device_plugin::SettingServerURL1,
+                    >,
+                          mut uvm_settings_url_2: UniqueViewMut<
+                        device_plugin::SettingServerURL2,
+                    >| {
+                        if let Some(value) = settings.server_url.changed() {
+                            tracing::info!(?value, "updated server url 1");
+                            uvm_settings_url_1.as_mut().0 = value.cloned();
+                        }
+                        if let Some(value) = settings.server_url_2.changed() {
+                            tracing::info!(?value, "updated server url 2");
+                            uvm_settings_url_2.as_mut().0 = value.cloned();
+                        }
+                        uvm_ui_messages.add(ui::ToUI::HideSettings);
+                    },
+                );
+            }
+        }
     }
 }
 
@@ -115,6 +172,11 @@ mod device_plugin {
         app_ctx::{AppCtxPlugin, Command},
         database_plugin::LocalDatabasePlugin,
     };
+
+    #[ecs_unique]
+    pub struct SettingServerURL1(pub Option<String>);
+    #[ecs_unique]
+    pub struct SettingServerURL2(pub Option<String>);
 
     pub struct DevicePlugin(pub tokio::sync::mpsc::UnboundedSender<Command>);
 
@@ -131,6 +193,10 @@ mod device_plugin {
                 path: PathBuf::from("./data/desktop-db.bonsaidb"),
                 mark: PhantomData,
             });
+
+            builder
+                .add_unique(SettingServerURL1(None))
+                .add_unique(SettingServerURL2(None));
         }
     }
 

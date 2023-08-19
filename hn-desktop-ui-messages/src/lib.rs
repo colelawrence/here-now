@@ -26,10 +26,28 @@ pub enum Setting<T> {
     Unchanged,
 }
 
+impl<T> Setting<T> {
+    pub fn from_compared<E: PartialEq + Into<T>>(original: E, update: E) -> Self {
+        if original == update {
+            Self::Unchanged
+        } else {
+            Self::Value(update.into())
+        }
+    }
+    pub fn changed(&self) -> Option<Option<&T>> {
+        match &self {
+            Self::Value(v) => Some(Some(v)),
+            Self::NoValue => Some(None),
+            Self::Unchanged => None,
+        }
+    }
+}
+
 #[to_ui]
 pub enum ToUI {
     ShowMainWindow,
     ShowSettings(Settings),
+    HideSettings,
 }
 
 #[to_executor]
