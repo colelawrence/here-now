@@ -490,6 +490,7 @@ mod tests {
                     reason: _,
                     dedup: _,
                     immediate: _,
+                    span: _,
                     system,
                 }) = recv.recv().await
                 {

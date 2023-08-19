@@ -14,7 +14,7 @@ pub async fn start_loop(
     app: App,
     workload: AppWorkload,
     mut recv: UnboundedReceiver<super::Command>,
-    mut each_loop: Option<impl FnMut(&App)>,
+    mut each_loop: impl FnMut(&App),
 ) {
     let app: Arc<Mutex<App>> = Arc::new(Mutex::new(app));
 
@@ -111,11 +111,9 @@ pub async fn start_loop(
                 info_span!("run update loop").in_scope(|| {
                     workload.run(&app);
                 });
-                if let Some(ref mut each_loop) = each_loop.as_mut() {
-                    info_span!("run each loop").in_scope(|| {
-                        each_loop(&app);
-                    });
-                }
+                info_span!("run each loop").in_scope(|| {
+                    each_loop(&app);
+                });
             }
         }
         .instrument(loop_span)

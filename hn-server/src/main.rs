@@ -23,7 +23,12 @@ async fn main() {
     let (sender, recv) = tokio::sync::mpsc::unbounded_channel();
     let main_plugin = MainPlugin(sender);
     let workload = app.add_plugin_workload(main_plugin);
-    let main_loop = tokio::spawn(app_ctx::start_loop(app, workload, recv));
+    let main_loop = tokio::spawn(app_ctx::start_loop(
+        app,
+        workload,
+        recv,
+        |_: &shipyard_app::App| {},
+    ));
     // must await or the nested jobs get canceled with an opaque "background task failed" error.
     main_loop.await.todo(format_args!("app loop exit error"));
 }

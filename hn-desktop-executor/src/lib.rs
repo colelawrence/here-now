@@ -37,7 +37,7 @@ pub fn main(send_to_ui: Box<dyn ui::SendToUI>) -> Box<dyn ui::SendToExecutor> {
         app,
         workload,
         recv,
-        Some(move |app: &App| {
+        move |app: &App| {
             app.world.run(
                 |mut uvm: shipyard::UniqueViewMut<device_plugin::UIMessages>| {
                     for msg in uvm.drain() {
@@ -45,7 +45,7 @@ pub fn main(send_to_ui: Box<dyn ui::SendToUI>) -> Box<dyn ui::SendToExecutor> {
                     }
                 },
             )
-        }),
+        },
     ));
 
     Box::new(Executor {

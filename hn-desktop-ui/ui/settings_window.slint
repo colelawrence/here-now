@@ -110,7 +110,7 @@ export component HereNowSettingsWindow inherits Window {
     no-frame: true;
     background: transparent;
     in-out property <string> server_url: "http://localhost:9000";
-    in-out property <string> server_url_2: "https://open.herenow.dev";
+    in-out property <string> server_url_2: "https://herenow.covalent.team";
     out property <string> server_url_updated: self.server_url;
     out property <string> server_url_2_updated: self.server_url_2;
 
@@ -159,7 +159,7 @@ export component HereNowSettingsWindow inherits Window {
             label: "Server URL";
             original-value: root.server_url;
             value <=> root.server_url_updated;
-            examples: ["http://localhost:9000", "https://api.herenow.io"];
+            examples: ["http://localhost:9000", "https://herenow.covalent.team"];
         }
 
         HnTextInput {
@@ -167,7 +167,7 @@ export component HereNowSettingsWindow inherits Window {
             label: "Server URL 2";
             original-value: root.server_url_2;
             value <=> root.server_url_2_updated;
-            examples: ["http://localhost:9000", "https://api.herenow.io"];
+            examples: ["http://localhost:9000", "https://herenow.covalent.team"];
         }
 
         Rectangle {
