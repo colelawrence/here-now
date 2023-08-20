@@ -92,41 +92,22 @@ impl Executor {
     // }
 }
 
+use device_plugin::ExecutorAction;
+
 impl ui::SendToExecutor for Executor {
     #[tracing::instrument(skip(self))]
     fn send_to_executor(&self, msg: ui::ToExecutor) {
-        use shipyard::*;
         match msg {
             ui::ToExecutor::OpenSettings => {
-                tracing::info!("open settings window");
-                self.run(
-                    |mut uvm_ui_messages: UniqueViewMut<device_plugin::UIMessages>,
-                     uv_settings_url_1: UniqueView<device_plugin::SettingServerURL1>,
-                     uv_settings_url_2: UniqueView<device_plugin::SettingServerURL2>| {
-                        uvm_ui_messages.add(ui::ToUI::ShowSettings(ui::Settings {
-                            server_url: uv_settings_url_1
-                                .0
-                                .as_ref()
-                                .map(Clone::clone)
-                                .map(ui::Setting::Value)
-                                .unwrap_or(ui::Setting::NoValue),
-                            server_url_2: uv_settings_url_2
-                                .0
-                                .as_ref()
-                                .map(Clone::clone)
-                                .map(ui::Setting::Value)
-                                .unwrap_or(ui::Setting::NoValue),
-                        }));
-                    },
-                );
+                self.run(device_plugin::open_settings);
             }
             ui::ToExecutor::HidMainWindow => {
                 tracing::info!("hid main window");
                 let send_to_ui_clone = self.send_to_ui.clone();
                 std::thread::spawn(move || {
                     // experiment to show we can re-show the main window
-                    tracing::warn!("waiting a second to reshow main window");
                     std::thread::sleep(std::time::Duration::from_millis(1000));
+                    tracing::warn!("waited a second to reshow main window");
                     send_to_ui_clone.send_to_ui(ui::ToUI::ShowMainWindow);
                 });
             }
@@ -139,25 +120,10 @@ impl ui::SendToExecutor for Executor {
                 self.send_to_ui.send_to_ui(ui::ToUI::ShowMainWindow);
             }
             ui::ToExecutor::UpdateSettings(settings) => {
-                self.run(
-                    move |mut uvm_ui_messages: UniqueViewMut<device_plugin::UIMessages>,
-                          mut uvm_settings_url_1: UniqueViewMut<
-                        device_plugin::SettingServerURL1,
-                    >,
-                          mut uvm_settings_url_2: UniqueViewMut<
-                        device_plugin::SettingServerURL2,
-                    >| {
-                        if let Some(value) = settings.server_url.changed() {
-                            tracing::info!(?value, "updated server url 1");
-                            uvm_settings_url_1.as_mut().0 = value.cloned();
-                        }
-                        if let Some(value) = settings.server_url_2.changed() {
-                            tracing::info!(?value, "updated server url 2");
-                            uvm_settings_url_2.as_mut().0 = value.cloned();
-                        }
-                        uvm_ui_messages.add(ui::ToUI::HideSettings);
-                    },
-                );
+                settings.execute(self);
+            }
+            ui::ToExecutor::AddServerByURL(add_server_by_url) => {
+                add_server_by_url.execute(self);
             }
         }
     }
@@ -169,6 +135,7 @@ mod device_plugin {
     use bonsaidb::core::schema;
     use hn_app::{
         _ecs_::*,
+        _tracing_::*,
         app_ctx::{AppCtxPlugin, Command},
         database_plugin::LocalDatabasePlugin,
     };
@@ -209,6 +176,57 @@ mod device_plugin {
         }
         pub fn add(&mut self, msg: ui::ToUI) {
             self.0.push(msg);
+        }
+    }
+
+    pub fn open_settings(
+        mut uvm_ui_messages: UniqueViewMut<UIMessages>,
+        uv_settings_url_1: UniqueView<SettingServerURL1>,
+        uv_settings_url_2: UniqueView<SettingServerURL2>,
+    ) {
+        uvm_ui_messages.add(ui::ToUI::ShowSettings(ui::Settings {
+            server_url: uv_settings_url_1
+                .0
+                .as_ref()
+                .map(Clone::clone)
+                .map(ui::Setting::Value)
+                .unwrap_or(ui::Setting::NoValue),
+            server_url_2: uv_settings_url_2
+                .0
+                .as_ref()
+                .map(Clone::clone)
+                .map(ui::Setting::Value)
+                .unwrap_or(ui::Setting::NoValue),
+        }));
+    }
+
+    pub(crate) trait ExecutorAction {
+        fn execute(self, executor: &super::Executor);
+    }
+
+    impl ExecutorAction for ui::executor::AddServerByURL {
+        fn execute(self, executor: &crate::Executor) {
+            warn!("TODO: add server by url");
+        }
+    }
+    impl ExecutorAction for ui::executor::UpdateSettings {
+        fn execute(self, executor: &crate::Executor) {
+            let settings = self.settings;
+            executor.run(
+                move |mut uvm_ui_messages: UniqueViewMut<UIMessages>,
+                      mut uvm_settings_url_1: UniqueViewMut<SettingServerURL1>,
+                      mut uvm_settings_url_2: UniqueViewMut<SettingServerURL2>| {
+                    if let Some(value) = settings.server_url.changed() {
+                        tracing::info!(?value, "updated server url 1");
+                        uvm_settings_url_1.as_mut().0 = value.cloned();
+                    }
+                    if let Some(value) = settings.server_url_2.changed() {
+                        tracing::info!(?value, "updated server url 2");
+                        uvm_settings_url_2.as_mut().0 = value.cloned();
+                    }
+                    uvm_ui_messages.add(ui::ToUI::HideSettings);
+                },
+            )
         }
     }
 }

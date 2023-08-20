@@ -47,14 +47,38 @@ impl<T> Setting<T> {
 pub enum ToUI {
     ShowMainWindow,
     ShowSettings(Settings),
+    NotifySettings(UINotification),
     HideSettings,
+}
+
+#[to_ui]
+pub struct UINotification {
+    // target: UID,
+    pub key: String,
+    pub title: String,
+    pub body: String,
 }
 
 #[to_executor]
 pub enum ToExecutor {
     OpenSettings,
-    UpdateSettings(Settings),
     OpenMainWindow,
     HidMainWindow,
     HidSettings,
+    AddServerByURL(executor::AddServerByURL),
+    UpdateSettings(executor::UpdateSettings),
+}
+
+pub mod executor {
+    use i_hn_desktop_ui_messages_proc::to_executor;
+
+    #[to_executor]
+    pub struct AddServerByURL {
+        pub server_url: String,
+    }
+
+    #[to_executor]
+    pub struct UpdateSettings {
+        pub settings: super::Settings,
+    }
 }
