@@ -111,6 +111,72 @@ component HnTextInput inherits TouchArea {
     }
 }
 
+export struct Notification {
+    key: string,
+    title: string,
+    body: string,
+}
+
+component HnModalHeading inherits HorizontalLayout {
+    in property <string> title;
+    VerticalLayout {
+        alignment: center;
+        Image {
+            width: 32px;
+            height: 32px;
+            source: @image-url("./rubber_ducky_illustration.png");
+        }
+    }
+    VerticalLayout {
+        alignment: center;
+        padding-top: 5px;
+        TextHeading {
+            text: root.title;
+        }
+    }
+}
+
+component HnNotification inherits Rectangle {
+    in property <Notification> notification;
+    callback dismiss();
+    // warning colors
+    border-color: Theme.text-body;
+    border-width: 1px;
+    border-radius: 3px;
+
+    HorizontalLayout {
+        padding: 12px;
+        VerticalLayout {
+            horizontal-stretch: 1;
+            Text {
+                text: notification.title;
+                color: Theme.text-body;
+                font-family: Theme.text-ui-label-family;
+                font-size: Theme.text-ui-label-size;
+                font-weight: Theme.text-ui-label-weight;
+            }
+            Text {
+                text: notification.body;
+                color: Theme.text-body;
+                font-family: Theme.text-content-family;
+                font-size: Theme.text-content-size;
+                font-weight: Theme.text-content-weight;
+            }
+        }
+        VerticalLayout {
+            horizontal-stretch: 0;
+            alignment: start;
+            HnButton {
+                text: "Dismiss";
+                clicked => {
+                    root.dismiss();
+                }
+            }
+        }
+    }       
+}
+
+
 export component HereNowSettingsWindow inherits DraggableWindow {
     always-on-top: true;
     min-width: 120px;
@@ -123,9 +189,13 @@ export component HereNowSettingsWindow inherits DraggableWindow {
     out property <string> server_url_updated: "http://localhost:9001";
     out property <string> server_url_2_updated: self.server_url_2;
     out property <bool> has-changes: self.server_url_2 != self.server_url_2_updated || self.server_url != self.server_url_updated;
+    in-out property <[Notification]> notifications: [
+        { key: "test", title: "Test", body: "This is a test notification" }
+    ];
 
     callback close();
     callback apply();
+    callback dismiss-key(string);
     public function reset() {
         self.server_url_updated = self.server_url;
         self.server_url_2_updated = self.server_url_2;
@@ -138,6 +208,7 @@ export component HereNowSettingsWindow inherits DraggableWindow {
         border-radius: 3px;
     }
 
+    // Heading buttons
     HorizontalLayout {
         y: 0;
         x: parent.width - self.width - 6px;
@@ -163,24 +234,17 @@ export component HereNowSettingsWindow inherits DraggableWindow {
         padding: 20px;
         spacing: 12px;
 
-        HorizontalLayout {
-            VerticalLayout {
-                alignment: center;
-                Image {
-                    width: 32px;
-                    height: 32px;
-                    source: @image-url("./rubber_ducky_illustration.png");
-                }
-            }
-            VerticalLayout {
-                alignment: center;
-                padding-top: 5px;
-                TextHeading {
-                    text: "Here Now Settings";
-                }
-            }
+        HnModalHeading {
+            title: "Here Now Settings";
         }
 
+        for notification in root.notifications: HnNotification {
+            notification: notification;
+            dismiss => {
+                root.dismiss-key(notification.key);
+            }
+        }
+        
         HnTextInput {
             vertical-stretch: 0;
             label: "Server URL";
