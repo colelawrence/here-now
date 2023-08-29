@@ -1,22 +1,51 @@
+use hn_hinted_id::HintedID;
 use i_hn_desktop_ui_messages_proc::{shared, to_executor, to_ui};
 
 pub trait SendToUI: 'static + Send + Sync {
-    fn send_to_ui(&self, msg: ToUI);
+    fn send_all_to_ui(&self, msgs: Vec<ToUI>);
+    fn send_to_ui(&self, msg: ToUI) {
+        self.send_all_to_ui(vec![msg]);
+    }
 }
 
 pub trait SendToExecutor: 'static + Send + Sync {
-    fn send_to_executor(&self, msg: ToExecutor);
+    fn send_all_to_executor(&self, msgs: Vec<ToExecutor>);
+    fn send_to_executor(&self, msg: ToExecutor) {
+        self.send_all_to_executor(vec![msg]);
+    }
 }
 
-/// A string reference to something that exists in the UI.
 #[shared]
-#[serde(transparent)]
-pub struct UID(String);
-
-#[shared]
-pub struct Settings {
+pub struct PServerSettings {
+    pub uid: HintedID,
+    pub label: Setting<String>,
+    #[serde(alias = "serverUrl")]
     pub server_url: Setting<String>,
-    pub server_url_2: Setting<String>,
+}
+
+#[to_ui]
+pub struct PServerSummary {
+    pub uid: HintedID,
+    pub label: Option<String>,
+    pub server_url: Option<String>,
+    /// Automatically generated on connection.
+    pub server_device_id: String,
+}
+
+/// Profile settings
+#[shared]
+pub struct ProfileSettings {
+    pub uid: HintedID,
+    pub label: Setting<String>,
+}
+
+#[to_ui]
+pub struct ProfileSummary {
+    pub uid: HintedID,
+    pub label: Option<String>,
+    pub servers: Vec<PServerSummary>,
+    /// Automatically generated on creation.
+    pub public_key_debug: String,
 }
 
 #[shared]
@@ -24,6 +53,14 @@ pub enum Setting<T> {
     Value(T),
     NoValue,
     Unchanged,
+}
+
+impl<T: Clone> Setting<T> {
+    pub fn from_option(original: &Option<T>) -> Self {
+        original
+            .as_ref()
+            .map_or(Self::NoValue, |v| Self::Value(v.clone()))
+    }
 }
 
 impl<T> Setting<T> {
@@ -46,14 +83,18 @@ impl<T> Setting<T> {
 #[to_ui]
 pub enum ToUI {
     ShowMainWindow,
-    ShowSettings(Settings),
-    NotifySettings(UINotification),
-    HideSettings,
+    ShowPServerSettings(PServerSettings),
+    UpdateProfiles(Vec<ProfileSummary>),
+    NotifyProfileSettings(HintedID, UINotification),
+    NotifyPServerSettings(HintedID, UINotification),
+    HideProfileSettings(HintedID),
+    HidePServerSettings(HintedID),
+    // Some kind of "update which profile you're looking at" ?
+    // ChangeProfileTo(UID),
 }
 
 #[to_ui]
 pub struct UINotification {
-    // target: UID,
     pub key: String,
     pub title: String,
     pub body: String,
@@ -61,24 +102,33 @@ pub struct UINotification {
 
 #[to_executor]
 pub enum ToExecutor {
-    OpenSettings,
     OpenMainWindow,
     HidMainWindow,
     HidSettings,
+    CreateProfile,
+    OpenProfileSettings(HintedID),
+    OpenPServerSettings(HintedID),
+    SwitchProfileTo(HintedID),
+    DeleteProfile(HintedID),
     AddServerByURL(executor::AddServerByURL),
-    UpdateSettings(executor::UpdateSettings),
+    UpdateProfileSettings(executor::UpdateProfileSettings),
+    UpdatePServerSettings(executor::UpdatePServerSettings),
 }
 
 pub mod executor {
     use i_hn_desktop_ui_messages_proc::to_executor;
 
+    use crate::{HintedID, PServerSettings, ProfileSettings};
+
     #[to_executor]
     pub struct AddServerByURL {
+        pub target_profile: HintedID,
         pub server_url: String,
     }
 
     #[to_executor]
-    pub struct UpdateSettings {
-        pub settings: super::Settings,
-    }
+    pub struct UpdatePServerSettings(pub PServerSettings);
+
+    #[to_executor]
+    pub struct UpdateProfileSettings(pub ProfileSettings);
 }

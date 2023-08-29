@@ -3,7 +3,7 @@ use std::marker::PhantomData;
 use super::HintedID;
 use crate::prelude::bonsai_::*;
 use crate::prelude::*;
-use hn_app::_ecs_::*;
+use hn_app::ecs_bundle;
 
 #[derive(schema::Schema)]
 #[schema(name = "DBSchema", collections = [CredBundle, DeviceBundle])]
@@ -21,16 +21,16 @@ pub mod plugin;
 #[derive(Debug)]
 pub struct DeviceBundle {
     // what is the component for this again?
-    c_linked_creds: LinkedBundle<ecs::CredTag>,
+    c_linked_creds: LinkedBundle<CredBundle>,
     #[serde(default)]
     c_authorized_keys: ecs::AuthorizedKeys,
 }
 #[ecs_bundle]
 #[derive(Debug, Default)]
-pub struct LinkedBundle<Tag: 'static> {
+pub struct LinkedBundle<Bundle: 'static> {
     items: Vec<HintedID>,
     #[serde(skip_serializing, default)]
-    _mark: PhantomData<Tag>,
+    _mark: PhantomData<Bundle>,
 }
 
 /// Stored in BonsaiDB

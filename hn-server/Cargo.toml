@@ -11,6 +11,7 @@ publish = false
 hn-common.workspace = true
 hn-app.workspace = true
 hn-tracing.workspace = true
+hn-hinted-id.workspace = true
 derive-codegen.workspace = true
 serde.workspace = true
 shipyard.workspace = true

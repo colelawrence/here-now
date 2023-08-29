@@ -17,6 +17,9 @@ pub fn expect_init_logger_jaeger(
     let env_filter = tracing_subscriber::EnvFilter::try_from_env("HERE_NOW_LOG")
         .unwrap_or_else(|_| DEFAULT_HERE_NOW_LOG_ENV.into());
 
+    // it would be cool to get better traces for some things like shipyard
+    // this would be ideal [WIP: Support for customizing the display of operation names #678](https://github.com/jaegertracing/jaeger-ui/pull/678)
+
     if let Some(jaeger_collector_endpoint) = jaeger_collector_endpoint_var {
         global::set_text_map_propagator(opentelemetry_jaeger::Propagator::new());
 
@@ -42,6 +45,11 @@ pub fn expect_init_logger_jaeger(
             .with(tracing_opentelemetry::layer().with_tracer(tracer))
             .with(
                 tracing_subscriber::fmt::layer()
+                    .with_thread_ids(true)
+                    .with_target(false)
+                    .with_file(true)
+                    .with_line_number(true)
+                    .without_time()
                     .with_filter(tracing_subscriber::EnvFilter::from("warn")),
             )
             .init();
@@ -53,7 +61,14 @@ pub fn expect_init_logger_jaeger(
     } else {
         tracing_subscriber::registry()
             .with(env_filter)
-            .with(tracing_subscriber::fmt::layer())
+            .with(
+                tracing_subscriber::fmt::layer()
+                    .with_thread_ids(true)
+                    .with_target(false)
+                    .with_file(true)
+                    .with_line_number(true)
+                    .without_time(),
+            )
             .init();
     }
 }

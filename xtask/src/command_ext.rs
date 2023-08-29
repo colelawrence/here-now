@@ -23,6 +23,7 @@ pub trait CommandExt {
         printer: for<'a> fn(&'a str),
     ) -> JoinHandle;
     fn arg_if(&mut self, cond: bool, arg: &str) -> &mut Self;
+    fn args_if(&mut self, cond: bool, args_spaced: &str) -> &mut Self;
     fn env_if(&mut self, cond: bool, key: &str, value: &str) -> &mut Self;
     fn watchable(&mut self, cond: bool, watchexec_args: &str) -> &mut Self;
 }
@@ -98,6 +99,14 @@ impl CommandExt for devx_cmd::Cmd {
     fn arg_if(&mut self, cond: bool, arg: &str) -> &mut Self {
         if cond {
             self.arg(arg)
+        } else {
+            self
+        }
+    }
+
+    fn args_if(&mut self, cond: bool, args_spaced: &str) -> &mut Self {
+        if cond {
+            self.args(args_spaced.split(' '))
         } else {
             self
         }

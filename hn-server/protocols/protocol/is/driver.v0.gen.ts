@@ -1,5 +1,47 @@
 /** serde_json::Value */
 type Value = unknown;
+/** [Source `hn-server/src/data.rs:8`](hn-server/src/data.rs) */
+export type UsrString = string
+/** [Source `hn-server/src/data.rs:8`](hn-server/src/data.rs) */
+export function UsrString(inner: string): UsrString {
+  return inner;
+}
+/** [Source `hn-server/src/data.rs:12`](hn-server/src/data.rs) */
+export type DevString = string
+/** [Source `hn-server/src/data.rs:12`](hn-server/src/data.rs) */
+export function DevString(inner: string): DevString {
+  return inner;
+}
+/** [Source `hn-server/src/data.rs:16`](hn-server/src/data.rs) */
+export type GlobalID = `${string}//${string}`;
+/** [Source `hn-server/src/data.rs:16`](hn-server/src/data.rs) */
+export function GlobalID(value: GlobalID): GlobalID {
+  return value;
+}
+/** [Source `hn-server/src/data.rs:19`](hn-server/src/data.rs) */
+export type ChannelID = string
+/** [Source `hn-server/src/data.rs:19`](hn-server/src/data.rs) */
+export function ChannelID(inner: string): ChannelID {
+  return inner;
+}
+/** [Source `hn-server/src/data.rs:23`](hn-server/src/data.rs) */
+export type Key = string
+/** [Source `hn-server/src/data.rs:23`](hn-server/src/data.rs) */
+export function Key(inner: string): Key {
+  return inner;
+}
+/** [Source `hn-server/src/data.rs:27`](hn-server/src/data.rs) */
+export type KeyTarget = string
+/** [Source `hn-server/src/data.rs:27`](hn-server/src/data.rs) */
+export function KeyTarget(inner: string): KeyTarget {
+  return inner;
+}
+/** [Source `hn-server/src/data.rs:31`](hn-server/src/data.rs) */
+export type LiveID = string
+/** [Source `hn-server/src/data.rs:31`](hn-server/src/data.rs) */
+export function LiveID(inner: string): LiveID {
+  return inner;
+}
 /** [Source `hn-server/src/data.rs:38`](hn-server/src/data.rs) */
 // deno-lint-ignore no-namespace
 export namespace Out {
@@ -105,45 +147,3 @@ export namespace In {
 /** [Source `hn-server/src/data.rs:52`](hn-server/src/data.rs) */
 export type In =
   | In.CREATE_SERVICE
-/** [Source `hn-server/src/data.rs:8`](hn-server/src/data.rs) */
-export type UsrString = string
-/** [Source `hn-server/src/data.rs:8`](hn-server/src/data.rs) */
-export function UsrString(inner: string): UsrString {
-  return inner;
-}
-/** [Source `hn-server/src/data.rs:12`](hn-server/src/data.rs) */
-export type DevString = string
-/** [Source `hn-server/src/data.rs:12`](hn-server/src/data.rs) */
-export function DevString(inner: string): DevString {
-  return inner;
-}
-/** [Source `hn-server/src/data.rs:16`](hn-server/src/data.rs) */
-export type GlobalID = `${string}//${string}`;
-/** [Source `hn-server/src/data.rs:16`](hn-server/src/data.rs) */
-export function GlobalID(value: GlobalID): GlobalID {
-  return value;
-}
-/** [Source `hn-server/src/data.rs:19`](hn-server/src/data.rs) */
-export type ChannelID = string
-/** [Source `hn-server/src/data.rs:19`](hn-server/src/data.rs) */
-export function ChannelID(inner: string): ChannelID {
-  return inner;
-}
-/** [Source `hn-server/src/data.rs:23`](hn-server/src/data.rs) */
-export type Key = string
-/** [Source `hn-server/src/data.rs:23`](hn-server/src/data.rs) */
-export function Key(inner: string): Key {
-  return inner;
-}
-/** [Source `hn-server/src/data.rs:27`](hn-server/src/data.rs) */
-export type KeyTarget = string
-/** [Source `hn-server/src/data.rs:27`](hn-server/src/data.rs) */
-export function KeyTarget(inner: string): KeyTarget {
-  return inner;
-}
-/** [Source `hn-server/src/data.rs:31`](hn-server/src/data.rs) */
-export type LiveID = string
-/** [Source `hn-server/src/data.rs:31`](hn-server/src/data.rs) */
-export function LiveID(inner: string): LiveID {
-  return inner;
-}

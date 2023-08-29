@@ -1,0 +1,35 @@
+import { Theme } from "./theme.slint";
+
+export component HnToggle inherits TouchArea {
+    callback toggle();
+    in property <bool> confirmed-enabled: false;
+    // property <bool> toggling-to: false;
+    clicked => {
+        root.toggle();
+        // Cool idea, but doesn't work yet...
+        // root.toggling-to = !root.toggling-to;
+    }
+    min-width: 30px;
+    Rectangle {
+        width: 30px;
+        height: 20px;
+        border-width: 1px;
+        border-color: Theme.text-body;
+        border-radius: self.height / 2;
+        background: Theme.background-body;
+
+        Rectangle {
+            width: 16px;
+            height: 16px;
+            border-width: 1px;
+            border-color: Theme.text-body;
+            border-radius: self.height / 2;
+            background: root.confirmed-enabled ? Theme.in-call-color : Theme.background-body;
+            x: root.confirmed-enabled ? 12px : 2px;
+            animate x, background {
+                duration: 0.2s;
+                easing: ease-in-out;
+            }
+        }
+    }
+}

@@ -1,0 +1,17 @@
+import { Theme } from "theme.slint";
+
+export component HnContainer inherits Rectangle {
+  // in property <float> respacing: 1;
+  // in property <float> repadding: 1;
+  border-color: Theme.text-body;
+  border-width: 1px;
+  border-radius: 3px;
+  VerticalLayout {
+      spacing: Theme.spaceY;
+      padding-bottom: Theme.spaceY;
+      padding-top: Theme.spaceY;
+      padding-left: Theme.spaceX;
+      padding-right: Theme.spaceX;
+      @children
+  }
+}

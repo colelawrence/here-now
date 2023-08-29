@@ -8,9 +8,9 @@ use shipyard::Component;
 type InlineShortString = smartstring::SmartString<smartstring::Compact>;
 
 #[derive(Component)]
-/// standard Rust equality/comparison derives
+// standard Rust equality/comparison derives
 #[derive(Eq, PartialEq, Ord, Hash, PartialOrd)]
-/// Goodies
+// goodies
 #[derive(Clone)]
 pub struct HintedID {
     // `xid` ordered first so xid is checked first for ordering

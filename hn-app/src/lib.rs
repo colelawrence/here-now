@@ -36,10 +36,6 @@ pub mod _result_ {
 
     pub trait AsErrArcRefExt<T, E> {
         /// Use when you need to send an owned error around
-        /// ```ignore
-        /// // for example
-        /// .todo(f!("configuring watcher (dur: {:?})", self.polling_duration));
-        /// ```
         fn as_err_arc_ref(&self) -> Result<&T, Error>;
     }
 
@@ -84,55 +80,111 @@ pub mod _result_ {
     }
 }
 
+pub use hn_hinted_id::HintedID;
+pub use i_hn_app_proc::ecs_bundle;
+
 pub mod _ecs_ {
     //! ECS prelude
     pub use crate::app_ctx::AppSenderExt as _;
-    pub use i_hn_app_proc::{ecs_bundle, ecs_component, ecs_unique};
+    pub use i_hn_app_proc::{ecs_component, ecs_unique};
     pub use shipyard_app::prelude::*;
+
+    #[derive(Clone)]
+    pub struct SetupError {
+        label: String,
+        body: Option<String>,
+        debug: Option<String>,
+        // // some kind of tags and values which can be matched
+        // // to create mitigations ?
+        // tags: Vec<String>,
+        // vals: Vec<(String, String)>,
+    }
+
+    impl std::fmt::Display for SetupError {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            write!(f, "{}", self.label)?;
+            if let Some(body) = &self.body {
+                write!(f, ":\n • {}", body)?;
+            }
+            Ok(())
+        }
+    }
+
+    impl std::fmt::Debug for SetupError {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            write!(f, "{}", self.label)?;
+            if let Some(debug) = &self.debug {
+                write!(f, ":\n • {}", debug)?;
+            }
+            Ok(())
+        }
+    }
+
+    impl std::error::Error for SetupError {}
+
+    pub trait SetupResultExt<T> {
+        fn as_setup_err<L: std::fmt::Display>(self, label: L) -> SetupResult<T>;
+    }
+
+    impl<T, E: std::fmt::Display + std::fmt::Debug> SetupResultExt<T> for Result<T, E> {
+        fn as_setup_err<L: std::fmt::Display>(self, label: L) -> SetupResult<T> {
+            self.map_err(|e| SetupError {
+                label: format!("{}", label),
+                body: Some(format!("{}", e)),
+                debug: Some(format!("{:?}", e)),
+            })
+        }
+    }
+
+    impl<T> SetupResultExt<T> for Option<T> {
+        fn as_setup_err<L: std::fmt::Display>(self, label: L) -> SetupResult<T> {
+            self.ok_or_else(|| SetupError {
+                label: format!("{}", label),
+                body: None,
+                debug: None,
+            })
+        }
+    }
+
+    pub type SetupResult<T> = Result<T, SetupError>;
+
+    pub use std::format_args as f;
+
+    pub trait TupleRefsExt<'a> {
+        type Out;
+        fn as_tuple_refs(&'a self) -> Self::Out;
+    }
+
+    impl TupleRefsExt<'_> for () {
+        type Out = ();
+        fn as_tuple_refs(&self) -> Self::Out {}
+    }
+    impl<'a, A1: 'a> TupleRefsExt<'a> for (A1,) {
+        type Out = (&'a A1,);
+        fn as_tuple_refs(&'a self) -> Self::Out {
+            (&self.0,)
+        }
+    }
+    impl<'a, A1: 'a, A2: 'a> TupleRefsExt<'a> for (A1, A2) {
+        type Out = (&'a A1, &'a A2);
+        fn as_tuple_refs(&'a self) -> Self::Out {
+            (&self.0, &self.1)
+        }
+    }
+    impl<'a, A1: 'a, A2: 'a, A3: 'a> TupleRefsExt<'a> for (A1, A2, A3) {
+        type Out = (&'a A1, &'a A2, &'a A3);
+        fn as_tuple_refs(&'a self) -> Self::Out {
+            (&self.0, &self.1, &self.2)
+        }
+    }
+    impl<'a, A1: 'a, A2: 'a, A3: 'a, A4: 'a> TupleRefsExt<'a> for (A1, A2, A3, A4) {
+        type Out = (&'a A1, &'a A2, &'a A3, &'a A4);
+        fn as_tuple_refs(&'a self) -> Self::Out {
+            (&self.0, &self.1, &self.2, &self.3)
+        }
+    }
 }
 
 pub mod app_ctx;
-pub mod database_plugin {
-    use std::collections::HashSet;
-    use std::marker::PhantomData;
-    use std::path::PathBuf;
-    use std::sync::Arc;
-
-    use bonsaidb::core::schema::Schema;
-    use bonsaidb::local;
-
-    use crate::_ecs_::*;
-    use crate::_result_::*;
-    use crate::app_ctx::LocalDatabase;
-
-    #[ecs_unique]
-    #[derive(Default)]
-    pub struct LastImport(pub HashSet<EntityId>);
-
-    impl LastImport {
-        /// For use to skip exporting entities that were changed as a result of insert from disk
-        pub fn skip_once(&mut self, entity_id: EntityId) -> bool {
-            self.0.remove(&entity_id)
-        }
-    }
-
-    pub struct LocalDatabasePlugin<DB> {
-        // get from configuration in the future?
-        pub path: PathBuf,
-        pub mark: PhantomData<DB>,
-    }
-
-    impl<DB: Schema> Plugin for LocalDatabasePlugin<DB> {
-        fn build(&self, app: &mut AppBuilder) {
-            let _span = tracing::info_span!("LocalDatabase::build").entered();
-            let db: ArcResult<local::Database> = {
-                let mut storage_conf = local::config::StorageConfiguration::default();
-                storage_conf.path = Some(self.path.clone());
-                Arc::new(local::Database::open::<DB>(storage_conf).context("creating database"))
-            };
-            app.add_unique(LocalDatabase(db));
-            app.add_unique(LastImport::default());
-        }
-    }
-}
+pub mod database_plugin;
 pub mod logging;

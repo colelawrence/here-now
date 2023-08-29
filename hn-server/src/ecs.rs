@@ -3,14 +3,13 @@
 use std::marker::PhantomData;
 
 use crate::prelude::*;
-use hn_app::_ecs_::*;
+use hn_app::{_ecs_::*, ecs_bundle};
 
 pub mod import_export;
 use hn_common::keys;
 pub use import_export::plugin::SavePlugin;
 
-pub mod hinted_id;
-pub use hinted_id::HintedID;
+pub use hn_app::HintedID;
 
 #[ecs_component("Device")]
 #[derive(Debug, Clone)]

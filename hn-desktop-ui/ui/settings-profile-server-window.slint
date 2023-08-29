@@ -1,0 +1,96 @@
+import { Theme } from "./theme.slint";
+import { DraggableWindow } from "draggable_window.slint";
+import { Notification, HnButton , HnModalHeading, HnTextInput, HnNotification} from "settings-shared.slint";
+// https://slint-ui.com/releases/1.0.2/docs/rust/slint/docs/debugging_techniques/index.html
+
+export component HereNowSettingsProfileServerWindow inherits DraggableWindow {
+    always-on-top: true;
+    min-width: 120px;
+    preferred-width: 420px;
+    title: "Here Now";
+    no-frame: true;
+    background: transparent;
+
+    callback close();
+    callback apply();
+    callback dismiss-notification(string);
+    public function reset() {
+        self.server_url_updated = self.server_url;
+        root.server_label_updated = self.server_label;
+    }
+
+    in-out property <string> server_url: "http://localhost:9000";
+    out property <string> server_url_updated: "http://localhost:9001";
+    in-out property <string> server_label: "Development";
+    out property <string> server_label_updated: self.server_label;
+    out property <bool> has-changes: self.server_url != self.server_url_updated || self.server_label != self.server_label_updated;
+    in-out property <[Notification]> notifications: [
+        { key: "test", title: "Test", body: "This is a test notification" }
+    ];
+
+    Rectangle {
+        width: root.width;
+        height: root.height;
+        background: Theme.background-body;
+        border-radius: 3px;
+    }
+
+    // Heading buttons
+    HorizontalLayout {
+        y: 0;
+        x: parent.width - self.width - 6px;
+        height: 24px;
+        alignment: end;
+        spacing: 6px;
+        if root.has-changes: HnButton {
+            text: "Apply";
+            primary: true;
+            clicked => {
+                root.apply();
+            }
+        }
+        HnButton {
+            text: root.has-changes ? "Discard" : "Close";
+            clicked => {
+                root.close();
+            }
+        }
+    }
+
+    VerticalLayout {
+        padding: 20px;
+        spacing: 12px;
+        
+        HnModalHeading {
+            title: "Profile Server Settings";
+        }
+
+        HnTextInput {
+            vertical-stretch: 0;
+            label: "Server Label";
+            original-value: root.server_label;
+            value <=> root.server_label_updated;
+            examples: ["Development", "Production", "Covalent"];
+        }
+
+        HnTextInput {
+            vertical-stretch: 0;
+            label: "Server URL";
+            original-value: root.server_url;
+            value <=> root.server_url_updated;
+            examples: ["http://localhost:9000", "https://herenow.covalent.team"];
+        }
+
+        for notification in root.notifications: HnNotification {
+            notification: notification;
+            dismiss => {
+                root.dismiss-notification(notification.key);
+            }
+        }
+        
+        Rectangle {
+            vertical-stretch: 1;
+        }
+    }
+}
+

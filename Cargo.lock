@@ -2385,6 +2385,7 @@ dependencies = [
  "bonsaidb",
  "env_logger",
  "futures",
+ "hn-hinted-id",
  "i-hn-app-proc",
  "opentelemetry",
  "opentelemetry-jaeger",
@@ -2442,23 +2443,39 @@ dependencies = [
  "hn-app",
  "hn-common",
  "hn-desktop-ui-messages",
+ "hn-hinted-id",
  "hn-tracing",
+ "i-slint-backend-selector",
  "serde",
  "serde_json",
  "slint",
  "tokio",
  "tracing",
  "ui_main_window",
- "ui_settings_window",
+ "ui_settings_profile_server_window",
+ "ui_settings_profile_window",
 ]
 
 [[package]]
 name = "hn-desktop-ui-messages"
 version = "0.1.0"
 dependencies = [
+ "hn-hinted-id",
  "i-hn-desktop-ui-messages-proc",
  "serde",
  "tracing",
+]
+
+[[package]]
+name = "hn-hinted-id"
+version = "0.1.0"
+dependencies = [
+ "bonsaidb",
+ "serde",
+ "shipyard",
+ "smartstring",
+ "tracing",
+ "xid",
 ]
 
 [[package]]
@@ -2478,6 +2495,7 @@ dependencies = [
  "futures",
  "hn-app",
  "hn-common",
+ "hn-hinted-id",
  "hn-tracing",
  "hpke",
  "http",
@@ -6463,7 +6481,15 @@ dependencies = [
 ]
 
 [[package]]
-name = "ui_settings_window"
+name = "ui_settings_profile_server_window"
+version = "0.1.0"
+dependencies = [
+ "slint",
+ "slint-build",
+]
+
+[[package]]
+name = "ui_settings_profile_window"
 version = "0.1.0"
 dependencies = [
  "slint",

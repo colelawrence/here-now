@@ -18,7 +18,7 @@ pub async fn start_loop(
 ) {
     let app: Arc<Mutex<App>> = Arc::new(Mutex::new(app));
 
-    {
+    async {
         let app_clone = app.clone();
         let app = app.lock().await;
         // re-insert app into world so it can be referenced
@@ -28,7 +28,12 @@ pub async fn start_loop(
 
         // initial kick off
         workload.run(&app);
+        info_span!("initial each_loop fn").in_scope(|| {
+            each_loop(&app);
+        });
     }
+    .instrument(info_span!("start_loop: run initial loop"))
+    .await;
 
     let mut i = 0usize;
     while let Some(super::Command {

@@ -3,6 +3,7 @@ members = [
   "xtask",
   "hn-server",
   "hn-desktop",
+  "hn-hinted-id",
   "hn-desktop-ui",
   "hn-desktop-executor",
   "hn-desktop-ui-messages",
@@ -43,6 +44,7 @@ hn-app = { path = "./hn-app", version = "*" }
 hn-common = { path = "./hn-common", version = "*" }
 hn-tracing = { path = "./hn-tracing", version = "*" }
 hn-desktop-ui-messages = { path = "./hn-desktop-ui-messages", version = "*" }
+hn-hinted-id = { path = "./hn-hinted-id", version = "*" }
 ui = { package = "hn-desktop-ui-messages", path = "./hn-desktop-ui-messages", version = "*" }
 derive-codegen = { path = "vendor/derive-codegen/derive-codegen", version = "*" }
 i-codegen-derive = { path = "vendor/derive-codegen/derive", version = "*" }

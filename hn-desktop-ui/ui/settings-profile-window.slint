@@ -1,0 +1,178 @@
+import { Theme } from "./theme.slint";
+import { DraggableWindow } from "draggable_window.slint";
+import { Notification, HnButton , HnModalHeading, HnTextInput, HnNotification, HnTextHeading, HnText} from "settings-shared.slint";
+import { HNScrollView } from "ScrollView.slint";
+import { HnContainer } from "hn-container.slint";
+// https://slint-ui.com/releases/1.0.2/docs/rust/slint/docs/debugging_techniques/index.html
+
+export struct ProfileServer {
+    uid: string,
+    label: string,
+    url: string,
+}
+
+
+export component HereNowSettingsProfileWindow inherits DraggableWindow {
+    always-on-top: true;
+    min-width: 120px;
+    preferred-width: 420px;
+    title: "Here Now Profile Settings";
+    no-frame: true;
+    background: transparent;
+
+    callback close();
+    callback apply();
+    callback edit-server-by-uid(string);
+    callback add-server-with-label-and-url(string, string);
+    callback dismiss-notification(string);
+    public function reset() {
+        root.server_label_updated = self.server_label;
+    }
+    public function start-add-server() {
+        self.is-adding-server = true;
+        self.new-server-url = "";
+    }
+
+    property <bool> is-adding-server: false;
+    property <string> new-server-url: "";
+    property <string> new-server-label: "";
+    in property <string> server_label: "Default";
+    out property <string> server_label_updated: self.server_label;
+    out property <bool> has-changes: self.server_label != self.server_label_updated;
+    in property <[Notification]> notifications: [
+        { key: "test", title: "Test", body: "This is a test notification" }
+    ];
+    in property <[ProfileServer]> servers: [
+        { uid: "pfl_1", label: "Default", url: "https://herenow.covalent.team" },
+        { uid: "pfl_2", label: "Development", url: "http://localhost:9000" },
+        { uid: "pfl_3", label: "Work", url: "https://herenow.ambient.run" },
+    ];
+
+    Rectangle {
+        width: root.width;
+        height: root.height;
+        background: Theme.background-body;
+        border-radius: 3px;
+    }
+
+    // Heading buttons
+    HorizontalLayout {
+        y: 0;
+        x: parent.width - self.width - 6px;
+        height: 24px;
+        alignment: end;
+        spacing: 6px;
+        if root.has-changes: HnButton {
+            text: "Apply";
+            primary: true;
+            clicked => {
+                root.apply();
+            }
+        }
+        HnButton {
+            text: root.has-changes ? "Discard" : "Close";
+            clicked => {
+                root.close();
+            }
+        }
+    }
+
+    VerticalLayout {
+        padding: 20px;
+        spacing: 12px;
+        
+        HnModalHeading {
+            title: "Profile Settings";
+        }
+
+        HnTextInput {
+            vertical-stretch: 0;
+            label: "Profile Label";
+            original-value: root.server_label;
+            value <=> root.server_label_updated;
+            examples: ["Default", "Work", "Personal", "Rust"];
+        }
+
+        for notification in root.notifications: HnNotification {
+            notification: notification;
+            dismiss => {
+                root.dismiss-notification(notification.key);
+            }
+        }
+
+        HNScrollView {
+            vertical-stretch: 1;
+            VerticalLayout {
+                spacing: Theme.spaceY;
+                HnTextHeading {
+                    resize: 0.9;
+                    text: "Servers";
+                }
+        
+                for server in root.servers: HnContainer {
+                    HorizontalLayout {
+                        alignment: stretch;
+                        VerticalLayout {
+                            horizontal-stretch: 1;
+                            alignment: center;
+                            HnTextHeading {
+                                resize: 0.85;
+                                text: server.label;
+                            }
+                        }
+                        VerticalLayout {
+                            horizontal-stretch: 0;
+                            alignment: center;
+                            HnButton {
+                                text: "Edit";
+                                clicked => {
+                                    root.edit-server-by-uid(server.uid);
+                                }
+                            }
+                        }
+                    }
+                    HnText {
+                        text: server.url;
+                    }
+                }
+        
+                if is-adding-server: HnContainer {
+                    HnTextHeading {
+                        resize: 0.85;
+                        text: "Add Server";
+                    }
+                    HnTextInput {
+                        vertical-stretch: 0;
+                        label: "Server Label";
+                        examples: ["Covalent", "Development", "Work"];
+                        value <=> root.new-server-label;
+                    }
+                    HnTextInput {
+                        vertical-stretch: 0;
+                        label: "Server URL";
+                        examples: ["https://herenow.covalent.team", "http://localhost:9000"];
+                        value <=> root.new-server-url;
+                    }
+                    HnButton {
+                        text: "Add Server";
+                        clicked => {
+                            root.add-server-with-label-and-url(root.new-server-label, root.new-server-url);
+                        }
+                    }
+                }
+        
+                HnButton {
+                    text: root.is-adding-server ? "Cancel Adding Server" : "Add Server";
+                    clicked => {
+                        if (!root.is-adding-server) {
+                            root.start-add-server();
+                        } else {
+                            root.is-adding-server = false;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+

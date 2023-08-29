@@ -1,6 +1,5 @@
 use std::{marker::PhantomData, path::PathBuf};
 
-use bonsaidb::core::schema;
 use hn_app::{
     _ecs_::*,
     _tracing_::*,
@@ -8,92 +7,56 @@ use hn_app::{
     database_plugin::LocalDatabasePlugin,
 };
 
-#[ecs_unique]
-pub struct SettingServerURL1(pub Option<String>);
-#[ecs_unique]
-pub struct SettingServerURL2(pub Option<String>);
+use self::windows_plugin::WindowsPlugin;
 
 pub struct DevicePlugin(pub tokio::sync::mpsc::UnboundedSender<Command>);
 
-// todo: add a collection for storing device keys
-#[derive(schema::Schema)]
-#[schema(name = "DesktopDBSchema", collections = [])]
-pub struct DBSchema;
+mod data;
+mod ecs;
+mod export_data;
+mod import_data;
+mod windows_plugin;
 
 impl Plugin for DevicePlugin {
     fn build(&self, builder: &mut AppBuilder) {
-        builder.add_unique(UIMessages(Vec::new()));
+        builder.add_unique(Messages(Vec::<ui::ToExecutor>::new()));
+        builder.add_unique(Messages(Vec::<ui::ToUI>::new()));
         builder.add_plugin(AppCtxPlugin(self.0.clone()));
-        builder.add_plugin(LocalDatabasePlugin::<DBSchema> {
+        builder.add_plugin(LocalDatabasePlugin::<data::DBSchema> {
             path: PathBuf::from("./data/desktop-db.bonsaidb"),
             mark: PhantomData,
         });
-
-        builder
-            .add_unique(SettingServerURL1(None))
-            .add_unique(SettingServerURL2(None));
+        builder.add_plugin(WindowsPlugin::default());
+        builder.add_system(import_data::import_data_from_database_system);
+        builder.add_reset_system(
+            export_data::sync_changes_to_database_system,
+            "synchronize any changed data back into the database",
+        );
     }
 }
 
 #[ecs_unique]
-pub struct UIMessages(Vec<ui::ToUI>);
+#[derive(Debug)]
+pub struct Messages<T: 'static>(Vec<T>);
 
-impl UIMessages {
-    pub fn drain(&mut self) -> impl Iterator<Item = ui::ToUI> + '_ {
+impl<T> Messages<T> {
+    pub fn drain(&mut self) -> impl Iterator<Item = T> + '_ {
         self.0.drain(..)
     }
-    pub fn add(&mut self, msg: ui::ToUI) {
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
+    pub fn handle(&mut self, mut f: impl FnMut(&mut T) -> SetupResult<bool>) {
+        self.0.retain_mut(|a| match f(a) {
+            Ok(true) => false,
+            Ok(false) => true,
+            Err(err) => {
+                error!(?err, "skipping failed message");
+                false
+            }
+        })
+    }
+    pub fn add(&mut self, msg: T) {
         self.0.push(msg);
-    }
-}
-
-pub fn open_settings(
-    mut uvm_ui_messages: UniqueViewMut<UIMessages>,
-    uv_settings_url_1: UniqueView<SettingServerURL1>,
-    uv_settings_url_2: UniqueView<SettingServerURL2>,
-) {
-    uvm_ui_messages.add(ui::ToUI::ShowSettings(ui::Settings {
-        server_url: uv_settings_url_1
-            .0
-            .as_ref()
-            .map(Clone::clone)
-            .map(ui::Setting::Value)
-            .unwrap_or(ui::Setting::NoValue),
-        server_url_2: uv_settings_url_2
-            .0
-            .as_ref()
-            .map(Clone::clone)
-            .map(ui::Setting::Value)
-            .unwrap_or(ui::Setting::NoValue),
-    }));
-}
-
-pub(crate) trait ExecutorAction {
-    fn execute(self, executor: &super::Executor);
-}
-
-impl ExecutorAction for ui::executor::AddServerByURL {
-    fn execute(self, executor: &crate::Executor) {
-        warn!("TODO: add server by url");
-    }
-}
-impl ExecutorAction for ui::executor::UpdateSettings {
-    fn execute(self, executor: &crate::Executor) {
-        let settings = self.settings;
-        executor.run(
-            move |mut uvm_ui_messages: UniqueViewMut<UIMessages>,
-                  mut uvm_settings_url_1: UniqueViewMut<SettingServerURL1>,
-                  mut uvm_settings_url_2: UniqueViewMut<SettingServerURL2>| {
-                if let Some(value) = settings.server_url.changed() {
-                    tracing::info!(?value, "updated server url 1");
-                    uvm_settings_url_1.as_mut().0 = value.cloned();
-                }
-                if let Some(value) = settings.server_url_2.changed() {
-                    tracing::info!(?value, "updated server url 2");
-                    uvm_settings_url_2.as_mut().0 = value.cloned();
-                }
-                uvm_ui_messages.add(ui::ToUI::HideSettings);
-            },
-        )
     }
 }

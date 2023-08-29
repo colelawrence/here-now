@@ -6,6 +6,7 @@ description = "Common code for here now frontend and backend"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+hn-hinted-id.workspace = true
 shipyard.workspace = true
 shipyard_app.workspace = true
 anyhow.workspace = true

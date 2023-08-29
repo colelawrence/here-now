@@ -1,0 +1,18 @@
+[package]
+name = "hn-hinted-id"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+publish = false
+
+[[example]]
+name = "generate"
+path = "examples/generate.rs"
+
+[dependencies]
+serde.workspace = true
+shipyard.workspace = true
+bonsaidb = { workspace = true, default-features = false, features = ["local", "instrument"] }
+tracing.workspace = true
+xid = "1.0.3"
+smartstring = { version = "1.0.1", features = ["serde"] }

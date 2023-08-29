@@ -4,47 +4,88 @@ import {
     ScrollView, StandardListView,
     StandardButton, TextEdit
 } from "std-widgets.slint";
-import { activity-status, importance, connection-status } from "./generated.slint";
-import { PCaller, Person, PAction, Types } from "./types.slint";
 import { HNScrollView, HNScrollViewHorizontal } from "./ScrollView.slint";
 import { Theme } from "./theme.slint";
-import { HereNowScreenShareSelectorInner, ScreenShareGroup } from "./screen-share/screen-share-selector-inner.slint";
-import { HereNowPeopleListInner } from "./people-list/people-list-inner.slint";
-import { HereNowActiveCallInner } from "./active-call/active-call-inner.slint";
 import { DraggableWindow } from "draggable_window.slint";
+import { HnContainer } from "hn-container.slint";
+import { HnText , HnButton, HnTextHeading} from "settings-shared.slint";
+import { HnToggle } from "hn-toggle.slint";
 
 // https://slint-ui.com/releases/1.0.2/docs/rust/slint/docs/debugging_techniques/index.html
+
+export struct ProfileServer {
+    uid: string,
+    label: string,
+    url: string,
+}
+
+export struct Profile {
+    uid: string,
+    label: string,
+    enabled: bool,
+    servers: [ProfileServer],
+}
 
 export component HereNowMainWindow inherits DraggableWindow {
     in property <bool> keep-on-top: true;
     always-on-top: self.keep-on-top;
-    min-width: 120px;
+    min-width: 220px;
     title: "Here Now";
     icon: Theme.app-icon;
     // Slint on winit has an even-odd rendering bug with loading fonts from Google Webfonts...
     // default-font-family: "Montserrat";
     default-font-weight: 400;
 
-    callback show-settings();
+    callback show-profile-settings(string);
+    callback toggle-profile(string);
     callback close();
 
-    VerticalLayout {
-        spacing: 20px;
-        alignment: start;
+    in property <[Profile]> profiles: [
+        { uid: "pfl_cjhsotnabhossbcdj9n0", enabled: true, label: "Default", servers: [
+            { uid: "psrv_cjhsp7nabhostmpr044g", label: "Covalent Server", url: "https://herenow.covalent.team" },
+            { uid: "psrv_cjhsp7vabhostmpr045g", label: "Local Server", url: "http://localhost:9000" },
+        ] },
+        { uid: "pfl_cjhsotfabhossbcdj9mg", enabled: false, label: "Test Profile", servers: [
+            { uid: "psrv_cjhsp87abhostmpr046g", label: "Covalent Server", url: "https://herenow.covalent.team" },
+        ] },
+    ];
 
-        VerticalLayout {
-            Button {
-                text: "Settings";
-                height: 30px;
-                width: 130px;
-                clicked => { root.show-settings(); }
+    HnContainer {
+        background: Theme.background-body;
+        for profile in root.profiles: VerticalLayout {
+            HorizontalLayout {
+                spacing: Theme.spaceX;
+                VerticalLayout {
+                    alignment: center;
+                    HnToggle {
+                        horizontal-stretch: 0;
+                        confirmed-enabled: profile.enabled;
+                        toggle => { root.toggle-profile(profile.uid); }
+                    }
+                }
+                VerticalLayout {
+                    alignment: center;
+                    HnTextHeading {
+                        resize: 0.8;
+                        horizontal-stretch: 1;
+                        text: profile.label;
+                        color: profile.enabled ? Theme.in-call-color : Theme.text-body.brighter(3);
+                    }
+                }
+                VerticalLayout {
+                    alignment: center;
+                    HnButton {
+                        text: "⚙️";
+                        clicked => { root.show-profile-settings(profile.uid); }
+                    }
+                }
             }
-            Button {
-                text: "Close";
-                height: 30px;
-                width: 130px;
-                clicked => { root.close(); }
-            }
+        }
+        HnButton {
+            text: "Close";
+            height: 30px;
+            width: 130px;
+            clicked => { root.close(); }
         }
     }
 }

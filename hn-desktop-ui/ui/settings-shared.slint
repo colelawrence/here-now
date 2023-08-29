@@ -1,21 +1,20 @@
 import { Theme } from "./theme.slint";
-import { DraggableWindow } from "draggable_window.slint";
-// https://slint-ui.com/releases/1.0.2/docs/rust/slint/docs/debugging_techniques/index.html
 
-component TextHeading inherits Text {
-    font-size: Theme.text-ui-heading-size;
+export component HnTextHeading inherits Text {
+    in property <float> resize: 1;
+    font-size: Theme.text-ui-heading-size * root.resize;
     font-family: Theme.text-ui-heading-family;
     font-weight: Theme.text-ui-heading-weight;
     color: Theme.text-body;
 }
-component HnText inherits Text {
+export component HnText inherits Text {
     font-size: Theme.text-content-size;
     font-family: Theme.text-content-family;
     font-weight: Theme.text-content-weight;
     color: Theme.text-body;
 }
 
-component HnButton inherits TouchArea {
+export component HnButton inherits TouchArea {
     in property <string> text: "Label";
     in property <bool> primary: false;
     Rectangle {
@@ -46,7 +45,7 @@ component HnButton inherits TouchArea {
     }
 }
 
-component HnTextInput inherits TouchArea {
+export component HnTextInput inherits TouchArea {
     in property <string> label: "Label";
     in property <string> placeholder: "";
     in property <[string]> examples: [];
@@ -117,7 +116,7 @@ export struct Notification {
     body: string,
 }
 
-component HnModalHeading inherits HorizontalLayout {
+export component HnModalHeading inherits HorizontalLayout {
     in property <string> title;
     VerticalLayout {
         alignment: center;
@@ -130,13 +129,13 @@ component HnModalHeading inherits HorizontalLayout {
     VerticalLayout {
         alignment: center;
         padding-top: 5px;
-        TextHeading {
+        HnTextHeading {
             text: root.title;
         }
     }
 }
 
-component HnNotification inherits Rectangle {
+export component HnNotification inherits Rectangle {
     in property <Notification> notification;
     callback dismiss();
     // warning colors
@@ -175,95 +174,3 @@ component HnNotification inherits Rectangle {
         }
     }       
 }
-
-
-export component HereNowSettingsWindow inherits DraggableWindow {
-    always-on-top: true;
-    min-width: 120px;
-    preferred-width: 420px;
-    title: "Here Now";
-    no-frame: true;
-    background: transparent;
-    in-out property <string> server_url: "http://localhost:9000";
-    in-out property <string> server_url_2: "https://herenow.covalent.team";
-    out property <string> server_url_updated: "http://localhost:9001";
-    out property <string> server_url_2_updated: self.server_url_2;
-    out property <bool> has-changes: self.server_url_2 != self.server_url_2_updated || self.server_url != self.server_url_updated;
-    in-out property <[Notification]> notifications: [
-        { key: "test", title: "Test", body: "This is a test notification" }
-    ];
-
-    callback close();
-    callback apply();
-    callback dismiss-key(string);
-    public function reset() {
-        self.server_url_updated = self.server_url;
-        self.server_url_2_updated = self.server_url_2;
-    }
-    
-    Rectangle {
-        width: root.width;
-        height: root.height;
-        background: Theme.background-body;
-        border-radius: 3px;
-    }
-
-    // Heading buttons
-    HorizontalLayout {
-        y: 0;
-        x: parent.width - self.width - 6px;
-        height: 24px;
-        alignment: end;
-        spacing: 6px;
-        if root.has-changes: HnButton {
-            text: "Apply";
-            primary: true;
-            clicked => {
-                root.apply();
-            }
-        }
-        HnButton {
-            text: root.has-changes ? "Discard" : "Close";
-            clicked => {
-                root.close();
-            }
-        }
-    }
-
-    VerticalLayout {
-        padding: 20px;
-        spacing: 12px;
-
-        HnModalHeading {
-            title: "Here Now Settings";
-        }
-
-        for notification in root.notifications: HnNotification {
-            notification: notification;
-            dismiss => {
-                root.dismiss-key(notification.key);
-            }
-        }
-        
-        HnTextInput {
-            vertical-stretch: 0;
-            label: "Server URL";
-            original-value: root.server_url;
-            value <=> root.server_url_updated;
-            examples: ["http://localhost:9000", "https://herenow.covalent.team"];
-        }
-
-        HnTextInput {
-            vertical-stretch: 0;
-            label: "Server URL 2";
-            original-value: root.server_url_2;
-            value <=> root.server_url_2_updated;
-            examples: ["http://localhost:9000", "https://herenow.covalent.team"];
-        }
-
-        Rectangle {
-            vertical-stretch: 1;
-        }
-    }
-}
-

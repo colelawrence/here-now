@@ -1,6 +1,5 @@
-use hn_app::{app_ctx::LocalDatabase, database_plugin::LastImport};
-
 use super::*;
+use hn_app::{_ecs_::*, app_ctx::LocalDatabase, database_plugin::LastImport};
 
 type ViewAll<'a> = (View<'a, HintedID>, ViewCred<'a>, ViewDevice<'a>);
 type ViewCred<'a> = (View<'a, ecs::CredTag>, View<'a, ecs::EcsDiscordCred>);
@@ -10,12 +9,12 @@ type ViewDevice<'a> = (
     View<'a, ecs::AuthorizedKeys>,
 );
 
+#[instrument(skip_all)]
 pub(super) fn export_all(
     uv_local_database: UniqueView<LocalDatabase>,
     mut uvm_last_import: UniqueViewMut<LastImport>,
     (v_hinted_id, v_cred, v_device): ViewAll,
 ) {
-    let _span = tracing::info_span!("export_all").entered();
     match uv_local_database.as_ref().as_ref() {
         Ok(db) => {
             export_changed_creds(&db, uvm_last_import.as_mut(), &v_hinted_id, &v_cred);
@@ -33,12 +32,12 @@ pub(super) fn export_all(
     }
 }
 
+#[instrument(skip_all)]
 fn export_changed_creds(
     db: &local::Database,
     last_import: &mut LastImport,
     v_hinted_id: &View<HintedID>,
     (v_cred_tag, v_discord_cred): &ViewCred,
-    //
 ) {
     let _span = tracing::info_span!("export_changed_creds").entered();
     let updated = {

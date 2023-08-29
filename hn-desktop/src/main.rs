@@ -27,27 +27,30 @@ impl UIHolderMutex {
     fn set(&self, new_ui: Box<dyn ui::SendToUI>) {
         let mut ui = self.ui.lock().expect("can get a lock on ui");
         *ui = Some(new_ui);
-        self.queue
+        let msgs: Vec<_> = self
+            .queue
             .lock()
             .expect("can get a lock on queue")
             .drain(..)
-            .for_each(|msg| {
-                ui.as_ref().expect("ui has been set").send_to_ui(msg);
-            });
+            .collect();
+
+        if !msgs.is_empty() {
+            ui.as_ref().expect("ui has been set").send_all_to_ui(msgs);
+        }
     }
 }
 
 impl ui::SendToUI for UIHolderMutex {
-    fn send_to_ui(&self, msg: ui::ToUI) {
+    fn send_all_to_ui(&self, msgs: Vec<ui::ToUI>) {
         let ui = self.ui.lock().expect("can get a lock on ui");
         match ui.as_ref() {
-            Some(ui_sender) => ui_sender.send_to_ui(msg),
+            Some(ui_sender) => ui_sender.send_all_to_ui(msgs),
             None => {
                 // add to queue
                 self.queue
                     .lock()
                     .expect("can get a lock on queue")
-                    .push(msg);
+                    .extend(msgs);
             }
         }
     }

@@ -29,9 +29,24 @@ enum Args {
         #[clap(long)]
         jaeger: bool,
     },
+    /// Build desktop app
+    BuildDesktop {
+        /// Generate timing information and open the artifact
+        #[clap(long)]
+        timings: bool,
+        /// Watch and rebuild on changes
+        #[clap(long)]
+        watch: bool,
+    },
     View {
         /// Which file
         file: PathBuf,
+    },
+    /// Assorted lint fixes
+    GenHintedID {
+        /// What is the prefix?
+        prefix: String,
+        count: Option<usize>,
     },
     /// Assorted lint fixes
     Fix,
@@ -66,13 +81,25 @@ fn main() {
         Args::WebBuild { watch } => web_build(watch),
         Args::Jaeger { docker, proxied } => jaeger(docker, proxied).join(),
         Args::Dev { jaeger } => dev(jaeger),
-        Args::DevDesktop { jaeger } => dev_desktop(jaeger),
+        Args::DevDesktop { jaeger } => dev_desktop(jaeger, true, false),
+        Args::BuildDesktop { timings, watch } => dev_desktop(false, watch, timings),
         Args::View { file } => viewer(file),
         Args::Fix => fix(),
         Args::Doc => doc(),
         Args::Docker { bash } => build_docker(bash),
         Args::DevProtocol => dev_protocol(),
+        Args::GenHintedID { prefix, count } => generate_hinted_id(&prefix, count),
     }
+}
+
+fn generate_hinted_id(prefix: &str, count: Option<usize>) {
+    Cmd::new("cargo")
+        .args("run --example generate --quiet".split(' '))
+        .arg("--")
+        .arg(prefix)
+        .arg(count.unwrap_or(1).to_string())
+        .root_dir("./hn-hinted-id")
+        .run_it("generate hinted id")
 }
 
 fn jaeger(docker: bool, proxied: bool) -> jod_thread::JoinHandle {
@@ -172,7 +199,7 @@ fn dev(jaeger: bool) {
 }
 
 #[instrument]
-fn dev_desktop(jaeger: bool) {
+fn dev_desktop(jaeger: bool, watch: bool, timings: bool) {
     Cmd::new("cargo")
         .env("HERE_NOW_LOG", "debug,!pot,!nebari")
         .env("SLINT_DEBUG_PERFORMANCE", "refresh_lazy,overlay")
@@ -183,14 +210,37 @@ fn dev_desktop(jaeger: bool) {
             "JAEGER_COLLECTOR_ENDPOINT",
             "http://localhost:14268/api/traces",
         )
-        .arg("run")
+        .arg_if(!timings, "run")
+        .args_if(timings, "+nightly build -Zunstable-options --timings=html")
         .arg("--quiet")
         .root_dir("./hn-desktop")
         .watchable(
-            true,
+            watch,
             "-w ./src -w ../hn-common -w ../hn-app -w ../hn-desktop-ui-messages -w ../hn-desktop-ui -w ../hn-desktop-executor -e rs",
         )
-        .run_in_thread("watch and run hn-desktop Rust program");
+        .run_it("build or run hn-desktop Rust program");
+
+    if !watch && timings {
+        // get last in list of in directory
+        let mut file_names =
+            std::fs::read_dir(get_project_root_dir().join("target/cargo-timings/"))
+                .expect("timings exist")
+                .into_iter()
+                .filter_map(|a| a.ok())
+                .map(|a| a.path())
+                // get only the ones with a timestamp
+                .filter(|path| !path.ends_with("cargo-timing.html"))
+                .collect::<Vec<PathBuf>>();
+
+        // get most recent timing html
+        file_names.sort();
+
+        let last = file_names
+            .last()
+            .expect("at least one timing file with timestamp");
+
+        Cmd::new("open").arg(last).run_it("open timing report");
+    }
 }
 
 #[instrument]

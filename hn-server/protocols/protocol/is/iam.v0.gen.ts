@@ -1,5 +1,47 @@
 /** serde_json::Value */
 type Value = unknown;
+/** [Source `hn-server/src/data.rs:8`](hn-server/src/data.rs) */
+export type UsrString = string
+/** [Source `hn-server/src/data.rs:8`](hn-server/src/data.rs) */
+export function UsrString(inner: string): UsrString {
+  return inner;
+}
+/** [Source `hn-server/src/data.rs:12`](hn-server/src/data.rs) */
+export type DevString = string
+/** [Source `hn-server/src/data.rs:12`](hn-server/src/data.rs) */
+export function DevString(inner: string): DevString {
+  return inner;
+}
+/** [Source `hn-server/src/data.rs:16`](hn-server/src/data.rs) */
+export type GlobalID = `${string}//${string}`;
+/** [Source `hn-server/src/data.rs:16`](hn-server/src/data.rs) */
+export function GlobalID(value: GlobalID): GlobalID {
+  return value;
+}
+/** [Source `hn-server/src/data.rs:19`](hn-server/src/data.rs) */
+export type ChannelID = string
+/** [Source `hn-server/src/data.rs:19`](hn-server/src/data.rs) */
+export function ChannelID(inner: string): ChannelID {
+  return inner;
+}
+/** [Source `hn-server/src/data.rs:23`](hn-server/src/data.rs) */
+export type Key = string
+/** [Source `hn-server/src/data.rs:23`](hn-server/src/data.rs) */
+export function Key(inner: string): Key {
+  return inner;
+}
+/** [Source `hn-server/src/data.rs:27`](hn-server/src/data.rs) */
+export type KeyTarget = string
+/** [Source `hn-server/src/data.rs:27`](hn-server/src/data.rs) */
+export function KeyTarget(inner: string): KeyTarget {
+  return inner;
+}
+/** [Source `hn-server/src/data.rs:31`](hn-server/src/data.rs) */
+export type LiveID = string
+/** [Source `hn-server/src/data.rs:31`](hn-server/src/data.rs) */
+export function LiveID(inner: string): LiveID {
+  return inner;
+}
 /** [Source `hn-server/src/data.rs:72`](hn-server/src/data.rs) */
 // deno-lint-ignore no-namespace
 export namespace InputValueType {
@@ -80,7 +122,7 @@ export function InputValue(inner: InputValue): InputValue {
 export namespace In {
   export type ApplyFns<R = void> = {
     // callbacks
-    ASK(inner: ASK["ASK"]): R,
+    START(inner: START["START"]): R,
   }
   /** Match helper for {@link In} */
   export function apply<R>(
@@ -90,7 +132,7 @@ export namespace In {
       // if-else strings
       // if-else objects
       if (typeof input !== "object" || input == null) throw new TypeError("Unexpected non-object for input");
-      if ("ASK" in input) return to.ASK(input["ASK"]);
+      if ("START" in input) return to.START(input["START"]);
       const _exhaust: never = input;
       throw new TypeError("Unknown object when expected In");
     };
@@ -99,8 +141,8 @@ export namespace In {
   export function factory<R>(fn: (value: In) => R): ApplyFns<R> {
     return {
       // factory
-      ASK(value) {
-        return fn(ASK(value));
+      START(value) {
+        return fn(START(value));
       },
     };
   }
@@ -111,22 +153,22 @@ export namespace In {
   ): R {
     return apply(to)(input)
   }
-  export type ASK = {
-    ASK: {
+  export type START = {
+    START: {
       offer_key: KeyTarget;
       channel: ChannelID;
       given_params: Array<InputValueType>;
     };
   };
-  export function ASK(value: ASK["ASK"]): ASK {
-    return { ASK: value }
+  export function START(value: START["START"]): START {
+    return { START: value }
   }
-  ASK.content = (value: ASK["ASK"]) => value;
+  START.content = (value: START["START"]) => value;
 }
 /** [Source `hn-server/src/data.rs:104`](hn-server/src/data.rs) */
 export type In =
-  | In.ASK
-/** [Source `hn-server/src/data.rs:123`](hn-server/src/data.rs) */
+  | In.START
+/** [Source `hn-server/src/data.rs:122`](hn-server/src/data.rs) */
 // deno-lint-ignore no-namespace
 export namespace Out {
   export type ApplyFns<R = void> = {
@@ -244,14 +286,14 @@ export namespace Out {
   }
   RESOLVE.content = (value: RESOLVE["RESOLVE"]) => value;
 }
-/** [Source `hn-server/src/data.rs:123`](hn-server/src/data.rs) */
+/** [Source `hn-server/src/data.rs:122`](hn-server/src/data.rs) */
 export type Out =
   | Out.IDENTIFY
   | Out.UI
   | Out.OFFER
   | Out.RAISE
   | Out.RESOLVE
-/** [Source `hn-server/src/data.rs:168`](hn-server/src/data.rs) */
+/** [Source `hn-server/src/data.rs:167`](hn-server/src/data.rs) */
 // deno-lint-ignore no-namespace
 export namespace UIItem {
   export type ApplyFns<R = void> = {
@@ -322,22 +364,22 @@ export namespace UIItem {
   }
   WARNING.content = (value: WARNING["WARNING"]) => value;
 }
-/** [Source `hn-server/src/data.rs:168`](hn-server/src/data.rs) */
+/** [Source `hn-server/src/data.rs:167`](hn-server/src/data.rs) */
 export type UIItem =
   | UIItem.INPUT
   | UIItem.CONTENT
   | UIItem.WARNING
-/** [Source `hn-server/src/data.rs:178`](hn-server/src/data.rs) */
+/** [Source `hn-server/src/data.rs:177`](hn-server/src/data.rs) */
 export type UIInput = {
   key: Key;
   label: UsrString;
   type: UIInputType;
 };
-/** [Source `hn-server/src/data.rs:178`](hn-server/src/data.rs) */
+/** [Source `hn-server/src/data.rs:177`](hn-server/src/data.rs) */
 export function UIInput(inner: UIInput): UIInput {
   return inner;
 }
-/** [Source `hn-server/src/data.rs:186`](hn-server/src/data.rs) */
+/** [Source `hn-server/src/data.rs:185`](hn-server/src/data.rs) */
 // deno-lint-ignore no-namespace
 export namespace UIContent {
   export type ApplyFns<R = void> = {
@@ -397,11 +439,11 @@ export namespace UIContent {
   }
   PARAGRAPH.content = (value: PARAGRAPH["PARAGRAPH"]) => value;
 }
-/** [Source `hn-server/src/data.rs:186`](hn-server/src/data.rs) */
+/** [Source `hn-server/src/data.rs:185`](hn-server/src/data.rs) */
 export type UIContent =
   | UIContent.HEADING
   | UIContent.PARAGRAPH
-/** [Source `hn-server/src/data.rs:197`](hn-server/src/data.rs) */
+/** [Source `hn-server/src/data.rs:196`](hn-server/src/data.rs) */
 // deno-lint-ignore no-namespace
 export namespace UIInputType {
   export type ApplyFns<R = void> = {
@@ -464,11 +506,11 @@ export namespace UIInputType {
   }
   CHOICE.content = (value: CHOICE["CHOICE"]) => value;
 }
-/** [Source `hn-server/src/data.rs:197`](hn-server/src/data.rs) */
+/** [Source `hn-server/src/data.rs:196`](hn-server/src/data.rs) */
 export type UIInputType =
   | UIInputType.TEXT
   | UIInputType.CHOICE
-/** [Source `hn-server/src/data.rs:218`](hn-server/src/data.rs) */
+/** [Source `hn-server/src/data.rs:217`](hn-server/src/data.rs) */
 export type UIInputChoice = {
   key: Key;
   /** Label for this choice such as `"On"` or `"Off"`. */
@@ -480,49 +522,7 @@ export type UIInputChoice = {
    */
   inputs?: Array<UIInput> | null | undefined;
 };
-/** [Source `hn-server/src/data.rs:218`](hn-server/src/data.rs) */
+/** [Source `hn-server/src/data.rs:217`](hn-server/src/data.rs) */
 export function UIInputChoice(inner: UIInputChoice): UIInputChoice {
-  return inner;
-}
-/** [Source `hn-server/src/data.rs:8`](hn-server/src/data.rs) */
-export type UsrString = string
-/** [Source `hn-server/src/data.rs:8`](hn-server/src/data.rs) */
-export function UsrString(inner: string): UsrString {
-  return inner;
-}
-/** [Source `hn-server/src/data.rs:12`](hn-server/src/data.rs) */
-export type DevString = string
-/** [Source `hn-server/src/data.rs:12`](hn-server/src/data.rs) */
-export function DevString(inner: string): DevString {
-  return inner;
-}
-/** [Source `hn-server/src/data.rs:16`](hn-server/src/data.rs) */
-export type GlobalID = `${string}//${string}`;
-/** [Source `hn-server/src/data.rs:16`](hn-server/src/data.rs) */
-export function GlobalID(value: GlobalID): GlobalID {
-  return value;
-}
-/** [Source `hn-server/src/data.rs:19`](hn-server/src/data.rs) */
-export type ChannelID = string
-/** [Source `hn-server/src/data.rs:19`](hn-server/src/data.rs) */
-export function ChannelID(inner: string): ChannelID {
-  return inner;
-}
-/** [Source `hn-server/src/data.rs:23`](hn-server/src/data.rs) */
-export type Key = string
-/** [Source `hn-server/src/data.rs:23`](hn-server/src/data.rs) */
-export function Key(inner: string): Key {
-  return inner;
-}
-/** [Source `hn-server/src/data.rs:27`](hn-server/src/data.rs) */
-export type KeyTarget = string
-/** [Source `hn-server/src/data.rs:27`](hn-server/src/data.rs) */
-export function KeyTarget(inner: string): KeyTarget {
-  return inner;
-}
-/** [Source `hn-server/src/data.rs:31`](hn-server/src/data.rs) */
-export type LiveID = string
-/** [Source `hn-server/src/data.rs:31`](hn-server/src/data.rs) */
-export function LiveID(inner: string): LiveID {
   return inner;
 }
