@@ -2691,7 +2691,6 @@ dependencies = [
  "i-codegen-code",
  "proc-macro2",
  "quote",
- "serde",
  "serde_derive_internals",
  "serde_json",
  "syn 2.0.28",
@@ -4563,7 +4562,6 @@ version = "0.4.2-alpha.0"
 dependencies = [
  "chrono",
  "libquickjs-sys",
- "once_cell",
  "quick-js-serde",
  "serde",
 ]
