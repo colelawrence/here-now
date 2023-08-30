@@ -23,14 +23,14 @@ enum Args {
         #[clap(long)]
         jaeger: bool,
     },
-    /// Run desktop for development
-    DevDesktop {
+    /// Build desktop app
+    Desktop {
+        /// Build desktop app (not run)
+        #[clap(long)]
+        build: bool,
         /// Connect to jaeger
         #[clap(long)]
         jaeger: bool,
-    },
-    /// Build desktop app
-    BuildDesktop {
         /// Generate timing information and open the artifact
         #[clap(long)]
         timings: bool,
@@ -81,8 +81,12 @@ fn main() {
         Args::WebBuild { watch } => web_build(watch),
         Args::Jaeger { docker, proxied } => jaeger(docker, proxied).join(),
         Args::Dev { jaeger } => dev(jaeger),
-        Args::DevDesktop { jaeger } => dev_desktop(jaeger, true, false),
-        Args::BuildDesktop { timings, watch } => dev_desktop(false, watch, timings),
+        Args::Desktop {
+            build,
+            jaeger,
+            timings,
+            watch,
+        } => dev_desktop(jaeger, build, watch, timings),
         Args::View { file } => viewer(file),
         Args::Fix => fix(),
         Args::Doc => doc(),
@@ -174,6 +178,8 @@ fn web_build(watch: bool) {
     svelte_generator_data_browser.join();
 }
 
+const WATCH_COMMON_DEPS: &str = "-w ../hn-public-api -w ../hn-keys -w ../hn-hinted-id -w ../hn-app";
+
 #[instrument]
 fn dev(jaeger: bool) {
     let server = Cmd::new("cargo")
@@ -184,10 +190,11 @@ fn dev(jaeger: bool) {
             "JAEGER_COLLECTOR_ENDPOINT",
             "http://localhost:14268/api/traces",
         )
+        .env("RUST_BACKTRACE", "1")
         .arg("run")
         .arg("--quiet")
         .root_dir("./hn-server")
-        .watchable(true, "-w ./src -w ../hn-common -w ../hn-app -e rs")
+        .watchable(true, &format!("-w ./src {WATCH_COMMON_DEPS} -e rs"))
         .run_in_thread("watch and run hn-server Rust program");
 
     let web_assets = jod_thread::spawn(|| {
@@ -199,28 +206,32 @@ fn dev(jaeger: bool) {
 }
 
 #[instrument]
-fn dev_desktop(jaeger: bool, watch: bool, timings: bool) {
+fn dev_desktop(jaeger: bool, build: bool, watch: bool, timings: bool) {
     Cmd::new("cargo")
-        .env("HERE_NOW_LOG", "debug,!pot,!nebari")
-        .env("SLINT_DEBUG_PERFORMANCE", "refresh_lazy,overlay")
-        .env("DYLD_FALLBACK_LIBRARY_PATH", "~/lib:/usr/local/lib:/usr/lib")
-        .env("SLINT_NO_QT", "1")
+    .env("HERE_NOW_LOG", "debug,!pot,!nebari")
+    .env("SLINT_DEBUG_PERFORMANCE", "refresh_lazy,overlay")
+    .env("DYLD_FALLBACK_LIBRARY_PATH", "~/lib:/usr/local/lib:/usr/lib")
+    // Ensure we don't try to link to Qt (which would add complexity to the build)
+    .env("SLINT_NO_QT", "1")
+    .env("RUST_BACKTRACE", "1")
         .env_if(
             jaeger,
             "JAEGER_COLLECTOR_ENDPOINT",
             "http://localhost:14268/api/traces",
         )
-        .arg_if(!timings, "run")
-        .args_if(timings, "+nightly build -Zunstable-options --timings=html")
+        .arg_if(!build, "run")
+        .args_if(timings, "+nightly")
+        .args_if(build, "build")
+        .args_if(timings, "-Zunstable-options --timings=html")
         .arg("--quiet")
         .root_dir("./hn-desktop")
         .watchable(
             watch,
-            "-w ./src -w ../hn-common -w ../hn-app -w ../hn-desktop-ui-messages -w ../hn-desktop-ui -w ../hn-desktop-executor -e rs",
+            &format!("-w ./src {WATCH_COMMON_DEPS} -w ../hn-desktop-ui-messages -w ../hn-desktop-ui -w ../hn-desktop-executor -e rs"),
         )
         .run_it("build or run hn-desktop Rust program");
 
-    if !watch && timings {
+    if !watch && build && timings {
         // get last in list of in directory
         let mut file_names =
             std::fs::read_dir(get_project_root_dir().join("target/cargo-timings/"))
