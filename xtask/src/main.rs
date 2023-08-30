@@ -224,10 +224,14 @@ fn dev_desktop(jaeger: bool, build: bool, watch: bool, timings: bool, label: Opt
             "JAEGER_COLLECTOR_ENDPOINT",
             "http://localhost:14268/api/traces",
         )
+        // ensure that the timings use a different cache than IDE and other dev tools
+        .arg_if(timings, "--config")
+        .arg_if(timings, &format!("build.target-dir={:?}", get_project_root_dir().join("target/cargo-timings-target").to_str().expect("valid utf8 path")))
         .arg_if(!build, "run")
-        .args_if(timings, "+nightly")
+        // .args_if(timings, "+nightly")
+        // .args_if(timings, "-Zunstable-options --timings=html")
         .args_if(build, "build")
-        .args_if(timings, "-Zunstable-options --timings=html")
+        .args_if(timings, "--timings")
         .arg("--quiet")
         .root_dir("./hn-desktop")
         .watchable(
@@ -258,10 +262,14 @@ fn dev_desktop(jaeger: bool, build: bool, watch: bool, timings: bool, label: Opt
         // rename the file with the label as suffix if specified
         if let Some(label) = label {
             let mut new_name_str = last.to_str().expect("valid utf8 path").to_string();
-            let last_dot = new_name_str.rfind('.').expect("at least one dot in file name");
+            let last_dot = new_name_str
+                .rfind('.')
+                .expect("at least one dot in file name");
             new_name_str.insert_str(last_dot, &format!("-{}", label));
             std::fs::rename(last, &new_name_str).expect("renaming timing file");
-            Cmd::new("open").arg(new_name_str).run_it("open renamed timing report");
+            Cmd::new("open")
+                .arg(new_name_str)
+                .run_it("open renamed timing report");
         } else {
             Cmd::new("open").arg(last).run_it("open timing report");
         }
