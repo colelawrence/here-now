@@ -34,6 +34,9 @@ enum Args {
         /// Generate timing information and open the artifact
         #[clap(long)]
         timings: bool,
+        /// Add a name to artifacts like the timing report
+        #[clap(long)]
+        label: Option<String>,
         /// Watch and rebuild on changes
         #[clap(long)]
         watch: bool,
@@ -86,7 +89,8 @@ fn main() {
             jaeger,
             timings,
             watch,
-        } => dev_desktop(jaeger, build, watch, timings),
+            label,
+        } => dev_desktop(jaeger, build, watch, timings, label),
         Args::View { file } => viewer(file),
         Args::Fix => fix(),
         Args::Doc => doc(),
@@ -207,7 +211,7 @@ fn dev(jaeger: bool) {
 }
 
 #[instrument]
-fn dev_desktop(jaeger: bool, build: bool, watch: bool, timings: bool) {
+fn dev_desktop(jaeger: bool, build: bool, watch: bool, timings: bool, label: Option<String>) {
     Cmd::new("cargo")
     .env("HERE_NOW_LOG", "debug,!pot,!nebari")
     .env("SLINT_DEBUG_PERFORMANCE", "refresh_lazy,overlay")
@@ -251,7 +255,16 @@ fn dev_desktop(jaeger: bool, build: bool, watch: bool, timings: bool) {
             .last()
             .expect("at least one timing file with timestamp");
 
-        Cmd::new("open").arg(last).run_it("open timing report");
+        // rename the file with the label as suffix if specified
+        if let Some(label) = label {
+            let mut new_name_str = last.to_str().expect("valid utf8 path").to_string();
+            let last_dot = new_name_str.rfind('.').expect("at least one dot in file name");
+            new_name_str.insert_str(last_dot, &format!("-{}", label));
+            std::fs::rename(last, &new_name_str).expect("renaming timing file");
+            Cmd::new("open").arg(new_name_str).run_it("open renamed timing report");
+        } else {
+            Cmd::new("open").arg(last).run_it("open timing report");
+        }
     }
 }
 
