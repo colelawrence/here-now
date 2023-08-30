@@ -35,7 +35,7 @@ fn run_in_event_loop<F: FnOnce(&mut MainUI) + Send + 'static>(f: F) {
     .expect("invoking from event loop");
 }
 
-struct UILocalRecv(());
+pub struct UILocalRecv(());
 
 impl UILocalRecv {
     // separate out so we can handle a potential error at the caller
@@ -106,9 +106,9 @@ impl ui::SendToUI for UILocalRecv {
     }
 }
 
-pub fn main_blocking(
-    send_to_executor: Box<dyn ui::SendToExecutor>,
-    mut set_ui: impl FnMut(Box<dyn ui::SendToUI>),
+pub fn main_blocking<T: ui::SendToExecutor>(
+    send_to_executor: T,
+    mut set_ui: impl FnMut(UILocalRecv),
 ) {
     let executor = Rc::new(send_to_executor);
     // let windows_shown = Arc::new(atomic::AtomicU8::new(0));
@@ -153,7 +153,7 @@ pub fn main_blocking(
         value.borrow_mut().main_window = Some(main_w);
     });
 
-    set_ui(Box::new(UILocalRecv(())));
+    set_ui(UILocalRecv(()));
 
     i_slint_backend_selector::with_platform(|platform| {
         // importantly set this behavior so we don't exit if no windows are shown.

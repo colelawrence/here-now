@@ -15,7 +15,8 @@ mod device_client;
 mod device_plugin;
 mod local_keys;
 
-pub fn main(send_to_ui: Box<dyn ui::SendToUI>) -> Box<dyn ui::SendToExecutor> {
+pub fn main<T: ui::SendToUI>(send_to_ui: T) -> Executor<T> {
+    println!("Hello, world!");
     // start tokio runtime
     let rt = tokio::runtime::Builder::new_multi_thread()
         .enable_all()
@@ -52,23 +53,23 @@ pub fn main(send_to_ui: Box<dyn ui::SendToUI>) -> Box<dyn ui::SendToExecutor> {
             },
         ));
 
-    Box::new(Executor {
+    Executor {
         sender,
         send_to_ui,
         _rt: rt,
         _main_loop: main_loop,
-    })
+    }
 }
 
-struct Executor {
+pub struct Executor<T> {
     // to own the runtime and main loop
     _rt: tokio::runtime::Runtime,
     _main_loop: tokio::task::JoinHandle<()>,
     sender: UnboundedSender<hn_app::app_ctx::Command>,
-    send_to_ui: Arc<Box<dyn ui::SendToUI>>,
+    send_to_ui: Arc<T>,
 }
 
-impl Executor {
+impl <T> Executor<T> {
     fn run<B, R, S>(&self, system: S)
     where
         S: shipyard::IntoWorkloadSystem<B, R>,
@@ -84,7 +85,7 @@ impl Executor {
     }
 }
 
-impl ui::SendToExecutor for Executor {
+impl <T: Send + Sync + 'static> ui::SendToExecutor for Executor<T> {
     #[tracing::instrument(skip(self))]
     fn send_all_to_executor(&self, msgs: Vec<ui::ToExecutor>) {
         eprintln!("send_all_to_executor:");
