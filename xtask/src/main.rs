@@ -178,7 +178,8 @@ fn web_build(watch: bool) {
     svelte_generator_data_browser.join();
 }
 
-const WATCH_COMMON_DEPS: &str = "-w ../hn-public-api -w ../hn-keys -w ../hn-hinted-id -w ../hn-app";
+const WATCH_COMMON_DEPS: &str =
+    "-w ../hn-public-api -w ../hn-keys -w ../hn-hinted-id -w ../hn-tracing -w ../hn-app";
 
 #[instrument]
 fn dev(jaeger: bool) {
