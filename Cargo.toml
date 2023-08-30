@@ -1,5 +1,6 @@
 [workspace]
 members = [
+  "workspace-hack",
   "xtask",
   "hn-server",
   "hn-desktop",

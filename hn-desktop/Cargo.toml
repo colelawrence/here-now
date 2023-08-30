@@ -13,3 +13,4 @@ hn-desktop-executor = { path = "../hn-desktop-executor" }
 hn-desktop-ui = { path = "../hn-desktop-ui" }
 ui.workspace = true
 tracing.workspace = true
+workspace-hack = { version = "0.1", path = "../workspace-hack" }

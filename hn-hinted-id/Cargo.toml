@@ -16,3 +16,4 @@ bonsaidb = { workspace = true, default-features = false, features = ["local", "i
 tracing.workspace = true
 xid = "1.0.3"
 smartstring = { version = "1.0.1", features = ["serde"] }
+workspace-hack = { version = "0.1", path = "../workspace-hack" }

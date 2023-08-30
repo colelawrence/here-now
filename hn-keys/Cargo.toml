@@ -13,6 +13,7 @@ hpke = { version = "0.10.0", features = ["std"]}
 rand = "0.8.5"
 base64 = "0.21.2"
 pot = "2.0.0"
+workspace-hack = { version = "0.1", path = "../workspace-hack" }
 
 [dev-dependencies]
 serde_json.workspace = true # for checking generated keys can be serialized back and forth

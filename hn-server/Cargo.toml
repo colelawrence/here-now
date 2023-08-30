@@ -49,6 +49,7 @@ current_platform = "0.2.0"
 xid = "1.0.3"
 smartstring = { version = "1.0.1", features = ["serde"] }
 hpke = "0.10.0"
+workspace-hack = { version = "0.1", path = "../workspace-hack" }
 
 [dev-dependencies]
 smallvec = "1.11.0"

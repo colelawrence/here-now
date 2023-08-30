@@ -22,3 +22,4 @@ ui_settings_profile_server_window = { path = "./ui_settings_profile_server_windo
 slint = { path = "../vendor/slint/api/rs/slint", version = "^1.0" }
 # needed in order to change behavior of closing windows ending the event loop.
 i-slint-backend-selector = { path = "../vendor/slint/internal/backends/selector", version = "^1.0" }
+workspace-hack = { version = "0.1", path = "../workspace-hack" }

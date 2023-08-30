@@ -14,3 +14,4 @@ tracing-opentelemetry = { version = "0.19.0", path = "../vendor/tracing-opentele
 opentelemetry = { version = "0.19.0", features = ["rt-tokio"] }
 opentelemetry-jaeger = { version = "0.18.0", features = ["rt-tokio", "reqwest_collector_client"] }
 reqwest = { version = "0.11.18", features = ["json", "serde_json"] }
+workspace-hack = { version = "0.1", path = "../workspace-hack" }

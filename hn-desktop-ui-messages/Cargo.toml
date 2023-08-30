@@ -12,3 +12,4 @@ tracing.workspace = true
 serde.workspace = true
 hn-hinted-id.workspace = true
 i-hn-desktop-ui-messages-proc = { version = "0.0.0", path = "./proc" }
+workspace-hack = { version = "0.1", path = "../workspace-hack" }

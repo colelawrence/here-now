@@ -1480,6 +1480,7 @@ dependencies = [
  "hn-desktop-ui-messages",
  "hn-tracing",
  "tracing",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -2398,6 +2399,7 @@ dependencies = [
  "tracing",
  "tracing-opentelemetry",
  "tracing-subscriber 0.3.17",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -2418,6 +2420,7 @@ dependencies = [
  "shipyard_app",
  "tokio",
  "tracing",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -2437,6 +2440,7 @@ dependencies = [
  "ui_main_window",
  "ui_settings_profile_server_window",
  "ui_settings_profile_window",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -2447,6 +2451,7 @@ dependencies = [
  "i-hn-desktop-ui-messages-proc",
  "serde",
  "tracing",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -2458,6 +2463,7 @@ dependencies = [
  "shipyard",
  "smartstring",
  "tracing",
+ "workspace-hack",
  "xid",
 ]
 
@@ -2472,6 +2478,7 @@ dependencies = [
  "rand",
  "serde",
  "serde_json",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -2479,6 +2486,7 @@ name = "hn-public-api"
 version = "0.1.0"
 dependencies = [
  "serde",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -2531,6 +2539,7 @@ dependencies = [
  "tree-sitter-typescript",
  "urlencoding",
  "ustr",
+ "workspace-hack",
  "xid",
 ]
 
@@ -2546,6 +2555,7 @@ dependencies = [
  "tracing",
  "tracing-opentelemetry",
  "tracing-subscriber 0.3.17",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -6482,6 +6492,7 @@ version = "0.1.0"
 dependencies = [
  "slint",
  "slint-build",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -6490,6 +6501,7 @@ version = "0.1.0"
 dependencies = [
  "slint",
  "slint-build",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -6498,6 +6510,7 @@ version = "0.1.0"
 dependencies = [
  "slint",
  "slint-build",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -7284,6 +7297,75 @@ dependencies = [
 ]
 
 [[package]]
+name = "workspace-hack"
+version = "0.1.0"
+dependencies = [
+ "ahash 0.8.3",
+ "base16ct",
+ "bytemuck",
+ "byteorder",
+ "chrono",
+ "clap",
+ "clap_builder",
+ "copypasta",
+ "crossbeam-utils",
+ "crypto-common",
+ "der",
+ "digest 0.10.7",
+ "either",
+ "elliptic-curve",
+ "euclid",
+ "futures-channel",
+ "futures-core",
+ "futures-executor",
+ "futures-sink",
+ "futures-util",
+ "getrandom",
+ "hashbrown 0.12.3",
+ "hashbrown 0.14.0",
+ "hmac",
+ "image",
+ "indexmap 1.9.3",
+ "instant",
+ "jpeg-decoder",
+ "libc",
+ "log",
+ "lyon_geom",
+ "miniz_oxide",
+ "notify 5.2.0",
+ "num-traits",
+ "once_cell",
+ "p256",
+ "pin-weak",
+ "pot",
+ "proc-macro2",
+ "rand",
+ "raw-window-handle",
+ "regex",
+ "regex-automata 0.3.6",
+ "regex-syntax 0.7.4",
+ "reqwest",
+ "sec1",
+ "serde",
+ "serde_json",
+ "sha2",
+ "shipyard",
+ "slab",
+ "smallvec",
+ "syn 1.0.109",
+ "syn 2.0.28",
+ "toml_datetime",
+ "toml_edit",
+ "tracing",
+ "tracing-core",
+ "ttf-parser 0.18.1",
+ "unicode-bidi",
+ "url",
+ "winit",
+ "zeroize",
+]
+
+[[package]]
 name = "x11-clipboard"
 version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7442,6 +7524,7 @@ dependencies = [
  "serde",
  "serde_json",
  "tracing",
+ "workspace-hack",
 ]
 
 [[package]]

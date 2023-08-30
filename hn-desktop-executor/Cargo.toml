@@ -22,3 +22,4 @@ bonsaidb = { workspace = true, default-features = false, features = [] }
 reqwest = { version = "0.11.18", features = ["json", "serde_json"] }
 serde_json.workspace = true
 anyhow.workspace = true
+workspace-hack = { version = "0.1", path = "../workspace-hack" }
