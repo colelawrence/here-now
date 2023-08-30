@@ -4,13 +4,12 @@ use axum::{
     Extension,
 };
 
-use hn_common::keys::{self};
 use http::StatusCode;
 use serde::de::DeserializeOwned;
 
 use crate::prelude::*;
 
-pub(super) struct Verified<T>(pub keys::net::VerifiedMessage<T>);
+pub(super) struct Verified<T>(pub hn_keys::net::VerifiedMessage<T>);
 
 pub(super) enum VerifiedRejection {
     InternalError,
@@ -53,7 +52,7 @@ where
     #[instrument(skip_all, name = "Verified::from_request")]
     async fn from_request(req: http::Request<B>, state: &S) -> Result<Self, Self::Rejection> {
         let (mut parts, body) = req.into_parts();
-        let local_keys = Extension::<keys::LocalKeys>::from_request_parts(&mut parts, state)
+        let local_keys = Extension::<hn_keys::LocalKeys>::from_request_parts(&mut parts, state)
             .await
             .map_err(|err| {
                 error!(?err, "failed to get local keys from request");
@@ -66,7 +65,7 @@ where
                 .await
                 .map_err(|e| VerifiedRejection::BodyError(e))?;
 
-        let wire_msg = keys::net::WireMessage::from_bytes(&bytes)
+        let wire_msg = hn_keys::net::WireMessage::from_bytes(&bytes)
             .map_err(|e| VerifiedRejection::DeserializeError(e))?;
         Ok(Verified(
             local_keys

@@ -15,7 +15,9 @@ fn main() {
             let prefix_clone = prefix.clone();
             std::thread::spawn(move || {
                 println!("{}", HintedID::generate(&prefix_clone));
-            }).join().unwrap();
+            })
+            .join()
+            .unwrap();
         }
     }
 }

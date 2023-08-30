@@ -29,8 +29,10 @@ COPY ./hn-desktop/Cargo.toml ./hn-desktop/Cargo.toml
 COPY ./docker/dummy/main.rs  ./hn-desktop/src/main.rs
 # COPY ./hn-server/Cargo.toml ./hn-server/Cargo.toml
 # COPY ./docker/dummy/main.rs ./hn-server/src/main.rs
-# COPY ./hn-common/Cargo.toml ./hn-common/Cargo.toml
-# COPY ./docker/dummy/lib.rs  ./hn-common/src/lib.rs
+# COPY ./hn-public-api/Cargo.toml ./hn-public-api/Cargo.toml
+# COPY ./docker/dummy/lib.rs  ./hn-public-api/src/lib.rs
+# COPY ./hn-keys/Cargo.toml ./hn-keys/Cargo.toml
+# COPY ./docker/dummy/lib.rs  ./hn-keys/src/lib.rs
 COPY ./xtask/Cargo.toml     ./xtask/Cargo.toml
 COPY ./docker/dummy/main.rs ./xtask/src/main.rs
 
@@ -45,17 +47,19 @@ COPY ./docker/dummy/main.rs ./xtask/src/main.rs
 
 # Copy in the actually changed code
 COPY ./hn-server ./hn-server
-COPY ./hn-common ./hn-common
+COPY ./hn-hinted-id ./hn-hinted-id
+COPY ./hn-public-api ./hn-public-api
+COPY ./hn-keys ./hn-keys
 
 # Build a release
 RUN --mount=type=cache,target=/root/.rustup \
-    --mount=type=cache,target=/root/.cargo/registry \
-    --mount=type=cache,target=/root/.cargo/git \
-		--mount=type=cache,target=/build/target \
-		set -eux; \
-		cargo build --release -p hn-server; \
-		# copy out of the cache directory (which gets unmounted after the build)
-		cp /build/target/release/hn-server /bin/hn-server;
+	--mount=type=cache,target=/root/.cargo/registry \
+	--mount=type=cache,target=/root/.cargo/git \
+	--mount=type=cache,target=/build/target \
+	set -eux; \
+	cargo build --release -p hn-server; \
+	# copy out of the cache directory (which gets unmounted after the build)
+	cp /build/target/release/hn-server /bin/hn-server;
 
 FROM debian:bullseye-slim as hn-server
 

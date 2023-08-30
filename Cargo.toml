@@ -8,7 +8,8 @@ members = [
   "hn-desktop-executor",
   "hn-desktop-ui-messages",
   "hn-app",
-  "hn-common",
+  "hn-keys",
+  "hn-public-api",
   "hn-tracing",
   'vendor/slint/api/rs/build',
   'vendor/slint/api/rs/slint',
@@ -41,9 +42,9 @@ documentation = ""
 
 [workspace.dependencies]
 hn-app = { path = "./hn-app", version = "*" }
-hn-common = { path = "./hn-common", version = "*" }
+hn-keys = { path = "./hn-keys", version = "*" }
+hn-public-api = { path = "./hn-public-api", version = "*" }
 hn-tracing = { path = "./hn-tracing", version = "*" }
-hn-desktop-ui-messages = { path = "./hn-desktop-ui-messages", version = "*" }
 hn-hinted-id = { path = "./hn-hinted-id", version = "*" }
 ui = { package = "hn-desktop-ui-messages", path = "./hn-desktop-ui-messages", version = "*" }
 derive-codegen = { path = "vendor/derive-codegen/derive-codegen", version = "*" }
@@ -73,6 +74,6 @@ lto = true
 panic = "abort"
 
 [profile.dev]
-debug = 1
-opt-level = 2
+debug = "line-tables-only"
+opt-level = 1
 panic = "abort"

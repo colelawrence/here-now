@@ -153,9 +153,7 @@ fn import_pservers(
                     ecs::UserLabel(c_label),
                     ecs::PServerAssocProfile(assoc_profile_entity),
                     ecs::PServerSettingURL(c_url),
-                    ecs::PServerPublicKey(
-                        c_server_key.as_setup_err("Server key not loaded, yet."),
-                    ),
+                    ecs::PServerPublicKey(c_server_key.as_setup_err("Server key not loaded, yet.")),
                 ),
             )
         });

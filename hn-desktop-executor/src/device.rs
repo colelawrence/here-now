@@ -1,5 +1,3 @@
-use hn_common::public;
-
 use crate::{device_client::DeviceClient, local_keys};
 
 pub(super) async fn _start() {
@@ -8,12 +6,15 @@ pub(super) async fn _start() {
         "http://0.0.0.0:9000".to_string(),
     );
 
-    let resp = client.send(public::Ping).await.expect("pinged server");
+    let resp = client
+        .send(hn_public_api::Ping)
+        .await
+        .expect("pinged server");
 
     let _ = dbg!(resp);
 
     let resp = client
-        .send(public::CreateDeviceMutation {
+        .send(hn_public_api::CreateDeviceMutation {
             label: "desktop".to_string(),
         })
         .await

@@ -1,5 +1,5 @@
 [package]
-name = "hn-common"
+name = "hn-keys"
 version = "0.1.0"
 edition.workspace = true
 license.workspace = true
@@ -9,13 +9,10 @@ license.workspace = true
 [dependencies]
 serde.workspace = true
 anyhow.workspace = true
-derive-codegen.workspace = true
-actionable = "0.2.0"
-bonsaidb = { workspace = true, default-features = false, features = ["local"]}
 hpke = { version = "0.10.0", features = ["std"]}
 rand = "0.8.5"
 base64 = "0.21.2"
 pot = "2.0.0"
 
 [dev-dependencies]
-serde_json.workspace = true
+serde_json.workspace = true # for checking generated keys can be serialized back and forth

@@ -8,7 +8,6 @@ mod prelude {
     #![allow(unused)]
     pub use anyhow::Context;
     pub type Result<T = (), E = anyhow::Error> = std::result::Result<T, E>;
-    pub use hn_common::keys;
 }
 
 mod device;

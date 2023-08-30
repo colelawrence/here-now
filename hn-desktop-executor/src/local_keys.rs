@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use crate::prelude::*;
 
-pub(super) fn get_keys() -> Result<keys::LocalKeys> {
+pub(super) fn get_keys() -> Result<hn_keys::LocalKeys> {
     match get_existing_keys() {
         Ok(keys) => return Ok(keys),
         Err(err) => {
@@ -11,7 +11,7 @@ pub(super) fn get_keys() -> Result<keys::LocalKeys> {
     }
 
     let key_path = get_key_path()?;
-    let local_keys = keys::init();
+    let local_keys = hn_keys::init();
     std::fs::write(
         key_path,
         serde_json::to_string(&local_keys).context("serialize private key")?,
@@ -28,7 +28,7 @@ fn get_key_path() -> Result<PathBuf> {
     Ok(key_dir.join("secret-local-keys"))
 }
 
-fn get_existing_keys() -> Result<keys::LocalKeys> {
+fn get_existing_keys() -> Result<hn_keys::LocalKeys> {
     let key_path = get_key_path()?;
     let local_keys = serde_json::from_slice(&std::fs::read(&key_path).context("read local keys")?)
         .context("parse private key")?;

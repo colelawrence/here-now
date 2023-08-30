@@ -1,12 +1,11 @@
 use super::data;
 use hn_app::_ecs_::*;
-use hn_common::keys;
 #[ecs_component(ProfileTag)]
 pub struct ProfileTag;
 
 /// ID found for the document in BonsaiDB.
 #[ecs_component(ProfileTag)]
-pub struct ProfileKeys(pub keys::LocalKeys);
+pub struct ProfileKeys(pub hn_keys::LocalKeys);
 
 #[ecs_component(ProfileTag, PServerTag)]
 pub struct UserLabel(pub Option<String>);

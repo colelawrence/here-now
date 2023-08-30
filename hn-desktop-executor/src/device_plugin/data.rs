@@ -2,7 +2,6 @@ use std::marker::PhantomData;
 
 use bonsaidb::core::schema;
 use hn_app::{ecs_bundle, HintedID};
-use hn_common::keys;
 
 /// Stored in BonsaiDB
 #[derive(Debug, schema::Collection)]
@@ -13,7 +12,7 @@ pub struct ProfileBundle {
     /// Maps to [super::ecs::UserLabel]
     pub c_label: Option<String>,
     /// Maps to [super::ecs::ProfileKeys]
-    pub c_keys: keys::LocalKeys,
+    pub c_keys: hn_keys::LocalKeys,
 }
 
 #[ecs_bundle]
@@ -53,7 +52,7 @@ pub struct ProfileServerBundle {
 #[ecs_bundle(PServerTag)]
 #[derive(Debug)]
 pub struct ServerPublicKey {
-    pub public_key: keys::PublicKeyKind,
+    pub public_key: hn_keys::PublicKeyKind,
     pub retrieved_at: std::time::SystemTime,
 }
 

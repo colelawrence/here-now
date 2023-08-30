@@ -57,6 +57,7 @@
       "package.json": "pnpm-lock.yaml, package-lock.json, .prettier*, lint-staged*, .lintstaged*, .eslint*, postcss.config*, tailwind.*, vite.*, tsconfig.json, tsconfig.*.json",
       "index.html": "global.css, index.css, manifest.json"
     },
-    "explorer.fileNesting.enabled": true
+    "explorer.fileNesting.enabled": true,
+    "rust-analyzer.showUnlinkedFileNotification": false
   }
 }

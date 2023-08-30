@@ -9,13 +9,11 @@ publish = false
 
 [dependencies]
 hn-app.workspace = true
-hn-common.workspace = true
 hn-tracing.workspace = true
 hn-hinted-id.workspace = true
 ui.workspace = true
 tracing.workspace = true
 serde.workspace = true
-tokio.workspace = true
 serde_json.workspace = true
 anyhow.workspace = true
 ui_main_window = { path = "./ui_main_window" }
@@ -24,4 +22,3 @@ ui_settings_profile_server_window = { path = "./ui_settings_profile_server_windo
 slint = { path = "../vendor/slint/api/rs/slint", version = "^1.0" }
 # needed in order to change behavior of closing windows ending the event loop.
 i-slint-backend-selector = { path = "../vendor/slint/internal/backends/selector", version = "^1.0" }
-

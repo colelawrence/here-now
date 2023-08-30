@@ -1,9 +1,8 @@
 #![allow(unused)]
 
+use base64::Engine;
 pub use hpke;
 use rand::{rngs::StdRng, SeedableRng};
-
-use base64::Engine;
 
 use hpke::{
     aead::{AeadTag, ChaCha20Poly1305},

@@ -14,10 +14,8 @@ use derive_codegen::Codegen;
 use crate::prelude::*;
 use hn_app::_ecs_::*;
 
-use hn_common::{
-    keys::{self, net::RawWireResult},
-    public,
-};
+use hn_keys::{self, net::RawWireResult};
+use hn_public_api;
 use http::{header::LOCATION, StatusCode};
 
 use tower_http::{services::ServeDir, trace::TraceLayer};
@@ -41,7 +39,7 @@ pub fn start_server_from_tcp_listener(
     // perhaps the client should need to download the public key everytime the server starts up?
     // This would mean there should probably be some kind special respose indicating that the
     // client needs to re-request a new public key for the server.
-    let local_keys = keys::init();
+    let local_keys = hn_keys::init();
 
     let templates_path = get_crate_path()
         .join("templates")
@@ -113,7 +111,7 @@ struct LoginDiscordQuery {
 
 #[instrument(skip_all)]
 async fn get_public_key(
-    Extension(local_keys): Extension<keys::LocalKeys>,
+    Extension(local_keys): Extension<hn_keys::LocalKeys>,
 ) -> HttpResult<impl IntoResponse> {
     use axum::response::*;
     Ok(Json(local_keys.public_key().clone()))
@@ -122,16 +120,16 @@ async fn get_public_key(
 #[instrument(skip_all)]
 async fn post_mutate(
     Extension(app_ctx): Extension<AppCtx>,
-    Extension(local_keys): Extension<keys::LocalKeys>,
-    Verified(message): Verified<public::Mutate>,
+    Extension(local_keys): Extension<hn_keys::LocalKeys>,
+    Verified(message): Verified<hn_public_api::Mutate>,
 ) -> HttpResult<impl IntoResponse> {
     warn!(sender = ?message.sender(), data = ?message.data(), "verified, now we need to do something for the client...");
 
     use post_mutate::Mutation;
 
     let mutate_result = match message.data() {
-        public::Mutate::Ping(_) => Ok(RawWireResult::from_ok(public::Pong)),
-        public::Mutate::CreateDevice(create_device) => create_device
+        hn_public_api::Mutate::Ping(_) => Ok(RawWireResult::from_ok(hn_public_api::Pong)),
+        hn_public_api::Mutate::CreateDevice(create_device) => create_device
             .mutate(message.sender(), app_ctx)
             .await
             .map(RawWireResult::from_ok),
@@ -141,9 +139,11 @@ async fn post_mutate(
         Ok(res) => (StatusCode::OK, res),
         Err(rejection) => (
             match rejection {
-                public::MutateRejection::InternalError(_) => StatusCode::INTERNAL_SERVER_ERROR,
-                public::MutateRejection::BadRequest(_) => StatusCode::BAD_REQUEST,
-                public::MutateRejection::Unauthorized(_) => StatusCode::UNAUTHORIZED,
+                hn_public_api::MutateRejection::InternalError(_) => {
+                    StatusCode::INTERNAL_SERVER_ERROR
+                }
+                hn_public_api::MutateRejection::BadRequest(_) => StatusCode::BAD_REQUEST,
+                hn_public_api::MutateRejection::Unauthorized(_) => StatusCode::UNAUTHORIZED,
             },
             RawWireResult::from_err(rejection),
         ),

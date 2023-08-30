@@ -1,19 +1,16 @@
 use crate::prelude::*;
-use hn_common::{
-    keys::{self, net::WireMessage},
-    public,
-};
+use hn_keys::net::WireMessage;
 
 #[derive(Debug)]
 pub struct DeviceClient {
     client: reqwest::Client,
-    local_keys: keys::LocalKeys,
+    local_keys: hn_keys::LocalKeys,
     server_base_url: String,
-    // server_pk: Arc<Mutex<Option<keys::PublicKeyKind>>>,
+    // server_pk: Arc<Mutex<Option<hn_keys::PublicKeyKind>>>,
 }
 
 impl DeviceClient {
-    pub fn new(local_keys: keys::LocalKeys, server_base_url: String) -> Self {
+    pub fn new(local_keys: hn_keys::LocalKeys, server_base_url: String) -> Self {
         Self {
             client: reqwest::Client::new(),
             local_keys,
@@ -22,19 +19,22 @@ impl DeviceClient {
     }
 
     #[tracing::instrument]
-    async fn get_server_key(&self) -> Result<keys::PublicKeyKind> {
+    async fn get_server_key(&self) -> Result<hn_keys::PublicKeyKind> {
         self.client
             .get(format!("{}/_public_key", self.server_base_url))
             .send()
             .await
             .context("get server public key endpoint")?
-            .json::<keys::PublicKeyKind>()
+            .json::<hn_keys::PublicKeyKind>()
             .await
             .context("parse server public key")
     }
 
     #[tracing::instrument]
-    pub async fn send<M: public::Mutation>(&self, msg: M) -> Result<public::MutateResult<M>> {
+    pub async fn send<M: hn_public_api::Mutation>(
+        &self,
+        msg: M,
+    ) -> Result<hn_public_api::MutateResult<M>> {
         let server_key = self
             .get_server_key()
             .await
@@ -45,7 +45,7 @@ impl DeviceClient {
             .post(format!("{}/_mutate", self.server_base_url))
             .body(
                 self.local_keys
-                    .send::<&public::Mutate>(&msg.into_request(), &server_key)
+                    .send::<&hn_public_api::Mutate>(&msg.into_request(), &server_key)
                     .context("for body to send")?
                     .to_bytes(),
             )
@@ -59,7 +59,7 @@ impl DeviceClient {
 
         let verified = self
             .local_keys
-            .recv::<public::MutateResult<M>>(&wire)
+            .recv::<hn_public_api::MutateResult<M>>(&wire)
             .context("reading and parsing mutate response")?;
 
         if let Err(err) = expect_serde_eq(verified.sender(), &server_key) {

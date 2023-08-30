@@ -43,6 +43,8 @@ COPY ./.cargo ./.cargo
 COPY ./conf ./conf
 COPY ./hn-desktop ./hn-desktop
 COPY ./hn-server ./hn-server
-COPY ./hn-common ./hn-common
+COPY ./hn-public-api ./hn-public-api
+COPY ./hn-hinted-id ./hn-hinted-id
+COPY ./hn-keys ./hn-keys
 # RUN /usr/bin/cargo build --release -p hn-server
 # RUN /usr/bin/cargo build -p hn-server

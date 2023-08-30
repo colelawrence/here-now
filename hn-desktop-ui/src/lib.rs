@@ -31,7 +31,8 @@ fn run_in_event_loop<F: FnOnce(&mut MainUI) + Send + 'static>(f: F) {
             let mut main_ui = main_ui.borrow_mut();
             f(&mut main_ui);
         });
-    }).expect("invoking from event loop");
+    })
+    .expect("invoking from event loop");
 }
 
 struct UILocalRecv(());
@@ -67,10 +68,10 @@ impl UILocalRecv {
                 //     window.invoke_reset();
                 // })
             }
-            ui::ToUI::NotifyProfileSettings(profile_uid, notification) => {
+            ui::ToUI::NotifyProfileSettings(_profile_uid, _notification) => {
                 // TODO: update some kind of shared models?
             }
-            ui::ToUI::NotifyPServerSettings(pserver_uid, notification) => {
+            ui::ToUI::NotifyPServerSettings(_pserver_uid, _notification) => {
                 // TODO: update some kind of shared models?
             }
             ui::ToUI::UpdateProfiles(profiles) => {
@@ -160,7 +161,8 @@ pub fn main_blocking(
         platform.set_event_loop_quit_on_last_window_closed(false);
 
         platform.run_event_loop()
-    }).expect("run event loop for backend");
+    })
+    .expect("run event loop for backend");
 
     tracing::error!("exited slint event loop unexpectedly");
 }

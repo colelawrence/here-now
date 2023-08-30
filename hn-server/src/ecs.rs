@@ -6,7 +6,6 @@ use crate::prelude::*;
 use hn_app::{_ecs_::*, ecs_bundle};
 
 pub mod import_export;
-use hn_common::keys;
 pub use import_export::plugin::SavePlugin;
 
 pub use hn_app::HintedID;
@@ -41,7 +40,7 @@ pub struct AuthorizedKey {
     pub label: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub dev_info: Option<String>,
-    pub key: keys::PublicKeyKind,
+    pub key: hn_keys::PublicKeyKind,
 }
 
 impl<Tag: 'static> Linked<Tag> {
