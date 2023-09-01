@@ -18,7 +18,7 @@ enum Args {
         watch: bool,
     },
     /// Run server for development
-    Dev {
+    Server {
         /// Connect to jaeger
         #[clap(long)]
         jaeger: bool,
@@ -83,14 +83,14 @@ fn main() {
     match args {
         Args::WebBuild { watch } => web_build(watch),
         Args::Jaeger { docker, proxied } => jaeger(docker, proxied).join(),
-        Args::Dev { jaeger } => dev(jaeger),
+        Args::Server { jaeger } => server_cmd(jaeger),
         Args::Desktop {
             build,
             jaeger,
             timings,
             watch,
             label,
-        } => dev_desktop(jaeger, build, watch, timings, label),
+        } => desktop_cmd(jaeger, build, watch, timings, label),
         Args::View { file } => viewer(file),
         Args::Fix => fix(),
         Args::Doc => doc(),
@@ -186,7 +186,7 @@ const WATCH_COMMON_DEPS: &str =
     "-w ../hn-public-api -w ../hn-keys -w ../hn-hinted-id -w ../hn-tracing -w ../hn-app";
 
 #[instrument]
-fn dev(jaeger: bool) {
+fn server_cmd(jaeger: bool) {
     let server = Cmd::new("cargo")
         .env("HERE_NOW_LOG", "debug,!pot,!nebari")
         .env("HERE_NOW_CONFIG_FOLDER", "../conf")
@@ -211,7 +211,7 @@ fn dev(jaeger: bool) {
 }
 
 #[instrument]
-fn dev_desktop(jaeger: bool, build: bool, watch: bool, timings: bool, label: Option<String>) {
+fn desktop_cmd(jaeger: bool, build: bool, watch: bool, timings: bool, label: Option<String>) {
     Cmd::new("cargo")
     .env("HERE_NOW_LOG", "debug,!pot,!nebari")
     .env("SLINT_DEBUG_PERFORMANCE", "refresh_lazy,overlay")
@@ -232,7 +232,6 @@ fn dev_desktop(jaeger: bool, build: bool, watch: bool, timings: bool, label: Opt
         // .args_if(timings, "-Zunstable-options --timings=html")
         .args_if(build, "build")
         .args_if(timings, "--timings")
-        .arg("--quiet")
         .root_dir("./hn-desktop")
         .watchable(
             watch,
