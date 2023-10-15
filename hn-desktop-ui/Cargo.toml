@@ -19,7 +19,7 @@ anyhow.workspace = true
 ui_main_window = { path = "./ui_main_window" }
 ui_settings_profile_window = { path = "./ui_settings_profile_window" }
 ui_settings_profile_server_window = { path = "./ui_settings_profile_server_window" }
-slint = { path = "../vendor/slint/api/rs/slint", version = "^1.0" }
+slint.workspace = true
 # needed in order to change behavior of closing windows ending the event loop.
-i-slint-backend-selector = { path = "../vendor/slint/internal/backends/selector", version = "^1.0" }
+i-slint-backend-selector.workspace = true
 workspace-hack = { version = "0.1", path = "../workspace-hack" }

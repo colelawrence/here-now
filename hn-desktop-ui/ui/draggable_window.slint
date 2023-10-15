@@ -1,14 +1,14 @@
 export component DraggableWindow inherits Window {
-  position-x: 1000px;
-  position-y: 100px;
-  no-frame: true;
-  background: transparent;
+//   position-x: 1000px;
+//   position-y: 100px;
+//   no-frame: true;
+//   background: transparent;
   winTouch := TouchArea {
       property <bool> applying: false;
       moved => {
           if (self.applying) {
-              root.position-x = root.position-x + (winTouch.mouse-x - winTouch.pressed-x);
-              root.position-y = root.position-y + (winTouch.mouse-y - winTouch.pressed-y);
+            //   root.position-x = root.position-x + (winTouch.mouse-x - winTouch.pressed-x);
+            //   root.position-y = root.position-y + (winTouch.mouse-y - winTouch.pressed-y);
           }
           self.applying = !self.applying;
       }

@@ -41,11 +41,12 @@ enum Args {
         #[clap(long)]
         watch: bool,
     },
+    /// View and watch a .slint file using slint-viewer of our Slint UI fork.
     View {
         /// Which file
         file: PathBuf,
     },
-    /// Assorted lint fixes
+    /// Generate a [hn_hinted_id::HintedID] given a prefix first argument and optionally a count
     GenHintedID {
         /// What is the prefix?
         prefix: String,
@@ -53,6 +54,8 @@ enum Args {
     },
     /// Assorted lint fixes
     Fix,
+    /// Regenerate hakari workspace-hack (should happen after any dependency changes)
+    Hakari,
     /// Develop loop for protocol definitions
     DevProtocol,
     /// Generate and show docs
@@ -92,12 +95,20 @@ fn main() {
             label,
         } => desktop_cmd(jaeger, build, watch, timings, label),
         Args::View { file } => viewer(file),
+        Args::Hakari => hakari(),
         Args::Fix => fix(),
         Args::Doc => doc(),
         Args::Docker { bash } => build_docker(bash),
         Args::DevProtocol => dev_protocol(),
         Args::GenHintedID { prefix, count } => generate_hinted_id(&prefix, count),
     }
+}
+
+fn hakari() {
+    Cmd::new("cargo")
+        .args("hakari generate".split(' '))
+        .root_dir(".")
+        .run_it("update hakari dependencies")
 }
 
 fn generate_hinted_id(prefix: &str, count: Option<usize>) {

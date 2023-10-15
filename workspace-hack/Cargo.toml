@@ -16,7 +16,7 @@ publish = false
 [dependencies]
 ahash = { version = "0.8" }
 base16ct = { version = "0.1", default-features = false, features = ["alloc"] }
-bytemuck = { version = "1", default-features = false, features = ["aarch64_simd", "extern_crate_alloc"] }
+bytemuck = { version = "1", default-features = false, features = ["aarch64_simd", "derive", "extern_crate_alloc"] }
 byteorder = { version = "1", features = ["i128"] }
 chrono = { version = "0.4" }
 clap = { version = "4", features = ["unstable-doc", "wrap_help"] }
@@ -29,15 +29,20 @@ digest = { version = "0.10", features = ["mac", "std"] }
 either = { version = "1" }
 elliptic-curve = { version = "0.12", default-features = false, features = ["ecdh", "hazmat", "pkcs8", "std"] }
 euclid = { version = "0.22", features = ["libm"] }
+fontdb = { version = "0.14", features = ["fontconfig"] }
 futures-channel = { version = "0.3", features = ["sink"] }
 futures-core = { version = "0.3" }
 futures-executor = { version = "0.3" }
 futures-sink = { version = "0.3" }
 futures-util = { version = "0.3", features = ["channel", "io", "sink"] }
 getrandom = { version = "0.2", default-features = false, features = ["js", "rdrand", "std"] }
+glutin = { version = "0.30", default-features = false, features = ["egl", "glx", "wayland", "wgl"] }
+half = { version = "2", features = ["bytemuck"] }
 hashbrown-582f2526e08bb6a0 = { package = "hashbrown", version = "0.14", default-features = false, features = ["raw"] }
 hashbrown-5ef9efb8ec2df382 = { package = "hashbrown", version = "0.12", features = ["raw"] }
 hmac = { version = "0.12", default-features = false, features = ["reset"] }
+i-slint-common = { path = "../vendor/slint/internal/common", features = ["shared-fontdb"] }
+i-slint-renderer-skia = { path = "../vendor/slint/internal/renderers/skia", features = ["opengl", "vulkan", "wayland", "x11"] }
 image = { version = "0.24" }
 indexmap = { version = "1", default-features = false, features = ["std"] }
 instant = { version = "0.1", default-features = false, features = ["now", "wasm-bindgen"] }
@@ -46,15 +51,15 @@ libc = { version = "0.2" }
 log = { version = "0.4", default-features = false, features = ["std"] }
 lyon_geom = { version = "1" }
 miniz_oxide = { version = "0.7", features = ["simd"] }
-notify = { version = "5", default-features = false, features = ["macos_fsevent", "macos_kqueue"] }
+notify = { version = "6", features = ["macos_kqueue"] }
 num-traits = { version = "0.2", features = ["i128", "libm"] }
-once_cell = { version = "1", features = ["atomic-polyfill"] }
+once_cell = { version = "1", features = ["critical-section"] }
 p256 = { version = "0.11", features = ["ecdh"] }
+parking_lot = { version = "0.12", features = ["send_guard"] }
 pin-weak = { version = "1" }
 pot = { version = "2", features = ["tracing"] }
 proc-macro2 = { version = "1", features = ["nightly", "span-locations"] }
 rand = { version = "0.8" }
-raw-window-handle = { version = "0.5", default-features = false, features = ["alloc"] }
 regex = { version = "1" }
 regex-automata = { version = "0.3", default-features = false, features = ["dfa-onepass", "hybrid", "meta", "nfa-backtrack", "perf-inline", "perf-literal", "unicode"] }
 regex-syntax = { version = "0.7" }
@@ -70,7 +75,8 @@ toml_datetime = { version = "0.6", default-features = false, features = ["serde"
 toml_edit = { version = "0.19", features = ["serde"] }
 tracing = { version = "0.1", features = ["log"] }
 tracing-core = { version = "0.1" }
-ttf-parser = { version = "0.18" }
+ttf-parser-954333c9f9249c96 = { package = "ttf-parser", version = "0.18" }
+ttf-parser-cdcf2f9584511fe6 = { package = "ttf-parser", version = "0.19", default-features = false, features = ["apple-layout", "glyph-names", "opentype-layout", "std", "variable-fonts"] }
 unicode-bidi = { version = "0.3" }
 url = { version = "2", features = ["serde"] }
 winit = { version = "0.28", default-features = false, features = ["wayland", "wayland-csd-adwaita", "x11"] }
@@ -79,7 +85,7 @@ zeroize = { version = "1", features = ["zeroize_derive"] }
 [build-dependencies]
 ahash = { version = "0.8" }
 base16ct = { version = "0.1", default-features = false, features = ["alloc"] }
-bytemuck = { version = "1", default-features = false, features = ["aarch64_simd", "extern_crate_alloc"] }
+bytemuck = { version = "1", default-features = false, features = ["aarch64_simd", "derive", "extern_crate_alloc"] }
 byteorder = { version = "1", features = ["i128"] }
 chrono = { version = "0.4" }
 clap = { version = "4", features = ["unstable-doc", "wrap_help"] }
@@ -92,15 +98,20 @@ digest = { version = "0.10", features = ["mac", "std"] }
 either = { version = "1" }
 elliptic-curve = { version = "0.12", default-features = false, features = ["ecdh", "hazmat", "pkcs8", "std"] }
 euclid = { version = "0.22", features = ["libm"] }
+fontdb = { version = "0.14", features = ["fontconfig"] }
 futures-channel = { version = "0.3", features = ["sink"] }
 futures-core = { version = "0.3" }
 futures-executor = { version = "0.3" }
 futures-sink = { version = "0.3" }
 futures-util = { version = "0.3", features = ["channel", "io", "sink"] }
 getrandom = { version = "0.2", default-features = false, features = ["js", "rdrand", "std"] }
+glutin = { version = "0.30", default-features = false, features = ["egl", "glx", "wayland", "wgl"] }
+half = { version = "2", features = ["bytemuck"] }
 hashbrown-582f2526e08bb6a0 = { package = "hashbrown", version = "0.14", default-features = false, features = ["raw"] }
 hashbrown-5ef9efb8ec2df382 = { package = "hashbrown", version = "0.12", features = ["raw"] }
 hmac = { version = "0.12", default-features = false, features = ["reset"] }
+i-slint-common = { path = "../vendor/slint/internal/common", features = ["shared-fontdb"] }
+i-slint-renderer-skia = { path = "../vendor/slint/internal/renderers/skia", features = ["opengl", "vulkan", "wayland", "x11"] }
 image = { version = "0.24" }
 indexmap = { version = "1", default-features = false, features = ["std"] }
 instant = { version = "0.1", default-features = false, features = ["now", "wasm-bindgen"] }
@@ -109,15 +120,15 @@ libc = { version = "0.2" }
 log = { version = "0.4", default-features = false, features = ["std"] }
 lyon_geom = { version = "1" }
 miniz_oxide = { version = "0.7", features = ["simd"] }
-notify = { version = "5", default-features = false, features = ["macos_fsevent", "macos_kqueue"] }
+notify = { version = "6", features = ["macos_kqueue"] }
 num-traits = { version = "0.2", features = ["i128", "libm"] }
-once_cell = { version = "1", features = ["atomic-polyfill"] }
+once_cell = { version = "1", features = ["critical-section"] }
 p256 = { version = "0.11", features = ["ecdh"] }
+parking_lot = { version = "0.12", features = ["send_guard"] }
 pin-weak = { version = "1" }
 pot = { version = "2", features = ["tracing"] }
 proc-macro2 = { version = "1", features = ["nightly", "span-locations"] }
 rand = { version = "0.8" }
-raw-window-handle = { version = "0.5", default-features = false, features = ["alloc"] }
 regex = { version = "1" }
 regex-automata = { version = "0.3", default-features = false, features = ["dfa-onepass", "hybrid", "meta", "nfa-backtrack", "perf-inline", "perf-literal", "unicode"] }
 regex-syntax = { version = "0.7" }
@@ -135,7 +146,8 @@ toml_datetime = { version = "0.6", default-features = false, features = ["serde"
 toml_edit = { version = "0.19", features = ["serde"] }
 tracing = { version = "0.1", features = ["log"] }
 tracing-core = { version = "0.1" }
-ttf-parser = { version = "0.18" }
+ttf-parser-954333c9f9249c96 = { package = "ttf-parser", version = "0.18" }
+ttf-parser-cdcf2f9584511fe6 = { package = "ttf-parser", version = "0.19", default-features = false, features = ["apple-layout", "glyph-names", "opentype-layout", "std", "variable-fonts"] }
 unicode-bidi = { version = "0.3" }
 url = { version = "2", features = ["serde"] }
 winit = { version = "0.28", default-features = false, features = ["wayland", "wayland-csd-adwaita", "x11"] }
