@@ -1,10 +1,21 @@
 
+import { HnButton } from "elements/hn-button.slint";
+
 export component DemoWindow inherits Window {
-    Image {
+    property <bool> on-top: true;
+    property <bool> image: true;
+    title: "Demo";
+    always-on-top: on-top;
+
+    if image: Image {
         source: @image-url("./demo-assets/coles-background.jpg");
         image-fit: cover;
         width: root.width;
         height: root.height;
+    }
+
+    if !image: Rectangle {
+        background: gray;
     }
 
     height: 500px;
@@ -12,7 +23,22 @@ export component DemoWindow inherits Window {
 
     VerticalLayout {
         padding: 20px;
+        spacing: 20px;
+        
+        HorizontalLayout {
+            height: 20px;
+            spacing: 20px;
 
+            HnButton {
+                text: "on-top " + (on-top ? "✓" : "▢");
+                clicked => { on-top = !on-top; }
+            }
+            HnButton {
+                text: "image " + (image ? "✓" : "▢");
+                clicked => { image = !image; }
+            }
+        }
+    
         @children
     }
 

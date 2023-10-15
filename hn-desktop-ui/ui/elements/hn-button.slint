@@ -1,0 +1,32 @@
+import { Theme } from "../theme.slint";
+
+export component HnButton inherits TouchArea {
+  in property <string> text: "Label";
+  in property <bool> primary: false;
+  Rectangle {
+      border-color: transparent;
+      border-width: 3px;
+      background: root.primary ? root.has-hover ? Theme.in-call-color : Theme.in-call-color.brighter(1) : transparent;
+      animate background {
+          duration: 0.2s;
+          easing: ease-in-out;
+      }
+  }
+  VerticalLayout {
+      padding-left: 4px;
+      padding-right: 4px;
+      min-width: text.width + 8px;
+      alignment: center;
+      text := Text {
+          font-size: Theme.text-ui-button-size;
+          font-family: Theme.text-ui-button-family;
+          font-weight: Theme.text-ui-button-weight;
+          color: root.primary ? white : root.has-hover ? Theme.text-body : Theme.text-body.brighter(5);
+          text: root.text;
+          animate color {
+              duration: 0.2s;
+              easing: ease-in-out;
+          }
+      }
+  }
+}

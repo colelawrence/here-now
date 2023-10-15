@@ -1,0 +1,9 @@
+import { Theme } from "../theme.slint";
+
+export component HnTextHeading inherits Text {
+  in property <float> resize: 1;
+  font-size: Theme.text-ui-heading-size * root.resize;
+  font-family: Theme.text-ui-heading-family;
+  font-weight: Theme.text-ui-heading-weight;
+  color: Theme.text-body;
+}

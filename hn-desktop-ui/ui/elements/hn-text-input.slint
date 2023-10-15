@@ -1,0 +1,68 @@
+import { Theme } from "../theme.slint";
+import { HnButton } from "hn-button.slint";
+import { HnText } from "hn-text.slint";
+
+export component HnTextInput inherits TouchArea {
+  in property <string> label: "Label";
+  in property <string> placeholder: "";
+  in property <[string]> examples: [];
+  in property <string> original_value: "";
+  in-out property <string> value <=> input.text;
+  vertical-stretch: 0;
+
+  clicked => {
+      input.focus();
+  }
+
+  VerticalLayout {
+      spacing: 4px;
+      HorizontalLayout {
+          alignment: start;
+          spacing: 4px;
+          Text {
+              vertical-stretch: 0;
+              font-size: Theme.text-ui-label-size;
+              font-family: Theme.text-ui-label-family;
+              font-weight: Theme.text-ui-label-weight;
+              color: Theme.text-body;
+              text: root.label;
+          }
+          if root.original_value != root.value: HnButton {
+              vertical-stretch: 0;
+              text: "Reset";
+              clicked => {
+                  root.value = root.original_value;
+              }
+          }
+      }
+      field := Rectangle {
+          padding: 4px;
+          min-height: Theme.text-ui-input-size + field.padding * 2;
+          border-width: 1px;
+          border-color: input.has-focus ? Theme.text-ui-input-active-border : Theme.text-ui-input-inactive-border;
+          border-radius: 3px;
+          vertical-stretch: 0;
+          input := TextInput {
+              y: field.padding;
+              x: field.padding;
+              font-size: Theme.text-ui-input-size;
+              font-family: Theme.text-ui-input-family;
+              font-weight: Theme.text-ui-input-weight + (root.original_value != root.value ? 100 : 0);
+              color: root.original_value != root.value ? Theme.text-body : Theme.text-body.brighter(2);
+          }
+      }
+      if examples.length > 0: HorizontalLayout {
+          alignment: start;
+          spacing: 4px;
+          HnText {
+              text: "For example ";
+          }
+          for example in examples: HnButton {
+              text: example;
+              clicked => {
+                  root.value = example;
+              }
+          }
+      }
+  }
+}

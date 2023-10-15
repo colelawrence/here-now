@@ -1,114 +1,7 @@
 import { Theme } from "./theme.slint";
-
-export component HnTextHeading inherits Text {
-    in property <float> resize: 1;
-    font-size: Theme.text-ui-heading-size * root.resize;
-    font-family: Theme.text-ui-heading-family;
-    font-weight: Theme.text-ui-heading-weight;
-    color: Theme.text-body;
-}
-export component HnText inherits Text {
-    font-size: Theme.text-content-size;
-    font-family: Theme.text-content-family;
-    font-weight: Theme.text-content-weight;
-    color: Theme.text-body;
-}
-
-export component HnButton inherits TouchArea {
-    in property <string> text: "Label";
-    in property <bool> primary: false;
-    Rectangle {
-        border-color: transparent;
-        border-width: 3px;
-        background: root.primary ? root.has-hover ? Theme.in-call-color : Theme.in-call-color.brighter(1) : transparent;
-        animate background {
-            duration: 0.2s;
-            easing: ease-in-out;
-        }
-    }
-    VerticalLayout {
-        padding-left: 4px;
-        padding-right: 4px;
-        min-width: text.width + 8px;
-        alignment: center;
-        text := Text {
-            font-size: Theme.text-ui-button-size;
-            font-family: Theme.text-ui-button-family;
-            font-weight: Theme.text-ui-button-weight;
-            color: root.primary ? white : root.has-hover ? Theme.text-body : Theme.text-body.brighter(5);
-            text: root.text;
-            animate color {
-                duration: 0.2s;
-                easing: ease-in-out;
-            }
-        }
-    }
-}
-
-export component HnTextInput inherits TouchArea {
-    in property <string> label: "Label";
-    in property <string> placeholder: "";
-    in property <[string]> examples: [];
-    in property <string> original_value: "";
-    in-out property <string> value <=> input.text;
-    vertical-stretch: 0;
-
-    clicked => {
-        input.focus();
-    }
-
-    VerticalLayout {
-        spacing: 4px;
-        HorizontalLayout {
-            alignment: start;
-            spacing: 4px;
-            Text {
-                vertical-stretch: 0;
-                font-size: Theme.text-ui-label-size;
-                font-family: Theme.text-ui-label-family;
-                font-weight: Theme.text-ui-label-weight;
-                color: Theme.text-body;
-                text: root.label;
-            }
-            if root.original_value != root.value: HnButton {
-                vertical-stretch: 0;
-                text: "Reset";
-                clicked => {
-                    root.value = root.original_value;
-                }
-            }
-        }
-        field := Rectangle {
-            padding: 4px;
-            min-height: Theme.text-ui-input-size + field.padding * 2;
-            border-width: 1px;
-            border-color: input.has-focus ? Theme.text-ui-input-active-border : Theme.text-ui-input-inactive-border;
-            border-radius: 3px;
-            vertical-stretch: 0;
-            input := TextInput {
-                y: field.padding;
-                x: field.padding;
-                font-size: Theme.text-ui-input-size;
-                font-family: Theme.text-ui-input-family;
-                font-weight: Theme.text-ui-input-weight + (root.original_value != root.value ? 100 : 0);
-                color: root.original_value != root.value ? Theme.text-body : Theme.text-body.brighter(2);
-            }
-        }
-        if examples.length > 0: HorizontalLayout {
-            alignment: start;
-            spacing: 4px;
-            HnText {
-                text: "For example ";
-            }
-            for example in examples: HnButton {
-                text: example;
-                clicked => {
-                    root.value = example;
-                }
-            }
-        }
-    }
-}
+import { HnAppIcon } from "elements/hn-app-icon.slint";
+import { HnTextHeading } from "elements/hn-text-heading.slint";
+import { HnButton } from "elements/hn-button.slint";
 
 export struct Notification {
     key: string,
@@ -117,21 +10,15 @@ export struct Notification {
 }
 
 export component HnModalHeading inherits HorizontalLayout {
-    in property <string> title;
+    in property <string> title: "Modal Heading Title";
     VerticalLayout {
         alignment: center;
-        Image {
-            width: 32px;
-            height: 32px;
-            source: @image-url("./rubber_ducky_illustration.png");
-        }
+        HnAppIcon { size: 32px; }
     }
     VerticalLayout {
         alignment: center;
         padding-top: 5px;
-        HnTextHeading {
-            text: root.title;
-        }
+        HnTextHeading { text: root.title; }
     }
 }
 
