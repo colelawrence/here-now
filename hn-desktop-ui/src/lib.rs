@@ -165,6 +165,5 @@ pub fn main_blocking(
     })
     .expect("run event loop for backend");
 
-
     tracing::error!("exited slint event loop unexpectedly");
 }

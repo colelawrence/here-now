@@ -1,0 +1,288 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug executable 'desktop'",
+      "cargo": {
+        "args": ["build", "--bin=desktop", "--package=desktop"],
+        "filter": {
+          "name": "desktop",
+          "kind": "bin"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug unit tests in executable 'xtask'",
+      "cargo": {
+        "args": ["test", "--no-run", "--bin=xtask", "--package=xtask"],
+        "filter": {
+          "name": "xtask",
+          "kind": "bin"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug unit tests in library 'devx-cmd'",
+      "cargo": {
+        "args": ["test", "--no-run", "--lib", "--package=devx-cmd"],
+        "filter": {
+          "name": "devx-cmd",
+          "kind": "lib"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug unit tests in library 'hn-tracing'",
+      "cargo": {
+        "args": ["test", "--no-run", "--lib", "--package=hn-tracing"],
+        "filter": {
+          "name": "hn-tracing",
+          "kind": "lib"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug executable 'hn-server'",
+      "cargo": {
+        "args": ["build", "--bin=hn-server", "--package=hn-server"],
+        "filter": {
+          "name": "hn-server",
+          "kind": "bin"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug unit tests in executable 'hn-server'",
+      "cargo": {
+        "args": ["test", "--no-run", "--bin=hn-server", "--package=hn-server"],
+        "filter": {
+          "name": "hn-server",
+          "kind": "bin"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug unit tests in library 'derive-codegen'",
+      "cargo": {
+        "args": ["test", "--no-run", "--lib", "--package=derive-codegen"],
+        "filter": {
+          "name": "derive-codegen",
+          "kind": "lib"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug unit tests in library 'i-codegen-code'",
+      "cargo": {
+        "args": ["test", "--no-run", "--lib", "--package=i-codegen-code"],
+        "filter": {
+          "name": "i-codegen-code",
+          "kind": "lib"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug unit tests in library 'hn-app'",
+      "cargo": {
+        "args": ["test", "--no-run", "--lib", "--package=hn-app"],
+        "filter": {
+          "name": "hn-app",
+          "kind": "lib"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug unit tests in library 'hn-hinted-id'",
+      "cargo": {
+        "args": ["test", "--no-run", "--lib", "--package=hn-hinted-id"],
+        "filter": {
+          "name": "hn-hinted-id",
+          "kind": "lib"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug example 'generate'",
+      "cargo": {
+        "args": ["build", "--example=generate", "--package=hn-hinted-id"],
+        "filter": {
+          "name": "generate",
+          "kind": "example"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug unit tests in example 'generate'",
+      "cargo": {
+        "args": ["test", "--no-run", "--example=generate", "--package=hn-hinted-id"],
+        "filter": {
+          "name": "generate",
+          "kind": "example"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug unit tests in library 'shipyard_app'",
+      "cargo": {
+        "args": ["test", "--no-run", "--lib", "--package=shipyard_app"],
+        "filter": {
+          "name": "shipyard_app",
+          "kind": "lib"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug unit tests in library 'hn-keys'",
+      "cargo": {
+        "args": ["test", "--no-run", "--lib", "--package=hn-keys"],
+        "filter": {
+          "name": "hn-keys",
+          "kind": "lib"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug unit tests in library 'hn-public-api'",
+      "cargo": {
+        "args": ["test", "--no-run", "--lib", "--package=hn-public-api"],
+        "filter": {
+          "name": "hn-public-api",
+          "kind": "lib"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug unit tests in executable 'desktop'",
+      "cargo": {
+        "args": ["test", "--no-run", "--bin=desktop", "--package=desktop"],
+        "filter": {
+          "name": "desktop",
+          "kind": "bin"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug unit tests in library 'hn-desktop-executor'",
+      "cargo": {
+        "args": ["test", "--no-run", "--lib", "--package=hn-desktop-executor"],
+        "filter": {
+          "name": "hn-desktop-executor",
+          "kind": "lib"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug unit tests in library 'hn-desktop-ui-messages'",
+      "cargo": {
+        "args": ["test", "--no-run", "--lib", "--package=hn-desktop-ui-messages"],
+        "filter": {
+          "name": "hn-desktop-ui-messages",
+          "kind": "lib"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug unit tests in library 'hn-desktop-ui'",
+      "cargo": {
+        "args": ["test", "--no-run", "--lib", "--package=hn-desktop-ui"],
+        "filter": {
+          "name": "hn-desktop-ui",
+          "kind": "lib"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug executable 'xtask'",
+      "cargo": {
+        "args": ["build", "--bin=xtask", "--package=xtask"],
+        "filter": {
+          "name": "xtask",
+          "kind": "bin"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    }
+  ]
+}

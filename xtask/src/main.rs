@@ -18,10 +18,16 @@ enum Args {
         watch: bool,
     },
     /// Run server for development
-    Server {
+    DevServer {
         /// Connect to jaeger
         #[clap(long)]
-        jaeger: bool,
+        no_jaeger: bool,
+    },
+    /// Run desktop for development (equivalent to)
+    DevDesktop {
+        /// Connect to jaeger
+        #[clap(long)]
+        no_jaeger: bool,
     },
     /// Build desktop app
     Desktop {
@@ -30,7 +36,7 @@ enum Args {
         build: bool,
         /// Connect to jaeger
         #[clap(long)]
-        jaeger: bool,
+        no_jaeger: bool,
         /// Generate timing information and open the artifact
         #[clap(long)]
         timings: bool,
@@ -71,7 +77,7 @@ enum Args {
         docker: bool,
         /// If you're expecting to see the Jaeger dashboard via the config server proxy /dev/jaeger
         #[clap(long)]
-        proxied: bool,
+        no_proxy: bool,
     },
 }
 
@@ -85,15 +91,18 @@ fn main() {
 
     match args {
         Args::WebBuild { watch } => web_build(watch),
-        Args::Jaeger { docker, proxied } => jaeger(docker, proxied).join(),
-        Args::Server { jaeger } => server_cmd(jaeger),
+        Args::Jaeger { docker, no_proxy } => jaeger(docker, no_proxy).join(),
+        Args::DevServer { no_jaeger } => server_cmd(no_jaeger),
+        Args::DevDesktop { no_jaeger } => {
+            desktop_cmd(no_jaeger, true, true, false, Some("dev".to_string()))
+        }
         Args::Desktop {
             build,
-            jaeger,
+            no_jaeger,
             timings,
             watch,
             label,
-        } => desktop_cmd(jaeger, build, watch, timings, label),
+        } => desktop_cmd(no_jaeger, build, watch, timings, label),
         Args::View { file } => viewer(file),
         Args::Hakari => hakari(),
         Args::Fix => fix(),
@@ -121,7 +130,7 @@ fn generate_hinted_id(prefix: &str, count: Option<usize>) {
         .run_it("generate hinted id")
 }
 
-fn jaeger(docker: bool, proxied: bool) -> jod_thread::JoinHandle {
+fn jaeger(docker: bool, no_proxy: bool) -> jod_thread::JoinHandle {
     let proxy_base_path = "/dev/traces";
     if docker {
         Cmd::new("docker")
@@ -131,7 +140,7 @@ fn jaeger(docker: bool, proxied: bool) -> jod_thread::JoinHandle {
             .arg("-p14268:14268") // open port for trace collector http
             .arg("jaegertracing/all-in-one:latest")
             .arg("--")
-            .arg_if(proxied, &format!("--query.base-path={proxy_base_path}"))
+            .arg_if(!no_proxy, &format!("--query.base-path={proxy_base_path}"))
             .root_dir(".")
             .run_in_thread("starting jaeger in docker")
     } else {
@@ -139,7 +148,7 @@ fn jaeger(docker: bool, proxied: bool) -> jod_thread::JoinHandle {
         Cmd::new("jaeger-all-in-one")
             .root_dir("./xtask/jaeger")
             .arg("--query.ui-config=./jaeger-config.json")
-            .arg_if(proxied, &format!("--query.base-path={proxy_base_path}"))
+            .arg_if(!no_proxy, &format!("--query.base-path={proxy_base_path}"))
             .run_with_printer("starting jaeger locally", print_jaeger_line)
     }
 }
@@ -197,12 +206,12 @@ const WATCH_COMMON_DEPS: &str =
     "-w ../hn-public-api -w ../hn-keys -w ../hn-hinted-id -w ../hn-tracing -w ../hn-app";
 
 #[instrument]
-fn server_cmd(jaeger: bool) {
+fn server_cmd(no_jaeger: bool) {
     let server = Cmd::new("cargo")
         .env("HERE_NOW_LOG", "debug,!pot,!nebari")
         .env("HERE_NOW_CONFIG_FOLDER", "../conf")
         .env_if(
-            jaeger,
+            !no_jaeger,
             "JAEGER_COLLECTOR_ENDPOINT",
             "http://localhost:14268/api/traces",
         )
@@ -222,7 +231,7 @@ fn server_cmd(jaeger: bool) {
 }
 
 #[instrument]
-fn desktop_cmd(jaeger: bool, build: bool, watch: bool, timings: bool, label: Option<String>) {
+fn desktop_cmd(no_jaeger: bool, build: bool, watch: bool, timings: bool, label: Option<String>) {
     Cmd::new("cargo")
     .env("HERE_NOW_LOG", "debug,!pot,!nebari")
     .env("SLINT_DEBUG_PERFORMANCE", "refresh_lazy,overlay")
@@ -231,7 +240,7 @@ fn desktop_cmd(jaeger: bool, build: bool, watch: bool, timings: bool, label: Opt
     .env("SLINT_NO_QT", "1")
     .env("RUST_BACKTRACE", "1")
         .env_if(
-            jaeger,
+            !no_jaeger,
             "JAEGER_COLLECTOR_ENDPOINT",
             "http://localhost:14268/api/traces",
         )

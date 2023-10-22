@@ -74,13 +74,15 @@ Install `jaeger-all-in-one` by adding [the binary from releases](https://github.
 
 ```sh
 cargo xtask jaeger # in one terminal
-cargo xtask dev --jaeger # in the other
+cargo xtask dev-server # in the other
+cargo xtask dev-desktop # in the other
 ```
 
 ### Using Jaeger in docker.
 
 ```sh
 cargo xtask jaeger --docker # in one terminal
-cargo xtask dev --jaeger # in the other
+cargo xtask dev-server # in the other
+cargo xtask dev-desktop # in the other
 ```
 
