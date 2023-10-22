@@ -4,6 +4,7 @@ use hn_hinted_id::HintedID;
 use slint::ComponentHandle;
 use tracing::*;
 
+mod slint_models;
 mod slint_ui {
     pub use ui_main_window::*;
     pub use ui_settings_profile_server_window::*;
@@ -40,7 +41,6 @@ struct UILocalRecv(());
 impl UILocalRecv {
     // separate out so we can handle a potential error at the caller
     fn apply(&self, msg: ui::ToUI) {
-        use slint::*;
         match msg {
             ui::ToUI::ShowMainWindow => {
                 run_in_event_loop(|main_ui| {
@@ -159,10 +159,12 @@ pub fn main_blocking(
         // importantly set this behavior so we don't exit if no windows are shown.
         // this allows us to keep the event loop running and show windows when we want.
         platform.set_event_loop_quit_on_last_window_closed(false);
+        println!("Selected backend and will run event loop");
 
         platform.run_event_loop()
     })
     .expect("run event loop for backend");
+
 
     tracing::error!("exited slint event loop unexpectedly");
 }
