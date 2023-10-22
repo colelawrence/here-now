@@ -8,10 +8,10 @@ publish = false
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+api.workspace = true
 hn-app.workspace = true
 hn-hinted-id.workspace = true
 hn-keys.workspace = true
-hn-public-api.workspace = true
 hn-tracing.workspace = true
 derive-codegen.workspace = true
 serde.workspace = true

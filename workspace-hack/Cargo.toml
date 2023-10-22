@@ -16,7 +16,7 @@ publish = false
 [dependencies]
 ahash = { version = "0.8" }
 base16ct = { version = "0.1", default-features = false, features = ["alloc"] }
-bytemuck = { version = "1", default-features = false, features = ["aarch64_simd", "derive", "extern_crate_alloc"] }
+bytemuck = { version = "1", default-features = false, features = ["aarch64_simd", "extern_crate_alloc"] }
 byteorder = { version = "1", features = ["i128"] }
 chrono = { version = "0.4" }
 clap = { version = "4", features = ["unstable-doc"] }
@@ -70,7 +70,7 @@ zeroize = { version = "1", features = ["zeroize_derive"] }
 [build-dependencies]
 ahash = { version = "0.8" }
 base16ct = { version = "0.1", default-features = false, features = ["alloc"] }
-bytemuck = { version = "1", default-features = false, features = ["aarch64_simd", "derive", "extern_crate_alloc"] }
+bytemuck = { version = "1", default-features = false, features = ["aarch64_simd", "extern_crate_alloc"] }
 byteorder = { version = "1", features = ["i128"] }
 chrono = { version = "0.4" }
 clap = { version = "4", features = ["unstable-doc"] }

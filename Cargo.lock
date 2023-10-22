@@ -2334,21 +2334,13 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bonsaidb",
- "env_logger",
  "futures",
  "hn-hinted-id",
  "i-hn-app-proc",
- "opentelemetry",
- "opentelemetry-jaeger",
- "rayon",
- "reqwest",
  "shipyard",
  "shipyard_app",
  "tokio",
- "toml_edit",
  "tracing",
- "tracing-opentelemetry",
- "tracing-subscriber 0.3.17",
  "workspace-hack",
 ]
 

@@ -317,6 +317,7 @@ pub mod net {
         Ok(VerifiedMessage { header, data })
     }
 
+    /// Structureless 
     #[derive(serde::Serialize, serde::Deserialize)]
     pub struct WireMessage {
         /// Associated data would be the place where we should put the sender's identity

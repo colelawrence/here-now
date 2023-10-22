@@ -46,9 +46,9 @@ keywords = []
 documentation = ""
 
 [workspace.dependencies]
+api = { package = "hn-public-api", path = "./hn-public-api", version = "*" }
 hn-app = { path = "./hn-app", version = "*" }
 hn-keys = { path = "./hn-keys", version = "*" }
-hn-public-api = { path = "./hn-public-api", version = "*" }
 hn-tracing = { path = "./hn-tracing", version = "*" }
 hn-hinted-id = { path = "./hn-hinted-id", version = "*" }
 ui = { package = "hn-desktop-ui-messages", path = "./hn-desktop-ui-messages", version = "*" }

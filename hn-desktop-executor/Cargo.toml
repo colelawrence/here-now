@@ -10,7 +10,7 @@ publish = false
 [dependencies]
 hn-app.workspace = true
 hn-keys.workspace = true
-hn-public-api.workspace = true
+api.workspace = true
 hn-tracing.workspace = true
 ui.workspace = true
 tokio.workspace = true

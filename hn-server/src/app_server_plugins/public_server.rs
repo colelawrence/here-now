@@ -15,7 +15,6 @@ use crate::prelude::*;
 use hn_app::_ecs_::*;
 
 use hn_keys::{self, net::RawWireResult};
-use hn_public_api;
 use http::{header::LOCATION, StatusCode};
 
 use tower_http::{services::ServeDir, trace::TraceLayer};
@@ -121,15 +120,15 @@ async fn get_public_key(
 async fn post_mutate(
     Extension(app_ctx): Extension<AppCtx>,
     Extension(local_keys): Extension<hn_keys::LocalKeys>,
-    Verified(message): Verified<hn_public_api::Mutate>,
+    Verified(message): Verified<api::Mutate>,
 ) -> HttpResult<impl IntoResponse> {
     warn!(sender = ?message.sender(), data = ?message.data(), "verified, now we need to do something for the client...");
 
     use post_mutate::Mutation;
 
     let mutate_result = match message.data() {
-        hn_public_api::Mutate::Ping(_) => Ok(RawWireResult::from_ok(hn_public_api::Pong)),
-        hn_public_api::Mutate::CreateDevice(create_device) => create_device
+        api::Mutate::Ping(_) => Ok(RawWireResult::from_ok(api::Pong)),
+        api::Mutate::CreateDevice(create_device) => create_device
             .mutate(message.sender(), app_ctx)
             .await
             .map(RawWireResult::from_ok),
@@ -139,11 +138,11 @@ async fn post_mutate(
         Ok(res) => (StatusCode::OK, res),
         Err(rejection) => (
             match rejection {
-                hn_public_api::MutateRejection::InternalError(_) => {
+                api::MutateRejection::InternalError(_) => {
                     StatusCode::INTERNAL_SERVER_ERROR
                 }
-                hn_public_api::MutateRejection::BadRequest(_) => StatusCode::BAD_REQUEST,
-                hn_public_api::MutateRejection::Unauthorized(_) => StatusCode::UNAUTHORIZED,
+                api::MutateRejection::BadRequest(_) => StatusCode::BAD_REQUEST,
+                api::MutateRejection::Unauthorized(_) => StatusCode::UNAUTHORIZED,
             },
             RawWireResult::from_err(rejection),
         ),

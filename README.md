@@ -86,3 +86,31 @@ cargo xtask dev-server # in the other
 cargo xtask dev-desktop # in the other
 ```
 
+
+## Codebase structure
+
+
+Utility crates:
+ * `hn-keys`: Simplified encryption tools for public/private key `LocalKeys`, `VerifiedMessage`, and `WireMessage`
+ * `hn-hinted-id`: A Serde, BonsaiDB, and Shipyard compatible prefixed XID.
+ * `hn-tracing`: Shared tracing/open-telemetry configuration between desktop, server, and xtask
+ * `hn-app`: Shared tools and helper types for importing and exporting data between Shipyard (ECS) and BonsaiDB. And helpers for a command cycle with BonsaiDB and Shipyard App with `AppCtx`.
+
+### Desktop crates
+
+ * `hn-desktop`: Glues together the UI and Executor via message passing over a boxed trait to ensure the two halves of the desktop code can compile concurrently.
+ * `hn-desktop-ui`: Manages Slint windows and their state
+ * `hn-desktop-executor`: Maintains client application state such as key storage and server communication. Primarily, it's just the logic for communicating with the connected servers (and maybe it will be in charge of host operating system interaction?)
+ * `hn-desktop-ui-messages` (`ui`): The communication types shared between executor and ui. For example, it's types may be referenced as `ui::ToExecutor` and `ui::ToUI`.
+
+## Server crates
+
+ * `hn-server`: The public server implementation for Here Now. This is where clients should be able to connect to to set up their profiles.
+ * `hn-public-api` (`api`): The communication types between executor and server. For example, it's types might be aliased like `api::Mutation`.
+
+### Codebase maintenance
+Tools for maintaining tidyness in the codebase.
+
+ * `xtask`: all codebase commands go through `cargo xtask ...` and those go to this executable.
+   This allows us to write the majority of our code in Rust and cross-platform, including codebase management code. See [matklad/cargo-xtask](https://github.com/matklad/cargo-xtask).
+ * `workspace-hack`: A crate maintained by [hakari](https://docs.rs/cargo-hakari/latest/cargo_hakari/), updated by the `cargo xtask hakari` command.

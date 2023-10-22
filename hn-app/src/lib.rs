@@ -187,4 +187,3 @@ pub mod _ecs_ {
 
 pub mod app_ctx;
 pub mod database_plugin;
-pub mod logging;

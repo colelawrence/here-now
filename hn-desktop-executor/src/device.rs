@@ -7,14 +7,14 @@ pub(super) async fn _start() {
     );
 
     let resp = client
-        .send(hn_public_api::Ping)
+        .send(api::Ping)
         .await
         .expect("pinged server");
 
     let _ = dbg!(resp);
 
     let resp = client
-        .send(hn_public_api::CreateDeviceMutation {
+        .send(api::CreateDeviceMutation {
             label: "desktop".to_string(),
         })
         .await
