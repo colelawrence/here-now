@@ -12,5 +12,5 @@ pub trait Mutation: api::Mutation {
         &self,
         sender: &hn_keys::PublicKeyKind,
         app_ctx: AppCtx,
-    ) -> api::MutateResult<Self>;
+    ) -> api::ServerResult<Self>;
 }

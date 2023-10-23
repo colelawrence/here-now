@@ -120,29 +120,30 @@ async fn get_public_key(
 async fn post_mutate(
     Extension(app_ctx): Extension<AppCtx>,
     Extension(local_keys): Extension<hn_keys::LocalKeys>,
-    Verified(message): Verified<api::Mutate>,
+    Verified(message): Verified<api::ToServer>,
 ) -> HttpResult<impl IntoResponse> {
     warn!(sender = ?message.sender(), data = ?message.data(), "verified, now we need to do something for the client...");
 
     use post_mutate::Mutation;
 
     let mutate_result = match message.data() {
-        api::Mutate::Ping(_) => Ok(RawWireResult::from_ok(api::Pong)),
-        api::Mutate::CreateDevice(create_device) => create_device
+        api::ToServer::Ping(_) => Ok(RawWireResult::from_ok(api::Pong)),
+        api::ToServer::CreateDevice(create_device) => create_device
             .mutate(message.sender(), app_ctx)
             .await
             .map(RawWireResult::from_ok),
+        api::ToServer::Device(device) => Err(api::ServerRejection::InternalError(format!(
+            "api::ToServer::Device: Not implemented: {device:#?}"
+        ))),
     };
 
     let (status, raw_result) = match mutate_result {
         Ok(res) => (StatusCode::OK, res),
         Err(rejection) => (
             match rejection {
-                api::MutateRejection::InternalError(_) => {
-                    StatusCode::INTERNAL_SERVER_ERROR
-                }
-                api::MutateRejection::BadRequest(_) => StatusCode::BAD_REQUEST,
-                api::MutateRejection::Unauthorized(_) => StatusCode::UNAUTHORIZED,
+                api::ServerRejection::InternalError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+                api::ServerRejection::BadRequest(_) => StatusCode::BAD_REQUEST,
+                api::ServerRejection::Unauthorized(_) => StatusCode::UNAUTHORIZED,
             },
             RawWireResult::from_err(rejection),
         ),

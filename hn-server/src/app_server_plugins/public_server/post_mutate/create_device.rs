@@ -3,13 +3,13 @@ use crate::prelude::*;
 use hn_app::_ecs_::*;
 
 #[async_trait]
-impl Mutation for api::CreateDeviceMutation {
+impl Mutation for api::CreateDevice {
     #[instrument(skip(app_ctx), name = "create device mutation")]
     async fn mutate(
         &self,
         sender: &hn_keys::PublicKeyKind,
         app_ctx: AppCtx,
-    ) -> api::MutateResult<Self> {
+    ) -> api::ServerResult<Self> {
         let (tx, rx) = tokio::sync::oneshot::channel();
         let tx = std::sync::Mutex::new(Some(tx));
         let label = self.label.clone();
@@ -56,6 +56,6 @@ impl Mutation for api::CreateDeviceMutation {
             .map(|device_id| api::CreateDeviceResponse {
                 device_id: device_id.to_id_string(),
             })
-            .map_err(|err| api::MutateRejection::InternalError(err.to_string()))
+            .map_err(|err| api::ServerRejection::InternalError(err.to_string()))
     }
 }

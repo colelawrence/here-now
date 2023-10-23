@@ -2427,6 +2427,8 @@ dependencies = [
 name = "hn-public-api"
 version = "0.1.0"
 dependencies = [
+ "hn-hinted-id",
+ "hn-usr",
  "serde",
  "workspace-hack",
 ]
@@ -2497,6 +2499,14 @@ dependencies = [
  "tracing",
  "tracing-opentelemetry",
  "tracing-subscriber 0.3.17",
+ "workspace-hack",
+]
+
+[[package]]
+name = "hn-usr"
+version = "0.1.0"
+dependencies = [
+ "serde",
  "workspace-hack",
 ]
 

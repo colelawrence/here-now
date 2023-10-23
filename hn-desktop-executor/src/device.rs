@@ -6,15 +6,12 @@ pub(super) async fn _start() {
         "http://0.0.0.0:9000".to_string(),
     );
 
-    let resp = client
-        .send(api::Ping)
-        .await
-        .expect("pinged server");
+    let resp = client.send(api::Ping).await.expect("pinged server");
 
     let _ = dbg!(resp);
 
     let resp = client
-        .send(api::CreateDeviceMutation {
+        .send(api::CreateDevice {
             label: "desktop".to_string(),
         })
         .await

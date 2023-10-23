@@ -27,7 +27,7 @@ pub type HttpResult<T = axum::response::Html<String>> =
     core::result::Result<T, (http::StatusCode, String)>;
 
 #[cfg(test)]
-pub(crate) use hn_app::logging::test_logger;
+pub(crate) use hn_tracing::test_logger;
 
 pub type JSON = serde_json::Value;
 pub type Cowstr = Cow<'static, str>;

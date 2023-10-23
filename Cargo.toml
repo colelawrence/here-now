@@ -12,6 +12,7 @@ members = [
   "hn-keys",
   "hn-public-api",
   "hn-tracing",
+  "hn-usr",
   # 'vendor/slint/api/rs/build',
   # 'vendor/slint/api/rs/slint',
   # 'vendor/slint/internal/backends/winit',
@@ -24,6 +25,7 @@ members = [
   # 'vendor/slint/tools/viewer',
   # 'vendor/slint/tools/lsp',
 ]
+
 exclude = [
   "vendor/shipyard",
   "vendor/quickjs-rs",
@@ -51,6 +53,7 @@ hn-app = { path = "./hn-app", version = "*" }
 hn-keys = { path = "./hn-keys", version = "*" }
 hn-tracing = { path = "./hn-tracing", version = "*" }
 hn-hinted-id = { path = "./hn-hinted-id", version = "*" }
+hn-usr = { path = "./hn-usr", version = "*" }
 ui = { package = "hn-desktop-ui-messages", path = "./hn-desktop-ui-messages", version = "*" }
 derive-codegen = { path = "vendor/derive-codegen/derive-codegen", version = "*" }
 i-codegen-derive = { path = "vendor/derive-codegen/derive", version = "*" }
