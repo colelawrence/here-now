@@ -13,17 +13,7 @@ members = [
   "hn-public-api",
   "hn-tracing",
   "hn-usr",
-  # 'vendor/slint/api/rs/build',
-  # 'vendor/slint/api/rs/slint',
-  # 'vendor/slint/internal/backends/winit',
-  # 'vendor/slint/internal/backends/qt',
-  # 'vendor/slint/internal/backends/selector',
-  # 'vendor/slint/internal/backends/linuxkms',
-  # 'vendor/slint/internal/compiler',
-  # 'vendor/slint/internal/core',
-  # 'vendor/slint/internal/interpreter',
-  # 'vendor/slint/tools/viewer',
-  # 'vendor/slint/tools/lsp',
+  "rn-desktop/src-tauri",
 ]
 
 exclude = [

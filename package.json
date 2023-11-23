@@ -1,17 +1,38 @@
 {
+  "name": "here-now-node-tooling",
+  "description": "Here Now and Right Now desktop app tooling",
+  "private": true,
+  "version": "0.0.0",
+  "license": "MIT | APACHE-2.0",
+  "packageManager": "npm@9.8.1",
+  "lint-staged": {
+    "*": [
+      "prettier --write --ignore-unknown"
+    ],
+    "*.rs": [
+      "cargo fmt --quiet --"
+    ]
+  },
+  "scripts": {
+    "prepare": "husky install"
+  },
+  "dependencies": {
+    "launch-editor": "^2.6.0",
+    "svelte": "^4.1.2"
+  },
   "devDependencies": {
     "@artprompt/material-color-utilities": "^0.2.0",
     "@capsizecss/core": "^3.1.1",
     "@capsizecss/metrics": "^1.2.0",
     "@types/node": "^20.4.1",
+    "husky": "^8.0.0",
+    "lint-staged": "^15.1.0",
     "no-case": "^3.0.4",
     "prettier": "^3.0.0",
+    "prettier-plugin-organize-imports": "^3.2.4",
+    "prettier-plugin-svelte": "^3.0.3",
     "tailwindcss": "^3.3.2",
     "tslib": "^2.6.0",
     "typescript": "^5.1.6"
-  },
-  "dependencies": {
-    "launch-editor": "^2.6.0",
-    "svelte": "^4.1.2"
   }
 }

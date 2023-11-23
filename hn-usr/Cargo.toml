@@ -1,7 +1,7 @@
 [package]
 name = "hn-usr"
 version = "0.1.0"
-description = "User displayed content"
+description = "User displayed content such as rich text inline"
 edition.workspace = true
 license.workspace = true
 
