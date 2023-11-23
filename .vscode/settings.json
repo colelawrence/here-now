@@ -3,5 +3,12 @@
     "tailwindCSS.codeActions": true,
     "tailwindCSS.hovers": true,
     "tailwindCSS.experimental.classRegex": ["class=\"([^\"]+)\""]
+  },
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/bower_components": true,
+    "**/*.code-search": true,
+    "experiments": true,
+    "vendor": true
   }
 }
