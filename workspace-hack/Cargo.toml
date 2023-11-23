@@ -20,7 +20,7 @@ bytemuck = { version = "1", default-features = false, features = ["aarch64_simd"
 byteorder = { version = "1", features = ["i128"] }
 chrono = { version = "0.4" }
 clap = { version = "4", features = ["unstable-doc"] }
-clap_builder = { version = "4", default-features = false, features = ["std", "suggestions", "unstable-doc", "usage"] }
+clap_builder = { version = "4", default-features = false, features = ["color", "std", "suggestions", "unstable-doc", "usage"] }
 crossbeam-utils = { version = "0.8" }
 crypto-common = { version = "0.1", default-features = false, features = ["getrandom", "std"] }
 der = { version = "0.6", default-features = false, features = ["alloc", "oid", "zeroize"] }
@@ -81,7 +81,7 @@ bytemuck = { version = "1", default-features = false, features = ["aarch64_simd"
 byteorder = { version = "1", features = ["i128"] }
 chrono = { version = "0.4" }
 clap = { version = "4", features = ["unstable-doc"] }
-clap_builder = { version = "4", default-features = false, features = ["std", "suggestions", "unstable-doc", "usage"] }
+clap_builder = { version = "4", default-features = false, features = ["color", "std", "suggestions", "unstable-doc", "usage"] }
 crossbeam-utils = { version = "0.8" }
 crypto-common = { version = "0.1", default-features = false, features = ["getrandom", "std"] }
 der = { version = "0.6", default-features = false, features = ["alloc", "oid", "zeroize"] }

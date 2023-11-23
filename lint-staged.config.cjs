@@ -2,6 +2,10 @@
 /** @type {import("lint-staged").Config} */
 module.exports = {
   "*": ["prettier --write --ignore-unknown"],
+  "**/Cargo.toml": () => {
+    // regenerate workspace-hack toml
+    return "cargo xtask hakari";
+  },
   "**/*.rs": (files) => {
     const crates = new Set();
     for (const file of files) {
