@@ -30,7 +30,7 @@ tracing.workspace = true
 
 # tauri deps
 # https://docs.rs/tauri/latest/tauri/#cargo-features
-tauri = { version = "=1.4.1", features = [
+tauri = { version = "1.5", features = [
   "shell-open",
   "global-shortcut",
   "clipboard",
