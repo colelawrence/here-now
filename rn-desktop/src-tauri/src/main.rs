@@ -39,7 +39,7 @@ mod plugin {
                     println!("app is ready");
                 }
                 RunEvent::WindowEvent { label, event, .. } => {
-                    println!("window {} received an event: {:?}", label, event);
+                    println!("window {label} received an event: {event:?}");
                 }
                 _ => (),
             })

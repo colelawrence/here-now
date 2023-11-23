@@ -16,9 +16,9 @@
 
 .container {
   margin: 0;
-  padding-top: 10vh;
   display: flex;
   flex-direction: column;
+  gap: 8px;
   justify-content: center;
   text-align: center;
 }
@@ -37,6 +37,7 @@
 .row {
   display: flex;
   justify-content: center;
+  gap: 8px;
 }
 
 a {
