@@ -13,9 +13,30 @@ edition = "2021"
 tauri-build = { version = "1.5", features = [] }
 
 [dependencies]
-tauri = { version = "1.5", features = ["shell-open"] }
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
+hn-app.workspace = true
+hn-keys.workspace = true
+hn-tracing.workspace = true
+bonsaidb = { workspace = true, default-features = false, features = [] }
+shipyard.workspace = true
+shipyard_app.workspace = true
+workspace-hack = { version = "0.1", path = "../../workspace-hack" }
+
+# general deps
+anyhow.workspace = true
+reqwest = { version = "0.11.18", features = ["json", "serde_json"] }
+serde.workspace = true
+serde_json.workspace = true
+tracing.workspace = true
+
+# tauri deps
+# https://docs.rs/tauri/latest/tauri/#cargo-features
+tauri = { version = "=1.4.1", features = [
+  "shell-open",
+  "global-shortcut",
+  "clipboard",
+  "notification",
+] }
+# tauri-utils = { version = "1.5", features = ["schema"] }
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem

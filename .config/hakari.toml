@@ -21,6 +21,12 @@ platforms = [
 ]
 
 [final-excludes]
+third-party = [
+    # Need to be added in order to not screw with the "custom-protocol" feature flag
+    # See "[bug] tauri dev opens distDir #3440" https://github.com/tauri-apps/tauri/issues/3440
+    { name = "tauri" },
+    { name = "tauri-macros" },
+]
 workspace-members = [
     "derive-codegen",
     "devx-cmd",

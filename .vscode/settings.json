@@ -8,6 +8,7 @@
     "**/node_modules": true,
     "**/bower_components": true,
     "**/*.code-search": true,
+    "**/*.lock": true,
     "experiments": true,
     "vendor": true
   }

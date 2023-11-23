@@ -23,8 +23,14 @@ enum Args {
         #[clap(long)]
         no_jaeger: bool,
     },
-    /// Run desktop for development (equivalent to)
+    /// Run desktop for development
     DevDesktop {
+        /// Connect to jaeger
+        #[clap(long)]
+        no_jaeger: bool,
+    },
+    /// Run Right Now desktop for development
+    DevRn {
         /// Connect to jaeger
         #[clap(long)]
         no_jaeger: bool,
@@ -96,6 +102,7 @@ fn main() {
         Args::DevDesktop { no_jaeger } => {
             desktop_cmd(no_jaeger, true, true, false, Some("dev".to_string()))
         }
+        Args::DevRn { no_jaeger } => right_now_dev_cmd(no_jaeger),
         Args::Desktop {
             build,
             no_jaeger,
@@ -228,6 +235,19 @@ fn server_cmd(no_jaeger: bool) {
 
     web_assets.join();
     server.join();
+}
+
+#[instrument]
+fn right_now_dev_cmd(no_jaeger: bool) {
+    Cmd::new("npm")
+        .args("run tauri dev".split(' '))
+        .root_dir("./rn-desktop")
+        .env_if(
+            !no_jaeger,
+            "JAEGER_COLLECTOR_ENDPOINT",
+            "http://localhost:14268/api/traces",
+        )
+        .run_it("build or run hn-desktop Rust program");
 }
 
 #[instrument]

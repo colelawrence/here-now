@@ -16,61 +16,7 @@ publish = false
 [dependencies]
 ahash = { version = "0.8" }
 base16ct = { version = "0.1", default-features = false, features = ["alloc"] }
-bytemuck = { version = "1", default-features = false, features = ["aarch64_simd", "extern_crate_alloc"] }
-byteorder = { version = "1", features = ["i128"] }
-chrono = { version = "0.4" }
-clap = { version = "4", features = ["unstable-doc"] }
-clap_builder = { version = "4", default-features = false, features = ["std", "suggestions", "unstable-doc", "usage"] }
-crossbeam-utils = { version = "0.8" }
-crypto-common = { version = "0.1", default-features = false, features = ["getrandom", "std"] }
-der = { version = "0.6", default-features = false, features = ["alloc", "oid", "zeroize"] }
-digest = { version = "0.10", features = ["mac", "std"] }
-either = { version = "1", default-features = false, features = ["use_std"] }
-elliptic-curve = { version = "0.12", default-features = false, features = ["ecdh", "hazmat", "pkcs8", "std"] }
-futures-channel = { version = "0.3", features = ["sink"] }
-futures-core = { version = "0.3" }
-futures-executor = { version = "0.3" }
-futures-sink = { version = "0.3" }
-futures-util = { version = "0.3", features = ["channel", "io", "sink"] }
-getrandom = { version = "0.2", default-features = false, features = ["js", "rdrand", "std"] }
-hashbrown-582f2526e08bb6a0 = { package = "hashbrown", version = "0.14", default-features = false, features = ["raw"] }
-hashbrown-5ef9efb8ec2df382 = { package = "hashbrown", version = "0.12", features = ["raw"] }
-hmac = { version = "0.12", default-features = false, features = ["reset"] }
-image = { version = "0.24" }
-indexmap = { version = "1", default-features = false, features = ["std"] }
-jpeg-decoder = { version = "0.3", default-features = false, features = ["rayon"] }
-libc = { version = "0.2" }
-log = { version = "0.4", default-features = false, features = ["std"] }
-lyon_geom = { version = "1" }
-miniz_oxide = { version = "0.7", features = ["simd"] }
-num-traits = { version = "0.2", features = ["i128", "libm"] }
-once_cell = { version = "1", features = ["critical-section"] }
-p256 = { version = "0.11", features = ["ecdh"] }
-pot = { version = "2", features = ["tracing"] }
-rand = { version = "0.8" }
-regex = { version = "1" }
-regex-automata = { version = "0.3", default-features = false, features = ["dfa-onepass", "hybrid", "meta", "nfa-backtrack", "perf-inline", "perf-literal", "unicode"] }
-regex-syntax = { version = "0.7" }
-reqwest = { version = "0.11", features = ["blocking", "json", "multipart"] }
-sec1 = { version = "0.3", features = ["alloc", "subtle"] }
-serde = { version = "1", features = ["derive", "rc"] }
-serde_json = { version = "1", features = ["raw_value"] }
-sha2 = { version = "0.10" }
-shipyard = { path = "../vendor/shipyard", features = ["tracing"] }
-slab = { version = "0.4" }
-smallvec = { version = "1", default-features = false, features = ["const_generics"] }
-toml_datetime = { version = "0.6", default-features = false, features = ["serde"] }
-toml_edit = { version = "0.19", features = ["serde"] }
-tracing = { version = "0.1", features = ["log"] }
-tracing-core = { version = "0.1" }
-ttf-parser = { version = "0.18" }
-unicode-bidi = { version = "0.3" }
-zeroize = { version = "1", features = ["zeroize_derive"] }
-
-[build-dependencies]
-ahash = { version = "0.8" }
-base16ct = { version = "0.1", default-features = false, features = ["alloc"] }
-bytemuck = { version = "1", default-features = false, features = ["aarch64_simd", "extern_crate_alloc"] }
+bytemuck = { version = "1", default-features = false, features = ["aarch64_simd", "derive", "extern_crate_alloc"] }
 byteorder = { version = "1", features = ["i128"] }
 chrono = { version = "0.4" }
 clap = { version = "4", features = ["unstable-doc"] }
@@ -102,26 +48,94 @@ once_cell = { version = "1", features = ["critical-section"] }
 p256 = { version = "0.11", features = ["ecdh"] }
 pot = { version = "2", features = ["tracing"] }
 proc-macro2 = { version = "1", features = ["nightly", "span-locations"] }
-rand = { version = "0.8" }
+rand = { version = "0.8", features = ["small_rng"] }
+rand_core = { version = "0.5", default-features = false, features = ["std"] }
 regex = { version = "1" }
 regex-automata = { version = "0.3", default-features = false, features = ["dfa-onepass", "hybrid", "meta", "nfa-backtrack", "perf-inline", "perf-literal", "unicode"] }
 regex-syntax = { version = "0.7" }
 reqwest = { version = "0.11", features = ["blocking", "json", "multipart"] }
 sec1 = { version = "0.3", features = ["alloc", "subtle"] }
-serde = { version = "1", features = ["derive", "rc"] }
+semver = { version = "1", features = ["serde"] }
+serde = { version = "1", features = ["alloc", "derive", "rc"] }
 serde_json = { version = "1", features = ["raw_value"] }
 sha2 = { version = "0.10" }
 shipyard = { path = "../vendor/shipyard", features = ["tracing"] }
 slab = { version = "0.4" }
 smallvec = { version = "1", default-features = false, features = ["const_generics"] }
-syn-dff4ba8e3ae991db = { package = "syn", version = "1", features = ["extra-traits", "full"] }
-syn-f595c2ba2a3f28df = { package = "syn", version = "2", features = ["extra-traits", "full", "visit", "visit-mut"] }
+stable_deref_trait = { version = "1" }
+tauri-utils = { version = "1", default-features = false, features = ["build", "compression", "resources"] }
+tokio = { version = "1", features = ["full"] }
 toml_datetime = { version = "0.6", default-features = false, features = ["serde"] }
-toml_edit = { version = "0.19", features = ["serde"] }
+toml_edit-cdcf2f9584511fe6 = { package = "toml_edit", version = "0.19", features = ["serde"] }
 tracing = { version = "0.1", features = ["log"] }
 tracing-core = { version = "0.1" }
-ttf-parser = { version = "0.18" }
 unicode-bidi = { version = "0.3" }
+url = { version = "2", features = ["serde"] }
+uuid = { version = "1", features = ["v4"] }
+zeroize = { version = "1", features = ["zeroize_derive"] }
+
+[build-dependencies]
+ahash = { version = "0.8" }
+base16ct = { version = "0.1", default-features = false, features = ["alloc"] }
+bytemuck = { version = "1", default-features = false, features = ["aarch64_simd", "derive", "extern_crate_alloc"] }
+byteorder = { version = "1", features = ["i128"] }
+chrono = { version = "0.4" }
+clap = { version = "4", features = ["unstable-doc"] }
+clap_builder = { version = "4", default-features = false, features = ["std", "suggestions", "unstable-doc", "usage"] }
+crossbeam-utils = { version = "0.8" }
+crypto-common = { version = "0.1", default-features = false, features = ["getrandom", "std"] }
+der = { version = "0.6", default-features = false, features = ["alloc", "oid", "zeroize"] }
+digest = { version = "0.10", features = ["mac", "std"] }
+either = { version = "1", default-features = false, features = ["use_std"] }
+elliptic-curve = { version = "0.12", default-features = false, features = ["ecdh", "hazmat", "pkcs8", "std"] }
+futures-channel = { version = "0.3", features = ["sink"] }
+futures-core = { version = "0.3" }
+futures-executor = { version = "0.3" }
+futures-sink = { version = "0.3" }
+futures-util = { version = "0.3", features = ["channel", "io", "sink"] }
+getrandom = { version = "0.2", default-features = false, features = ["js", "rdrand", "std"] }
+hashbrown-582f2526e08bb6a0 = { package = "hashbrown", version = "0.14", default-features = false, features = ["raw"] }
+hashbrown-5ef9efb8ec2df382 = { package = "hashbrown", version = "0.12", features = ["raw"] }
+hmac = { version = "0.12", default-features = false, features = ["reset"] }
+image = { version = "0.24" }
+indexmap = { version = "1", default-features = false, features = ["std"] }
+jpeg-decoder = { version = "0.3", default-features = false, features = ["rayon"] }
+libc = { version = "0.2" }
+log = { version = "0.4", default-features = false, features = ["std"] }
+lyon_geom = { version = "1" }
+miniz_oxide = { version = "0.7", features = ["simd"] }
+num-traits = { version = "0.2", features = ["i128", "libm"] }
+once_cell = { version = "1", features = ["critical-section"] }
+p256 = { version = "0.11", features = ["ecdh"] }
+pot = { version = "2", features = ["tracing"] }
+proc-macro2 = { version = "1", features = ["nightly", "span-locations"] }
+rand = { version = "0.8", features = ["small_rng"] }
+rand_core = { version = "0.5", default-features = false, features = ["std"] }
+regex = { version = "1" }
+regex-automata = { version = "0.3", default-features = false, features = ["dfa-onepass", "hybrid", "meta", "nfa-backtrack", "perf-inline", "perf-literal", "unicode"] }
+regex-syntax = { version = "0.7" }
+reqwest = { version = "0.11", features = ["blocking", "json", "multipart"] }
+sec1 = { version = "0.3", features = ["alloc", "subtle"] }
+semver = { version = "1", features = ["serde"] }
+serde = { version = "1", features = ["alloc", "derive", "rc"] }
+serde_json = { version = "1", features = ["raw_value"] }
+sha2 = { version = "0.10" }
+shipyard = { path = "../vendor/shipyard", features = ["tracing"] }
+slab = { version = "0.4" }
+smallvec = { version = "1", default-features = false, features = ["const_generics"] }
+stable_deref_trait = { version = "1" }
+syn-dff4ba8e3ae991db = { package = "syn", version = "1", features = ["extra-traits", "fold", "full"] }
+syn-f595c2ba2a3f28df = { package = "syn", version = "2", features = ["extra-traits", "full", "visit", "visit-mut"] }
+tauri-utils = { version = "1", default-features = false, features = ["build", "compression", "resources"] }
+tokio = { version = "1", features = ["full"] }
+toml_datetime = { version = "0.6", default-features = false, features = ["serde"] }
+toml_edit-56bd22fc3884b12 = { package = "toml_edit", version = "0.20", features = ["serde"] }
+toml_edit-cdcf2f9584511fe6 = { package = "toml_edit", version = "0.19", features = ["serde"] }
+tracing = { version = "0.1", features = ["log"] }
+tracing-core = { version = "0.1" }
+unicode-bidi = { version = "0.3" }
+url = { version = "2", features = ["serde"] }
+uuid = { version = "1", features = ["v4"] }
 zeroize = { version = "1", features = ["zeroize_derive"] }
 
 ### END HAKARI SECTION

@@ -61,14 +61,17 @@ tokio = { version = "1.29.1", features = ["full"] }
 anyhow = "1.0"
 
 # slint (excluding submodule)
-slint = { version = "=1.2.2", default-features = false, features = [
+slint = { version = "=1.3.0", default-features = false, features = [
   "std",
   "compat-1-2",
   "backend-winit",
   "renderer-femtovg",
+  # We don't use this feature, but it's required for documentation generation
+  # https://chat.slint.dev/public/pl/9trwe4698b8x5m6jiocq174ozy
+  "renderer-software",
 ] }
-slint-build = { version = "=1.2.2" }
-i-slint-backend-selector = { version = "=1.2.2" }
+slint-build = { version = "=1.3.0" }
+i-slint-backend-selector = { version = "=1.3.0" }
 
 # # for slint
 # i-slint-backend-linuxkms = { version = "=1.3.0", path = "vendor/slint/internal/backends/linuxkms", default-features = false }
