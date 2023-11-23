@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "launch-editor": "^2.6.0",
-    "svelte": "^4.1.2"
+    "svelte": "^4.2.7"
   },
   "devDependencies": {
     "@artprompt/material-color-utilities": "^0.2.0",
