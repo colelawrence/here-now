@@ -16,7 +16,17 @@ tauri-build = { version = "1.5", features = [] }
 hn-app.workspace = true
 hn-keys.workspace = true
 hn-tracing.workspace = true
-bonsaidb = { workspace = true, default-features = false, features = [] }
+sea-orm = { version = "0.12.7", features = [
+  "sqlx-sqlite",
+  "macros",
+  "runtime-tokio",
+] }
+# so we can directly enable runtime-tokio feature since sea-orm doesn't enable it
+sqlx = { version = "0.7.3", default-features = false, features = [
+  "runtime-tokio",
+  "macros",
+  "migrate",
+] }
 shipyard.workspace = true
 shipyard_app.workspace = true
 workspace-hack = { version = "0.1", path = "../../workspace-hack" }
@@ -26,6 +36,7 @@ anyhow.workspace = true
 reqwest = { version = "0.11.18", features = ["json", "serde_json"] }
 serde.workspace = true
 serde_json.workspace = true
+tokio.workspace = true
 tracing.workspace = true
 
 # tauri deps

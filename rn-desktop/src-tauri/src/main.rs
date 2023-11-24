@@ -1,6 +1,9 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use hn_app::_result_::*;
+use hn_app::_tracing_::*;
+use sea_orm::Database;
 mod prelude {
     #![allow(unused)]
     pub use anyhow::Context;
@@ -48,7 +51,24 @@ mod plugin {
     }
 }
 
-fn main() {
+#[tokio::main]
+async fn main() -> Result<()> {
+    hn_tracing::expect_init_logger("rightnow-desktop");
+    static URL: &str = "sqlite:rightnow.sqlite?mode=rwc";
+    async {
+        let pool = sqlx::SqlitePool::connect(URL)
+            .await
+            .todo(f!("expect to connect to sqlite at {URL}"));
+        // let db = pool.acquire().await.expect("acquired connection");
+        sqlx::migrate!("./migrations")
+            .run(&pool)
+            .await
+            .todo(f!("expect to run migrations (from ./migrations) on {URL}"));
+    }
+    .instrument(info_span!("migrate sqlite", ?URL))
+    .await;
+
+    let _db = Database::connect(URL).await.expect("opened database");
     // use schemars::JsonSchema;
     // let mut gen = schemars::gen::SchemaGenerator::default();
     // let obj = tauri_utils::config::Config::json_schema(&mut gen).into_object();
@@ -60,5 +80,5 @@ fn main() {
         // .enable_macos_default_menu(false)
         .plugin(plugin::init())
         .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .context("error while running tauri application")
 }
