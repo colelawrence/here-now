@@ -30,7 +30,7 @@ enum Args {
         #[clap(long)]
         no_jaeger: bool,
     },
-    /// Commands for right-now
+    /// Commands for right-now (rn-desktop)
     Rn {
         #[command(subcommand)]
         subcommand: RnArgs,
@@ -96,12 +96,6 @@ enum Args {
 
 #[derive(Debug, Parser)]
 enum RnArgs {
-    /// Run Right Now desktop for development
-    Dev {
-        /// Connect to jaeger
-        #[clap(long)]
-        no_jaeger: bool,
-    },
     /// Add a migration step with SQLx to the Right Now codebase.
     DbAddMigration {
         /// The name of the migration
@@ -109,6 +103,18 @@ enum RnArgs {
     },
     /// Generate SeaORM entity Rust files for Right Now Sqlite.
     DbGenRust,
+    /// `revert` last SQLx migration, `run` SQLx migrations, and generate SeaORM entity Rust files for Right Now Sqlite.
+    DbRevertRunGen {
+        /// Watch and rebuild on changes
+        #[clap(long)]
+        watch: bool,
+    },
+    /// Run Right Now desktop for development
+    Dev {
+        /// Connect to jaeger
+        #[clap(long)]
+        no_jaeger: bool,
+    },
     /// Use SQLx CLI with the Right Now Sqlite database
     Sqlx { rest: Vec<OsString> },
 }
@@ -128,14 +134,7 @@ fn main() {
         Args::DevDesktop { no_jaeger } => {
             desktop_cmd(no_jaeger, true, true, false, Some("dev".to_string()))
         }
-        Args::Rn { subcommand } => match subcommand {
-            RnArgs::Dev { no_jaeger } => right_now_dev_cmd(no_jaeger),
-            RnArgs::DbAddMigration { rest } => right_now_db_add_migration_cmd(&rest),
-            RnArgs::DbGenRust => right_now_db_gen_rust_cmd(),
-            RnArgs::Sqlx { rest } => right_now_db_sqlx_scoped_cmd()
-                .args(rest)
-                .run_it("run SQLx subcommand in Right Now"),
-        },
+        Args::Rn { subcommand } => run_right_now_cmd(subcommand),
         Args::Desktop {
             build,
             no_jaeger,
@@ -281,6 +280,35 @@ fn server_cmd(no_jaeger: bool) {
 
     web_assets.join();
     server.join();
+}
+
+fn run_right_now_cmd(subcommand: RnArgs) {
+    match subcommand {
+        RnArgs::Dev { no_jaeger } => right_now_dev_cmd(no_jaeger),
+        RnArgs::DbAddMigration { rest } => right_now_db_add_migration_cmd(&rest),
+        RnArgs::DbGenRust => right_now_db_gen_rust_cmd(),
+        RnArgs::DbRevertRunGen { watch } => {
+            if watch {
+                // run self without watch but with watch params
+                return Cmd::new("cargo")
+                    .args("xtask rn db-revert-run-gen".split(' '))
+                    .root_dir("./rn-desktop/src-tauri")
+                    .watchable(true, "-w ./migrations -e sql")
+                    .run_it("watch and run right now database dev");
+            }
+
+            right_now_db_sqlx_scoped_cmd()
+                .args("migrate revert".split(' '))
+                .run_it("revert last");
+            right_now_db_sqlx_scoped_cmd()
+                .args("migrate run".split(' '))
+                .run_it("run next");
+            right_now_db_gen_rust_cmd();
+        }
+        RnArgs::Sqlx { rest } => right_now_db_sqlx_scoped_cmd()
+            .args(rest)
+            .run_it("run SQLx subcommand in Right Now"),
+    }
 }
 
 #[instrument]
