@@ -14,10 +14,8 @@ publish = false
 
 ### BEGIN HAKARI SECTION
 [dependencies]
-ahash = { version = "0.8" }
 base16ct = { version = "0.1", default-features = false, features = ["alloc"] }
 bitflags = { version = "2", default-features = false, features = ["serde"] }
-bytemuck = { version = "1", default-features = false, features = ["aarch64_simd", "derive", "extern_crate_alloc"] }
 byteorder = { version = "1", features = ["i128"] }
 chrono = { version = "0.4", features = ["serde"] }
 clap = { version = "4", features = ["env", "unstable-doc"] }
@@ -25,6 +23,7 @@ clap_builder = { version = "4", default-features = false, features = ["color", "
 console = { version = "0.15" }
 crossbeam-utils = { version = "0.8" }
 crypto-common = { version = "0.1", default-features = false, features = ["getrandom", "std"] }
+curve25519-dalek = { version = "3", default-features = false, features = ["alloc", "u64_backend"] }
 der = { version = "0.6", default-features = false, features = ["alloc", "oid", "zeroize"] }
 deranged = { version = "0.3", default-features = false, features = ["serde", "std"] }
 digest = { version = "0.10", features = ["mac", "oid", "std"] }
@@ -41,22 +40,19 @@ hashbrown-582f2526e08bb6a0 = { package = "hashbrown", version = "0.14", features
 hashbrown-5ef9efb8ec2df382 = { package = "hashbrown", version = "0.12", features = ["raw"] }
 heck = { version = "0.4", features = ["unicode"] }
 hmac = { version = "0.12", default-features = false, features = ["reset"] }
-image = { version = "0.24" }
 indexmap = { version = "1", default-features = false, features = ["std"] }
-jpeg-decoder = { version = "0.3", default-features = false, features = ["rayon"] }
 lazy_static = { version = "1", default-features = false, features = ["spin_no_std"] }
 libc = { version = "0.2" }
 log = { version = "0.4", default-features = false, features = ["std"] }
-lyon_geom = { version = "1" }
 miniz_oxide = { version = "0.7", features = ["simd"] }
 num-integer = { version = "0.1", features = ["i128"] }
 num-traits = { version = "0.2", features = ["i128", "libm"] }
-once_cell = { version = "1", features = ["critical-section"] }
 p256 = { version = "0.11", features = ["ecdh"] }
 pot = { version = "2", features = ["tracing"] }
 proc-macro2 = { version = "1", features = ["nightly", "span-locations"] }
 quote = { version = "1" }
 rand = { version = "0.8", features = ["small_rng"] }
+rand_chacha = { version = "0.3" }
 rand_core = { version = "0.5", default-features = false, features = ["std"] }
 regex = { version = "1" }
 regex-automata = { version = "0.3", default-features = false, features = ["dfa-onepass", "hybrid", "meta", "nfa-backtrack", "perf-inline", "perf-literal", "unicode"] }
@@ -72,15 +68,13 @@ serde_json = { version = "1", features = ["raw_value", "unbounded_depth"] }
 sha1 = { version = "0.10" }
 sha2 = { version = "0.10" }
 shipyard = { path = "../vendor/shipyard", features = ["tracing"] }
-slab = { version = "0.4" }
+simd-adler32 = { version = "0.3" }
 smallvec = { version = "1", default-features = false, features = ["const_generics"] }
 sqlx = { version = "0.7", default-features = false, features = ["any", "bigdecimal", "chrono", "json", "macros", "migrate", "mysql", "postgres", "runtime-tokio", "rust_decimal", "sqlite", "time", "uuid"] }
 sqlx-core = { version = "0.7", features = ["_rt-tokio", "any", "bigdecimal", "chrono", "json", "migrate", "offline", "rust_decimal", "time", "uuid"] }
 sqlx-mysql = { version = "0.7", default-features = false, features = ["any", "bigdecimal", "chrono", "json", "migrate", "offline", "rust_decimal", "time", "uuid"] }
 sqlx-postgres = { version = "0.7", default-features = false, features = ["any", "bigdecimal", "chrono", "json", "migrate", "offline", "time", "uuid"] }
 sqlx-sqlite = { version = "0.7", default-features = false, features = ["any", "chrono", "json", "migrate", "offline", "time", "uuid"] }
-stable_deref_trait = { version = "1" }
-strum = { version = "0.25", default-features = false, features = ["derive"] }
 subtle = { version = "2", default-features = false, features = ["i128"] }
 syn-f595c2ba2a3f28df = { package = "syn", version = "2", features = ["extra-traits", "full", "visit", "visit-mut"] }
 tauri-utils = { version = "1", default-features = false, features = ["build", "compression", "resources"] }
@@ -88,7 +82,7 @@ time = { version = "0.3", features = ["formatting", "macros", "parsing", "serde"
 tokio = { version = "1", features = ["full"] }
 tokio-stream = { version = "0.1", features = ["fs"] }
 toml_datetime = { version = "0.6", default-features = false, features = ["serde"] }
-toml_edit-cdcf2f9584511fe6 = { package = "toml_edit", version = "0.19", features = ["serde"] }
+toml_edit = { version = "0.19", features = ["serde"] }
 tracing = { version = "0.1", features = ["log"] }
 tracing-core = { version = "0.1" }
 unicode-bidi = { version = "0.3" }
@@ -98,10 +92,8 @@ uuid = { version = "1", features = ["serde", "v4"] }
 zeroize = { version = "1", features = ["zeroize_derive"] }
 
 [build-dependencies]
-ahash = { version = "0.8" }
 base16ct = { version = "0.1", default-features = false, features = ["alloc"] }
 bitflags = { version = "2", default-features = false, features = ["serde"] }
-bytemuck = { version = "1", default-features = false, features = ["aarch64_simd", "derive", "extern_crate_alloc"] }
 byteorder = { version = "1", features = ["i128"] }
 chrono = { version = "0.4", features = ["serde"] }
 clap = { version = "4", features = ["env", "unstable-doc"] }
@@ -109,6 +101,7 @@ clap_builder = { version = "4", default-features = false, features = ["color", "
 console = { version = "0.15" }
 crossbeam-utils = { version = "0.8" }
 crypto-common = { version = "0.1", default-features = false, features = ["getrandom", "std"] }
+curve25519-dalek = { version = "3", default-features = false, features = ["alloc", "u64_backend"] }
 der = { version = "0.6", default-features = false, features = ["alloc", "oid", "zeroize"] }
 deranged = { version = "0.3", default-features = false, features = ["serde", "std"] }
 digest = { version = "0.10", features = ["mac", "oid", "std"] }
@@ -125,22 +118,19 @@ hashbrown-582f2526e08bb6a0 = { package = "hashbrown", version = "0.14", features
 hashbrown-5ef9efb8ec2df382 = { package = "hashbrown", version = "0.12", features = ["raw"] }
 heck = { version = "0.4", features = ["unicode"] }
 hmac = { version = "0.12", default-features = false, features = ["reset"] }
-image = { version = "0.24" }
 indexmap = { version = "1", default-features = false, features = ["std"] }
-jpeg-decoder = { version = "0.3", default-features = false, features = ["rayon"] }
 lazy_static = { version = "1", default-features = false, features = ["spin_no_std"] }
 libc = { version = "0.2" }
 log = { version = "0.4", default-features = false, features = ["std"] }
-lyon_geom = { version = "1" }
 miniz_oxide = { version = "0.7", features = ["simd"] }
 num-integer = { version = "0.1", features = ["i128"] }
 num-traits = { version = "0.2", features = ["i128", "libm"] }
-once_cell = { version = "1", features = ["critical-section"] }
 p256 = { version = "0.11", features = ["ecdh"] }
 pot = { version = "2", features = ["tracing"] }
 proc-macro2 = { version = "1", features = ["nightly", "span-locations"] }
 quote = { version = "1" }
 rand = { version = "0.8", features = ["small_rng"] }
+rand_chacha = { version = "0.3" }
 rand_core = { version = "0.5", default-features = false, features = ["std"] }
 regex = { version = "1" }
 regex-automata = { version = "0.3", default-features = false, features = ["dfa-onepass", "hybrid", "meta", "nfa-backtrack", "perf-inline", "perf-literal", "unicode"] }
@@ -156,7 +146,7 @@ serde_json = { version = "1", features = ["raw_value", "unbounded_depth"] }
 sha1 = { version = "0.10" }
 sha2 = { version = "0.10" }
 shipyard = { path = "../vendor/shipyard", features = ["tracing"] }
-slab = { version = "0.4" }
+simd-adler32 = { version = "0.3" }
 smallvec = { version = "1", default-features = false, features = ["const_generics"] }
 sqlx = { version = "0.7", default-features = false, features = ["any", "bigdecimal", "chrono", "json", "macros", "migrate", "mysql", "postgres", "runtime-tokio", "rust_decimal", "sqlite", "time", "uuid"] }
 sqlx-core = { version = "0.7", features = ["_rt-tokio", "any", "bigdecimal", "chrono", "json", "migrate", "offline", "rust_decimal", "time", "uuid"] }
@@ -165,8 +155,6 @@ sqlx-macros-core = { version = "0.7", features = ["_rt-tokio", "bigdecimal", "ch
 sqlx-mysql = { version = "0.7", default-features = false, features = ["any", "bigdecimal", "chrono", "json", "migrate", "offline", "rust_decimal", "time", "uuid"] }
 sqlx-postgres = { version = "0.7", default-features = false, features = ["any", "bigdecimal", "chrono", "json", "migrate", "offline", "time", "uuid"] }
 sqlx-sqlite = { version = "0.7", default-features = false, features = ["any", "chrono", "json", "migrate", "offline", "time", "uuid"] }
-stable_deref_trait = { version = "1" }
-strum = { version = "0.25", default-features = false, features = ["derive"] }
 subtle = { version = "2", default-features = false, features = ["i128"] }
 syn-dff4ba8e3ae991db = { package = "syn", version = "1", features = ["extra-traits", "fold", "full", "visit"] }
 syn-f595c2ba2a3f28df = { package = "syn", version = "2", features = ["extra-traits", "full", "visit", "visit-mut"] }
@@ -175,8 +163,7 @@ time = { version = "0.3", features = ["formatting", "macros", "parsing", "serde"
 tokio = { version = "1", features = ["full"] }
 tokio-stream = { version = "0.1", features = ["fs"] }
 toml_datetime = { version = "0.6", default-features = false, features = ["serde"] }
-toml_edit-56bd22fc3884b12 = { package = "toml_edit", version = "0.20", features = ["serde"] }
-toml_edit-cdcf2f9584511fe6 = { package = "toml_edit", version = "0.19", features = ["serde"] }
+toml_edit = { version = "0.19", features = ["serde"] }
 tracing = { version = "0.1", features = ["log"] }
 tracing-core = { version = "0.1" }
 unicode-bidi = { version = "0.3" }

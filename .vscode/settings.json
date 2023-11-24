@@ -4,6 +4,10 @@
     "tailwindCSS.hovers": true,
     "tailwindCSS.experimental.classRegex": ["class=\"([^\"]+)\""]
   },
+  "[sql]": {
+    "editor.defaultFormatter": "mtxr.sqltools",
+    "editor.indentSize": 4
+  },
   "search.exclude": {
     "**/node_modules": true,
     "**/bower_components": true,

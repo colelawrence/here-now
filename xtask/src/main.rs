@@ -342,6 +342,10 @@ fn right_now_dev_cmd(no_jaeger: bool) {
     Cmd::new("npm")
         .args("run tauri dev".split(' '))
         .root_dir("./rn-desktop")
+        .env(
+            "RIGHTNOW_APP_DATA_DIR",
+            get_project_root_dir().join("rn-desktop/dev-app-data"),
+        )
         .env_if(
             !no_jaeger,
             "JAEGER_COLLECTOR_ENDPOINT",
@@ -353,16 +357,17 @@ fn right_now_dev_cmd(no_jaeger: bool) {
 #[instrument]
 fn right_now_db_add_migration_cmd(args: &[OsString]) {
     right_now_db_sqlx_scoped_cmd()
-        .args("migrate add".split(' '))
+        .args("migrate add -r".split(' '))
         .args(args)
         .run_it("add migration to rn-desktop Tauri program");
 }
 
 fn right_now_db_sqlx_scoped_cmd() -> Cmd {
     Cmd::new("cargo")
-        .env("DATABASE_URL", "sqlite:./rightnow.sqlite")
+        .env("DATABASE_URL", "sqlite:./rightnow.sqlite?mode=rwc")
         .root_dir("./rn-desktop/src-tauri")
-        .args("xtask sqlx".split(' '))
+        // need the -- so we pass the rest of the params as though they are external to this command
+        .args("xtask sqlx --".split(' '))
         .to_owned()
 }
 

@@ -1,8 +1,8 @@
 [package]
 name = "rn-desktop"
 version = "0.0.0"
-description = "A Tauri App"
-authors = ["you"]
+description = "Right Now task tracking app"
+authors = ["Cole Lawrence <cole@colelawrence.com>"]
 license = ""
 repository = ""
 edition = "2021"
@@ -30,6 +30,10 @@ sqlx = { version = "0.7.3", default-features = false, features = [
 shipyard.workspace = true
 shipyard_app.workspace = true
 workspace-hack = { version = "0.1", path = "../../workspace-hack" }
+# tauri tools
+tauri-plugin-window-state = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "v1" }
+tauri-plugin-stronghold = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "v1" }
+
 
 # general deps
 anyhow.workspace = true

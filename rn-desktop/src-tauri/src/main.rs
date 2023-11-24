@@ -1,9 +1,12 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use std::sync::Arc;
+
 use hn_app::_result_::*;
 use hn_app::_tracing_::*;
 use sea_orm::Database;
+use sea_orm::DatabaseConnection;
 mod prelude {
     #![allow(unused)]
     pub use anyhow::Context;
@@ -18,79 +21,77 @@ fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
 }
 
-mod plugin {
-    use tauri::{
-        plugin::{Builder as PluginBuilder, TauriPlugin},
-        RunEvent, Runtime,
-    };
+mod window_state_restore_plugin;
 
-    // this command can be called in the frontend using `invoke('plugin:window|do_something')`.
-    #[tauri::command]
-    async fn do_something<R: Runtime>(
-        _app: tauri::AppHandle<R>,
-        _window: tauri::Window<R>,
-    ) -> Result<(), String> {
-        println!("command called");
-        Ok(())
-    }
-    pub fn init<R: Runtime>() -> TauriPlugin<R> {
-        PluginBuilder::new("window")
-            .setup(|_app| {
-                // initialize the plugin here
-                Ok(())
-            })
-            .on_event(|_app, event| match event {
-                RunEvent::Ready => {
-                    println!("app is ready");
-                }
-                RunEvent::WindowEvent { label, event, .. } => {
-                    println!("window {label} received an event: {event:?}");
-                }
-                _ => (),
-            })
-            .invoke_handler(tauri::generate_handler![do_something])
-            .build()
-    }
+#[instrument]
+async fn run_migrations(db_url: &str) -> Result<()> {
+    let pool = sqlx::SqlitePool::connect(db_url)
+        .await
+        .context("connect to sqlite")?;
+
+    // let db = pool.acquire().await.expect("acquired connection");
+    sqlx::migrate!("./migrations")
+        .run(&pool)
+        .await
+        .context("migrate (from ./migrations)")?;
+
+    Ok(())
+}
+
+#[instrument]
+async fn db_setup(db_url: &str) -> Result<DatabaseConnection> {
+    run_migrations(db_url).await.context("run migrations")?;
+    Database::connect(db_url)
+        .await
+        .context("connect to database")
 }
 
 #[tokio::main]
 async fn main() -> Result<()> {
     hn_tracing::expect_init_logger("rightnow-desktop");
-    static URL: &str = "sqlite:rightnow.sqlite?mode=rwc";
-    async {
-        let pool = sqlx::SqlitePool::connect(URL)
-            .await
-            .todo(f!("expect to connect to sqlite at {URL}"));
-        // let db = pool.acquire().await.expect("acquired connection");
-        sqlx::migrate!("./migrations")
-            .run(&pool)
-            .await
-            .todo(f!("expect to run migrations (from ./migrations) on {URL}"));
-    }
-    .instrument(info_span!("migrate sqlite", ?URL))
-    .await;
+    let context = tauri::generate_context!();
+    let app_dir = Arc::new(
+        std::env::var("RIGHTNOW_APP_DATA_DIR")
+            .map(std::path::PathBuf::from)
+            .unwrap_or_else(|_| {
+                tauri::api::path::app_data_dir(context.config())
+                    // .unwrap_or_else(|| tauri::api::path::app_local_data_dir(context.config()))
+                    .expect("found a directory to store data in")
+            }),
+    );
 
-    let db = Database::connect(URL).await.expect("opened database");
-    use db_gen::prelude::*;
-    use sea_orm::entity::prelude::*;
+    std::fs::create_dir_all(app_dir.as_path()).expect("ensured app dir exists");
 
-    let all_windows = WindowPositions::find()
-        .all(&db)
+    info!("app dir: {:?}", app_dir);
+
+    let db_url = format!(
+        "sqlite:{}?mode=rwc",
+        app_dir
+            .join("rightnow.db")
+            .to_str()
+            .expect("app dir is utf8 compatible")
+    );
+
+    let _db = db_setup(&db_url)
         .await
-        .expect("found all windows");
+        .with_context(|| format!("setup with db at {db_url:?}"))?;
 
-    println!("all_windows: {:#?}", all_windows);
-
-    // use schemars::JsonSchema;
-    // let mut gen = schemars::gen::SchemaGenerator::default();
-    // let obj = tauri_utils::config::Config::json_schema(&mut gen).into_object();
-    // println!("{}", serde_json::to_string_pretty(&obj).unwrap());
     tauri::Builder::default()
+        // .setup({
+        //     let app_dir = app_dir.clone();
+        //     move |app| {
+        //         let salt_path = app_dir.join("rnsalt.txt");
+        //         app.handle()
+        //             .plugin(tauri_plugin_stronghold::Builder::with_argon2(&salt_path).build())?;
+        //         Ok(())
+        //     }
+        // })
+        // Check out https://github.com/tauri-apps/awesome-tauri#plugins
         // .system_tray(tray)
         // .on_system_tray_event(on_system_tray_event)
         .invoke_handler(tauri::generate_handler![greet])
         // .enable_macos_default_menu(false)
-        .plugin(plugin::init())
-        .run(tauri::generate_context!())
+        .plugin(window_state_restore_plugin::init())
+        .run(context)
         .context("error while running tauri application")
 }

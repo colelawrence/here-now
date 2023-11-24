@@ -3,10 +3,6 @@ members = [
   "workspace-hack",
   "xtask",
   "hn-server",
-  "hn-desktop",
-  "hn-desktop-ui",
-  "hn-desktop-executor",
-  "hn-desktop-ui-messages",
   "hn-hinted-id",
   "hn-app",
   "hn-keys",
@@ -17,6 +13,10 @@ members = [
 ]
 
 exclude = [
+  "hn-desktop",
+  "hn-desktop-ui",
+  "hn-desktop-executor",
+  "hn-desktop-ui-messages",
   # exclude these from the workspace
   "vendor/shipyard",
   "vendor/quickjs-rs",
