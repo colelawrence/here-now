@@ -1,5 +1,6 @@
 use clap::{self, Parser};
 use devx_cmd::Cmd;
+use std::ffi::OsString;
 use std::fmt::Write;
 use std::path::PathBuf;
 use std::process::Command;
@@ -29,11 +30,10 @@ enum Args {
         #[clap(long)]
         no_jaeger: bool,
     },
-    /// Run Right Now desktop for development
-    DevRn {
-        /// Connect to jaeger
-        #[clap(long)]
-        no_jaeger: bool,
+    /// Commands for right-now
+    Rn {
+        #[command(subcommand)]
+        subcommand: RnArgs,
     },
     /// Build desktop app
     Desktop {
@@ -85,6 +85,32 @@ enum Args {
         #[clap(long)]
         no_proxy: bool,
     },
+    /// Use SQLx CLI
+    Sqlx { rest: Vec<OsString> },
+    /// Use Sea ORM CLI
+    SeaOrmGenerate {
+        #[command(subcommand)]
+        command: sea_orm_cli::cli::GenerateSubcommands,
+    },
+}
+
+#[derive(Debug, Parser)]
+enum RnArgs {
+    /// Run Right Now desktop for development
+    Dev {
+        /// Connect to jaeger
+        #[clap(long)]
+        no_jaeger: bool,
+    },
+    /// Add a migration step with SQLx to the Right Now codebase.
+    DbAddMigration {
+        /// The name of the migration
+        rest: Vec<OsString>,
+    },
+    /// Generate SeaORM entity Rust files for Right Now Sqlite.
+    DbGenRust,
+    /// Use SQLx CLI with the Right Now Sqlite database
+    Sqlx { rest: Vec<OsString> },
 }
 
 fn main() {
@@ -102,7 +128,14 @@ fn main() {
         Args::DevDesktop { no_jaeger } => {
             desktop_cmd(no_jaeger, true, true, false, Some("dev".to_string()))
         }
-        Args::DevRn { no_jaeger } => right_now_dev_cmd(no_jaeger),
+        Args::Rn { subcommand } => match subcommand {
+            RnArgs::Dev { no_jaeger } => right_now_dev_cmd(no_jaeger),
+            RnArgs::DbAddMigration { rest } => right_now_db_add_migration_cmd(&rest),
+            RnArgs::DbGenRust => right_now_db_gen_rust_cmd(),
+            RnArgs::Sqlx { rest } => right_now_db_sqlx_scoped_cmd()
+                .args(rest)
+                .run_it("run SQLx subcommand in Right Now"),
+        },
         Args::Desktop {
             build,
             no_jaeger,
@@ -117,6 +150,19 @@ fn main() {
         Args::Docker { bash } => build_docker(bash),
         Args::DevProtocol => dev_protocol(),
         Args::GenHintedID { prefix, count } => generate_hinted_id(&prefix, count),
+        Args::Sqlx { rest } => {
+            let err = format!("Run SQLx subcommand with args {rest:?}");
+            let mut rest = rest;
+            rest.insert(0, "sqlx".into());
+            tokio::runtime::Runtime::new()
+                .unwrap()
+                .block_on(sqlx_cli::run(sqlx_cli::Opt::parse_from(rest)))
+                .expect(&err)
+        }
+        Args::SeaOrmGenerate { command } => tokio::runtime::Runtime::new()
+            .unwrap()
+            .block_on(sea_orm_cli::run_generate_command(command, false))
+            .unwrap(),
     }
 }
 
@@ -247,7 +293,33 @@ fn right_now_dev_cmd(no_jaeger: bool) {
             "JAEGER_COLLECTOR_ENDPOINT",
             "http://localhost:14268/api/traces",
         )
-        .run_it("build or run hn-desktop Rust program");
+        .run_it("build or run rn-desktop Tauri program");
+}
+
+#[instrument]
+fn right_now_db_add_migration_cmd(args: &[OsString]) {
+    right_now_db_sqlx_scoped_cmd()
+        .args("migrate add".split(' '))
+        .args(args)
+        .run_it("add migration to rn-desktop Tauri program");
+}
+
+fn right_now_db_sqlx_scoped_cmd() -> Cmd {
+    Cmd::new("cargo")
+        .env("DATABASE_URL", "sqlite:./rightnow.sqlite")
+        .root_dir("./rn-desktop/src-tauri")
+        .args("xtask sqlx".split(' '))
+        .to_owned()
+}
+
+#[instrument]
+fn right_now_db_gen_rust_cmd() {
+    Cmd::new("cargo")
+        .env("DATABASE_URL", "sqlite:./rightnow.sqlite")
+        .args("xtask sea-orm-generate entity".split(' '))
+        .arg2("--output-dir", "./src/db_gen")
+        .root_dir("./rn-desktop/src-tauri")
+        .run_it("generate sea-orm entity files for rn-desktop Tauri program");
 }
 
 #[instrument]

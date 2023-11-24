@@ -10,6 +10,8 @@ mod prelude {
     pub type Result<T = (), E = anyhow::Error> = std::result::Result<T, E>;
 }
 
+mod db_gen;
+
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tauri::command]
 fn greet(name: &str) -> String {
@@ -68,7 +70,17 @@ async fn main() -> Result<()> {
     .instrument(info_span!("migrate sqlite", ?URL))
     .await;
 
-    let _db = Database::connect(URL).await.expect("opened database");
+    let db = Database::connect(URL).await.expect("opened database");
+    use db_gen::prelude::*;
+    use sea_orm::entity::prelude::*;
+
+    let all_windows = WindowPositions::find()
+        .all(&db)
+        .await
+        .expect("found all windows");
+
+    println!("all_windows: {:#?}", all_windows);
+
     // use schemars::JsonSchema;
     // let mut gen = schemars::gen::SchemaGenerator::default();
     // let obj = tauri_utils::config::Config::json_schema(&mut gen).into_object();

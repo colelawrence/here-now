@@ -86,7 +86,7 @@ export function createApp(context: { notify: NotifyService }): AppState {
   function createTodo(init: json.Todo): TodoItem {
     let text = $state(init.text);
     let completed = $state(init.completed);
-    function updateTodo() {
+    function syncTodo() {
       invoke("update_todo", { id: init.id, text, completed });
     }
 
@@ -113,14 +113,14 @@ export function createApp(context: { notify: NotifyService }): AppState {
       },
       set text(updatedText: string) {
         text = updatedText;
-        updateTodo();
+        syncTodo();
       },
       get completed() {
         return completed;
       },
       set completed(updated) {
         completed = updated;
-        updateTodo();
+        syncTodo();
       },
       escape: {
         down() {
@@ -166,24 +166,24 @@ export function createApp(context: { notify: NotifyService }): AppState {
 
     return self;
   }
+}
 
-  function attemptToFocusOnInput(sourceMaybe: HasHtmlInput | null | undefined, selectionIndex?: number) {
-    let attempt = 3;
-    if (sourceMaybe == null) return;
-    requestAnimationFrame(run);
-    const source = sourceMaybe;
-    function run() {
-      const input = source.htmlInputElement;
-      if (input) {
-        input.focus();
-        const sel = Math.min(input.value.length, selectionIndex ?? Infinity);
-        input.setSelectionRange(sel, sel);
-        return;
-      }
+function attemptToFocusOnInput(sourceMaybe: HasHtmlInput | null | undefined, selectionIndex?: number) {
+  let attempt = 3;
+  if (sourceMaybe == null) return;
+  requestAnimationFrame(run);
+  const source = sourceMaybe;
+  function run() {
+    const input = source.htmlInputElement;
+    if (input) {
+      input.focus();
+      const sel = Math.min(input.value.length, selectionIndex ?? Infinity);
+      input.setSelectionRange(sel, sel);
+      return;
+    }
 
-      if (attempt-- > 0) {
-        requestAnimationFrame(run);
-      }
+    if (attempt-- > 0) {
+      requestAnimationFrame(run);
     }
   }
 }

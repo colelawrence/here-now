@@ -4,10 +4,10 @@ members = [
   "xtask",
   "hn-server",
   "hn-desktop",
-  "hn-hinted-id",
   "hn-desktop-ui",
   "hn-desktop-executor",
   "hn-desktop-ui-messages",
+  "hn-hinted-id",
   "hn-app",
   "hn-keys",
   "hn-public-api",
@@ -17,6 +17,7 @@ members = [
 ]
 
 exclude = [
+  # exclude these from the workspace
   "vendor/shipyard",
   "vendor/quickjs-rs",
   "vendor/tracing-opentelemetry",

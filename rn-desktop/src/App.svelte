@@ -21,7 +21,7 @@
         type="text"
         bind:value={todo.text}
         bind:this={todo.htmlInputElement}
-        on:keydown={(e) => {
+        on:keydown|preventDefault={(e) => {
           if (e.key === "ArrowUp") {
             todo.escape.up();
           } else if (e.key === "ArrowDown") {

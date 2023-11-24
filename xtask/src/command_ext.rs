@@ -4,7 +4,7 @@ use std::{
     ffi::OsString,
     io::{BufRead, BufReader},
     path::PathBuf,
-    process::Stdio,
+    process::{self, Stdio},
 };
 
 pub fn get_project_root_dir() -> PathBuf {
@@ -34,16 +34,19 @@ const ASCII_DIM: &str = "\x1b[2m";
 const ASCII_RESET: &str = "\x1b[0m";
 
 impl CommandExt for devx_cmd::Cmd {
+    /// Will exit the process if the command fails.
     #[track_caller]
     #[tracing::instrument]
     fn run_it(&mut self, reason: &str) {
         tracing::span::Span::current().record("name", &reason);
-        eprintln!("${ASCII_CYAN} {self:?}\n{ASCII_DIM}{reason}{ASCII_RESET}");
-        self.run()
-            .map_err(|err| {
-                format!("Command for {reason:?} exited with non-zero code: {self:?}\n{err:#?}")
-            })
-            .unwrap();
+        eprintln!("{ASCII_CYAN}{reason}\n$ {ASCII_DIM}{self:?}{ASCII_RESET}");
+        match self.run() {
+            Ok(_) => {}
+            Err(err) => {
+                tracing::error!(?err, ?reason, "Command exited with non-zero code");
+                process::exit(1);
+            }
+        }
     }
     #[track_caller]
     #[tracing::instrument]
