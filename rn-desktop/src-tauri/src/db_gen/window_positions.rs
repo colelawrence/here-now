@@ -6,9 +6,13 @@ use sea_orm::entity::prelude::*;
 #[sea_orm(table_name = "window_positions")]
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
-    pub id: i32,
-    pub window_name: String,
-    pub window_position: String,
+    pub window_key: String,
+    #[sea_orm(primary_key, auto_increment = false)]
+    pub desktop_arrangement: String,
+    pub window_position_x: i32,
+    pub window_position_y: i32,
+    pub window_size_w: i32,
+    pub window_size_h: i32,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

@@ -77,6 +77,8 @@ enum Args {
         #[clap(long)]
         bash: bool,
     },
+    // /// Format SQL files (perhaps used by lint-staged)
+    // FormatSql { files: Vec<PathBuf> },
     /// Run Jaeger
     Jaeger {
         #[clap(long)]
@@ -158,6 +160,30 @@ fn main() {
                 .block_on(sqlx_cli::run(sqlx_cli::Opt::parse_from(rest)))
                 .expect(&err)
         }
+        // Args::FormatSql { files } => {
+        //     for file in files {
+        //         if file.extension().map(|a| a != "sql").unwrap_or(true) {
+        //             tracing::warn!(?file, "Skipping non-sql file");
+        //             continue;
+        //         }
+        //         let content = std::fs::read_to_string(&file).expect("read file to sql format");
+        //         let mut updated = sqlformat::format(
+        //             &content,
+        //             &sqlformat::QueryParams::None,
+        //             sqlformat::FormatOptions {
+        //                 indent: sqlformat::Indent::Spaces(2),
+        //                 uppercase: true,
+        //                 ..Default::default()
+        //             },
+        //         );
+        //         if !updated.ends_with('\n') {
+        //             updated.push('\n');
+        //         }
+        //         if updated != content {
+        //             std::fs::write(file, updated).expect("write file");
+        //         }
+        //     }
+        // }
         Args::SeaOrmGenerate { command } => tokio::runtime::Runtime::new()
             .unwrap()
             .block_on(sea_orm_cli::run_generate_command(command, false))

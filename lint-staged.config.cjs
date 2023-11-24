@@ -18,4 +18,5 @@ module.exports = {
       ...files.map((filepath) => `rustfmt --edition 2021 "${filepath}"`),
     ];
   },
+  // "**/*.sql": "cargo xtask format-sql",
 };
