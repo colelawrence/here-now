@@ -1,3 +1,7 @@
 node_modules/*
 vendor/*
 target/*
+
+# Ignore for Svelte 5
+# https://github.com/sveltejs/prettier-plugin-svelte/issues/411
+rn-desktop/src/lib/components/ScrollbarContainer.svelte

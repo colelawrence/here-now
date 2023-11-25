@@ -8,6 +8,12 @@ dependencies:
   "@tauri-apps/api":
     specifier: ^1.5.1
     version: 1.5.1
+  overlayscrollbars:
+    specifier: ^2.4.4
+    version: 2.4.5
+  tauri-plugin-autostart-api:
+    specifier: github:tauri-apps/tauri-plugin-autostart
+    version: github.com/tauri-apps/tauri-plugin-autostart/57a2519475e65d1e52374c4a44ba96c30b7b5507
 
 devDependencies:
   "@sveltejs/adapter-static":
@@ -1333,6 +1339,11 @@ packages:
       wrappy: 1.0.2
     dev: true
 
+  /overlayscrollbars@2.4.5:
+    resolution:
+      { integrity: sha512-4OLCPuZPVdd1HnDLYS4o+kAsOCZwVz6dDA212m8ki/u3isltKyWGVjIv2aqpVHkDRf/P2K98m9Su8pdhihtAIQ== }
+    dev: false
+
   /parent-module@1.0.1:
     resolution:
       { integrity: sha512-GQ2EWRpQV8/o+Aw8YqtfZZPfNRWZYkbidE9k5rpl/hC3vtHHBfGm2Ifi6qWV+coDGkrUKZAxE3Lot5kcsRlh+g== }
@@ -1889,3 +1900,14 @@ packages:
     resolution:
       { integrity: sha512-+AmV37r9NPUy7KcuG0Fde9AAFSD88kN5pnqvD7Pkp5WLLK0jct7hAtIDXXFDCRk3l5Mc1r2Sth3gfP2ZLE+/Qw== }
     dev: true
+
+  github.com/tauri-apps/tauri-plugin-autostart/57a2519475e65d1e52374c4a44ba96c30b7b5507:
+    resolution:
+      {
+        tarball: https://codeload.github.com/tauri-apps/tauri-plugin-autostart/tar.gz/57a2519475e65d1e52374c4a44ba96c30b7b5507,
+      }
+    name: tauri-plugin-autostart-api
+    version: 0.0.0
+    dependencies:
+      "@tauri-apps/api": 1.5.1
+    dev: false
