@@ -17,6 +17,7 @@ publish = false
 base16ct = { version = "0.1", default-features = false, features = ["alloc"] }
 bitflags = { version = "2", default-features = false, features = ["serde"] }
 byteorder = { version = "1", features = ["i128"] }
+bytes = { version = "1", features = ["serde"] }
 chrono = { version = "0.4", features = ["serde"] }
 clap = { version = "4", features = ["env", "unstable-doc"] }
 clap_builder = { version = "4", default-features = false, features = ["color", "std", "suggestions", "unstable-doc", "usage"] }
@@ -57,7 +58,7 @@ rand_core = { version = "0.5", default-features = false, features = ["std"] }
 regex = { version = "1" }
 regex-automata = { version = "0.3", default-features = false, features = ["dfa-onepass", "hybrid", "meta", "nfa-backtrack", "perf-inline", "perf-literal", "unicode"] }
 regex-syntax = { version = "0.7" }
-reqwest = { version = "0.11", features = ["blocking", "json", "multipart"] }
+reqwest = { version = "0.11", features = ["blocking", "json", "multipart", "stream"] }
 rust_decimal = { version = "1", features = ["maths"] }
 sea-query = { version = "0.30", default-features = false, features = ["backend-mysql", "backend-postgres", "backend-sqlite", "derive", "hashable-value", "thread-safe", "with-bigdecimal", "with-chrono", "with-json", "with-rust_decimal", "with-time", "with-uuid"] }
 sea-query-binder = { version = "0.5", default-features = false, features = ["sqlx-mysql", "sqlx-postgres", "sqlx-sqlite", "with-bigdecimal", "with-chrono", "with-json", "with-rust_decimal", "with-time", "with-uuid"] }
@@ -68,7 +69,6 @@ serde_json = { version = "1", features = ["raw_value", "unbounded_depth"] }
 sha1 = { version = "0.10" }
 sha2 = { version = "0.10" }
 shipyard = { path = "../vendor/shipyard", features = ["tracing"] }
-simd-adler32 = { version = "0.3" }
 smallvec = { version = "1", default-features = false, features = ["const_generics"] }
 sqlx = { version = "0.7", default-features = false, features = ["any", "bigdecimal", "chrono", "json", "macros", "migrate", "mysql", "postgres", "runtime-tokio", "rust_decimal", "sqlite", "time", "uuid"] }
 sqlx-core = { version = "0.7", features = ["_rt-tokio", "any", "bigdecimal", "chrono", "json", "migrate", "offline", "rust_decimal", "time", "uuid"] }
@@ -95,6 +95,7 @@ zeroize = { version = "1", features = ["zeroize_derive"] }
 base16ct = { version = "0.1", default-features = false, features = ["alloc"] }
 bitflags = { version = "2", default-features = false, features = ["serde"] }
 byteorder = { version = "1", features = ["i128"] }
+bytes = { version = "1", features = ["serde"] }
 chrono = { version = "0.4", features = ["serde"] }
 clap = { version = "4", features = ["env", "unstable-doc"] }
 clap_builder = { version = "4", default-features = false, features = ["color", "std", "suggestions", "unstable-doc", "usage"] }
@@ -135,7 +136,7 @@ rand_core = { version = "0.5", default-features = false, features = ["std"] }
 regex = { version = "1" }
 regex-automata = { version = "0.3", default-features = false, features = ["dfa-onepass", "hybrid", "meta", "nfa-backtrack", "perf-inline", "perf-literal", "unicode"] }
 regex-syntax = { version = "0.7" }
-reqwest = { version = "0.11", features = ["blocking", "json", "multipart"] }
+reqwest = { version = "0.11", features = ["blocking", "json", "multipart", "stream"] }
 rust_decimal = { version = "1", features = ["maths"] }
 sea-query = { version = "0.30", default-features = false, features = ["backend-mysql", "backend-postgres", "backend-sqlite", "derive", "hashable-value", "thread-safe", "with-bigdecimal", "with-chrono", "with-json", "with-rust_decimal", "with-time", "with-uuid"] }
 sea-query-binder = { version = "0.5", default-features = false, features = ["sqlx-mysql", "sqlx-postgres", "sqlx-sqlite", "with-bigdecimal", "with-chrono", "with-json", "with-rust_decimal", "with-time", "with-uuid"] }
@@ -146,7 +147,6 @@ serde_json = { version = "1", features = ["raw_value", "unbounded_depth"] }
 sha1 = { version = "0.10" }
 sha2 = { version = "0.10" }
 shipyard = { path = "../vendor/shipyard", features = ["tracing"] }
-simd-adler32 = { version = "0.3" }
 smallvec = { version = "1", default-features = false, features = ["const_generics"] }
 sqlx = { version = "0.7", default-features = false, features = ["any", "bigdecimal", "chrono", "json", "macros", "migrate", "mysql", "postgres", "runtime-tokio", "rust_decimal", "sqlite", "time", "uuid"] }
 sqlx-core = { version = "0.7", features = ["_rt-tokio", "any", "bigdecimal", "chrono", "json", "migrate", "offline", "rust_decimal", "time", "uuid"] }
