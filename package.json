@@ -4,7 +4,7 @@
   "private": true,
   "version": "0.0.0",
   "license": "MIT | APACHE-2.0",
-  "packageManager": "npm@9.8.1",
+  "packageManager": "pnpm@8.11.0",
   "scripts": {
     "prepare": "husky install"
   },

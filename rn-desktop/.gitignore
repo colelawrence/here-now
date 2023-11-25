@@ -10,6 +10,10 @@ lerna-debug.log*
 # app data from dev
 dev-app-data
 
+# svelte-kit
+build
+.svelte-kit
+
 node_modules
 dist
 dist-ssr

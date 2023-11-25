@@ -4,6 +4,9 @@
     "tailwindCSS.hovers": true,
     "tailwindCSS.experimental.classRegex": ["class=\"([^\"]+)\""]
   },
+  "files.associations": {
+    "*.css": "tailwindcss"
+  },
   "[sql]": {
     "editor.defaultFormatter": "mtxr.sqltools",
     "editor.indentSize": 4

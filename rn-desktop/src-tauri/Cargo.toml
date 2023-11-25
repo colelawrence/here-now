@@ -30,10 +30,6 @@ sqlx = { version = "0.7.3", default-features = false, features = [
 shipyard.workspace = true
 shipyard_app.workspace = true
 workspace-hack = { version = "0.1", path = "../../workspace-hack" }
-# tauri tools
-tauri-plugin-window-state = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "v1" }
-tauri-plugin-stronghold = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "v1" }
-
 
 # general deps
 anyhow.workspace = true
@@ -46,12 +42,25 @@ tracing.workspace = true
 # tauri deps
 # https://docs.rs/tauri/latest/tauri/#cargo-features
 tauri = { version = "1.5", features = [
+  "system-tray",
+  "notification-all",
+  "window-start-dragging",
   "shell-open",
-  "global-shortcut",
-  "clipboard",
-  "notification",
+  "icon-png",
+  # "global-shortcut",
+  # "clipboard",
 ] }
 # tauri-utils = { version = "1.5", features = ["schema"] }
+tauri-plugin-window-state = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "v1" }
+tauri-plugin-stronghold = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "v1" }
+tauri-plugin-autostart = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "v1" }
+tauri-plugin-deep-link = "0.1.2"
+tauri-plugin-positioner = { version = "1.0.4", features = ["system-tray"] }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+cocoa = "0.25"
+objc = "0.2.7"
+
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem

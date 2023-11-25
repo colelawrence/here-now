@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api";
-import * as json from "./json";
+import type * as json from "./json";
 export type TodoItem = HasHtmlInput & {
   readonly id: string;
   text: string;

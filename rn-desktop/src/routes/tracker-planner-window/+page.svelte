@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { createApp } from "./lib/createApp.svelte";
+  import { createApp } from "$lib/createApp.svelte";
 
   const app = createApp({
     notify: {
@@ -9,6 +9,8 @@
       },
     },
   });
+
+  const { addTodo } = app;
 </script>
 
 <main class="container">
@@ -21,7 +23,25 @@
         type="text"
         bind:value={todo.text}
         bind:this={todo.htmlInputElement}
-        on:keydown|preventDefault={(e) => {
+        on:keydown={(e) => {
+          if (e.key === "Enter") {
+            if (e.currentTarget.selectionStart !== e.currentTarget.selectionEnd || !e.currentTarget.selectionStart) {
+              // if there is a selection, or the cursor is at the end of the input, add a todo after
+              todo.addTodoAfter("");
+              return;
+            }
+
+            // split the current selection
+            todo.addTodoAfter(todo.text.slice(e.currentTarget.selectionStart));
+            todo.text = todo.text.slice(0, e.currentTarget.selectionStart);
+            return;
+          }
+
+          if (e.shiftKey || e.ctrlKey || e.metaKey || e.altKey) {
+            // disable behavior when modifier keys are pressed
+            return;
+          }
+
           if (e.key === "ArrowUp") {
             todo.escape.up();
           } else if (e.key === "ArrowDown") {
@@ -47,16 +67,6 @@
               // avoid keyup affecting a re-focus on another todo input
               todo.joinTodoBackwards();
             });
-          } else if (e.key === "Enter") {
-            if (e.currentTarget.selectionStart !== e.currentTarget.selectionEnd || !e.currentTarget.selectionStart) {
-              // if there is a selection, or the cursor is at the end of the input, add a todo after
-              todo.addTodoAfter("");
-              return;
-            }
-
-            // split the current selection
-            todo.addTodoAfter(todo.text.slice(e.currentTarget.selectionStart));
-            todo.text = todo.text.slice(0, e.currentTarget.selectionStart);
           }
         }}
       />
@@ -66,14 +76,14 @@
 
   <form
     on:submit|preventDefault={() => {
-      app.addTodo.add();
+      addTodo.add();
     }}
   >
-    <input type="text" bind:value={app.addTodo.text} bind:this={app.addTodo.htmlInputElement} />
+    <input type="text" bind:value={addTodo.text} bind:this={addTodo.htmlInputElement} />
     <button type="submit">Add</button>
   </form>
 
-  <div class="row">
+  <div class="flex gap-1">
     <button on:click={() => (app.visibilityFilter = "SHOW_ACTIVE")}>Active</button>
     <button on:click={() => (app.visibilityFilter = "SHOW_COMPLETED")}>Completed</button>
     <button on:click={() => (app.visibilityFilter = "SHOW_ALL")}>All</button>

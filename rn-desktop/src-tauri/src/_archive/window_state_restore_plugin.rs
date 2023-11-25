@@ -1,3 +1,4 @@
+//! Tauri tauri_plugin_window_state should automatically manage this
 use tauri::{
     plugin::{Builder as PluginBuilder, TauriPlugin},
     RunEvent, Runtime,
@@ -22,8 +23,11 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
             Ok(())
         })
         .on_webview_ready(|w| {
+            let mut state_flags = StateFlags::all();
+            state_flags.remove(StateFlags::VISIBLE);
+            state_flags.remove(StateFlags::DECORATIONS);
             // TODO: Try to put this somewhere better
-            w.restore_state(StateFlags::all())
+            w.restore_state(StateFlags::POSITION)
                 .expect("restored window state")
         })
         .on_event(|app, event| match event {

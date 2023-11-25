@@ -1,19 +1,24 @@
 {
+  "$schema": "../node_modules/@tauri-apps/cli/schema.json",
   "build": {
-    "beforeDevCommand": "npm run dev",
-    "beforeBuildCommand": "npm run build",
+    "beforeDevCommand": "pnpm run dev",
+    "beforeBuildCommand": "pnpm run build",
     "devPath": "http://localhost:1420",
-    "distDir": "../dist"
+    "distDir": "../build"
   },
   "package": {
-    "productName": "rn-desktop",
+    "productName": "Right Now",
     "version": "0.0.0"
   },
   "tauri": {
     "allowlist": {
-      "all": false,
+      "notification": {
+        "all": true
+      },
+      "window": {
+        "startDragging": true
+      },
       "shell": {
-        "all": false,
         "open": true
       }
     },
@@ -21,6 +26,15 @@
       "active": true,
       "targets": "all",
       "identifier": "com.colelawrence.rightnow",
+      "macOS": {
+        "entitlements": null,
+        "exceptionDomain": "",
+        "frameworks": [],
+        "providerShortName": null,
+        "signingIdentity": null
+      },
+      "longDescription": "Synchronous personal to-do list",
+      "shortDescription": "ADHD Todo list",
       "icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.icns", "icons/icon.ico"]
     },
     "security": {
@@ -28,12 +42,34 @@
     },
     "windows": [
       {
+        "label": "main",
+        "url": "/tracker-planner-window",
+        "width": 800,
+        "height": 800,
         "fullscreen": false,
         "resizable": true,
+        "alwaysOnTop": true,
         "title": "Right Now",
-        "width": 500,
-        "height": 600
+        "titleBarStyle": "Overlay",
+        "hiddenTitle": true
+      },
+      {
+        "label": "tray",
+        "url": "/tray",
+        "width": 400,
+        "height": 600,
+        "title": "Right Now",
+        "titleBarStyle": "Overlay",
+        "hiddenTitle": true,
+        "resizable": false,
+        "visible": false,
+        "focus": false
       }
-    ]
+    ],
+    "systemTray": {
+      "iconPath": "icons/tray-base.png",
+      "iconAsTemplate": true,
+      "menuOnLeftClick": false
+    }
   }
 }
