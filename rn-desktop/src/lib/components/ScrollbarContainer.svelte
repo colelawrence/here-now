@@ -1,9 +1,12 @@
-<!-- prettier-ignore -->
 <script lang="ts">
   import { OverlayScrollbars } from "overlayscrollbars";
   import { onDestroy, onMount, type Snippet } from "svelte";
 
-  const { scroll = true, margin = "0", children } = $props<{
+  const {
+    scroll = true,
+    margin = "0",
+    children,
+  } = $props<{
     scroll?: boolean;
     margin?: string;
     children: Snippet;
