@@ -117,6 +117,8 @@ enum RnArgs {
         #[clap(long)]
         no_jaeger: bool,
     },
+    /// Regenerate icons with tauri cli
+    GenIcons,
     /// Use SQLx CLI with the Right Now Sqlite database
     Sqlx { rest: Vec<OsString> },
 }
@@ -313,6 +315,17 @@ fn run_right_now_cmd(subcommand: RnArgs) {
         RnArgs::Dev { no_jaeger } => right_now_dev_cmd(no_jaeger),
         RnArgs::DbAddMigration { rest } => right_now_db_add_migration_cmd(&rest),
         RnArgs::DbGenRust => right_now_db_gen_rust_cmd(),
+        RnArgs::GenIcons => {
+            let src = get_project_root_dir().join("rn-desktop/src-tauri/icons/app-icon.png");
+            if !src.exists() {
+                panic!("src icon does not exist at {src:?}");
+            }
+            Cmd::new("pnpm")
+                .args("exec tauri icon --output=src-tauri/icons-gen".split(' '))
+                .arg(src)
+                .root_dir("./rn-desktop")
+                .run_it("generate icons for rn-desktop Tauri program");
+        }
         RnArgs::DbRevertRunGen { watch } => {
             if watch {
                 // run self without watch but with watch params
