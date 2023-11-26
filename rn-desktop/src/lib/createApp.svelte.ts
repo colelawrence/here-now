@@ -1,29 +1,25 @@
 import { invoke } from "@tauri-apps/api";
+import { attemptToFocusOnInput } from "./attemptToFocusOnInput";
+import { createInputTraversal, type HasHtmlInput, type HasInputTraversal } from "./createInputTraversal";
 import type * as json from "./json";
-export type TodoItem = HasHtmlInput & {
-  readonly id: string;
-  text: string;
-  completed: boolean;
-  delete(): void;
-  addTodoAfter(text: string): void;
-  joinTodoBackwards(): void;
-  escape: {
-    up(): void;
-    down(): void;
-    exitFromStart(): void;
-    exitFromEnd(): void;
+
+export type TodoItem = HasHtmlInput &
+  HasInputTraversal & {
+    readonly id: string;
+    text: string;
+    completed: boolean;
+    delete(): void;
+    addTodoAfter(text: string): void;
+    joinTodoBackwards(): void;
   };
-};
 
 export type VisibilityFilter = "SHOW_ALL" | "SHOW_COMPLETED" | "SHOW_ACTIVE";
 
-type AddTodo = HasHtmlInput & {
-  text: string;
-  add(): void;
-};
-type HasHtmlInput = {
-  htmlInputElement: HTMLInputElement | null;
-};
+type AddTodo = HasHtmlInput &
+  HasInputTraversal & {
+    text: string;
+    add(): void;
+  };
 
 export type AppState = {
   readonly todos: TodoItem[];
@@ -36,6 +32,7 @@ export type NotifyService = {
 };
 
 export function createApp(context: { notify: NotifyService }): AppState {
+  const inputTraversalNav = createInputTraversal(() => [...todos, addTodo]);
   let todos = $state<TodoItem[]>([
     newTodo("Basic Todo App", true),
     newTodo("Add Tailwind"),
@@ -57,6 +54,7 @@ export function createApp(context: { notify: NotifyService }): AppState {
       todos = [...todos, added];
       addTodoText = "";
     },
+    inputTraversal: inputTraversalNav.getEscapeInput(() => addTodo),
   };
 
   return {
@@ -90,21 +88,6 @@ export function createApp(context: { notify: NotifyService }): AppState {
       invoke("update_todo", { id: init.id, text, completed });
     }
 
-    function currentSelectionOr(): number | null {
-      return self.htmlInputElement?.selectionStart ?? null;
-    }
-    function getRelativeInput(dir: number): HasHtmlInput {
-      const index = todos.indexOf(self);
-      const isLast = index === todos.length - 1;
-      if (isLast && dir > 0) {
-        console.log({ index, dir, todos });
-        // focus on end add todo
-        return addTodo;
-      }
-
-      return todos[index + (dir % todos.length)];
-    }
-
     const self: TodoItem = {
       id: init.id,
       htmlInputElement: null,
@@ -122,20 +105,7 @@ export function createApp(context: { notify: NotifyService }): AppState {
         completed = updated;
         syncTodo();
       },
-      escape: {
-        down() {
-          attemptToFocusOnInput(getRelativeInput(1), currentSelectionOr() ?? 0);
-        },
-        up() {
-          attemptToFocusOnInput(getRelativeInput(-1), currentSelectionOr() ?? Infinity);
-        },
-        exitFromStart() {
-          attemptToFocusOnInput(getRelativeInput(-1), Infinity);
-        },
-        exitFromEnd() {
-          attemptToFocusOnInput(getRelativeInput(1), 0);
-        },
-      },
+      inputTraversal: inputTraversalNav.getEscapeInput(() => self),
       delete() {
         const input = self.htmlInputElement;
         if (input) {
@@ -165,25 +135,5 @@ export function createApp(context: { notify: NotifyService }): AppState {
     };
 
     return self;
-  }
-}
-
-function attemptToFocusOnInput(sourceMaybe: HasHtmlInput | null | undefined, selectionIndex?: number) {
-  let attempt = 3;
-  if (sourceMaybe == null) return;
-  requestAnimationFrame(run);
-  const source = sourceMaybe;
-  function run() {
-    const input = source.htmlInputElement;
-    if (input) {
-      input.focus();
-      const sel = Math.min(input.value.length, selectionIndex ?? Infinity);
-      input.setSelectionRange(sel, sel);
-      return;
-    }
-
-    if (attempt-- > 0) {
-      requestAnimationFrame(run);
-    }
   }
 }

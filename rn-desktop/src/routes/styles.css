@@ -85,7 +85,7 @@ button:active {
 input,
 button {
   /* this doesn't seem to work on macOS */
-  @apply outline-sys-inverse-primary;
+  /* @apply outline-sys-inverse-primary; */
 }
 
 @media (prefers-color-scheme: dark) {

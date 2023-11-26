@@ -1,6 +1,7 @@
 <script lang="ts">
   import ScrollbarContainer from "$lib/components/ScrollbarContainer.svelte";
   import { createApp } from "$lib/createApp.svelte";
+  import type { HasInputTraversal } from "$lib/createInputTraversal";
 
   const app = createApp({
     notify: {
@@ -12,10 +13,41 @@
   });
 
   const { addTodo } = app;
+
+  function handleArrowTraversal(
+    traversable: HasInputTraversal,
+    e: KeyboardEvent & {
+      currentTarget: EventTarget & HTMLInputElement;
+    },
+  ) {
+    if (e.shiftKey || e.ctrlKey || e.metaKey || e.altKey) {
+      // disable behavior when modifier keys are pressed
+      return false;
+    }
+    if (e.key === "ArrowUp") {
+      traversable.inputTraversal.up();
+      return true;
+    } else if (e.key === "ArrowDown") {
+      traversable.inputTraversal.down();
+      return true;
+    } else if (e.key === "ArrowLeft" && e.currentTarget.selectionStart === 0 && e.currentTarget.selectionEnd === 0) {
+      traversable.inputTraversal.exitFromStart();
+      return true;
+    } else if (
+      e.key === "ArrowRight" &&
+      e.currentTarget.selectionStart === e.currentTarget.value.length &&
+      e.currentTarget.selectionEnd === e.currentTarget.value.length
+    ) {
+      traversable.inputTraversal.exitFromEnd();
+      return true;
+    }
+
+    return false;
+  }
 </script>
 
-<main class="flex flex-col gap-2 items-stretch">
-  <h1>Todos</h1>
+<main class="flex flex-col gap-2 items-center" data-tauri-drag-region>
+  <h1 class="text-ui-lg font-semi flex justify-center cursor-default" data-tauri-drag-region>Todos</h1>
   <ScrollbarContainer>
     <div class="flex flex-col gap-2 items-stretch">
       {#each app.todos as todo (todo.id)}
@@ -42,32 +74,16 @@
                 return;
               }
 
+              if (handleArrowTraversal(todo, e)) {
+                return;
+              }
+
               if (e.shiftKey || e.ctrlKey || e.metaKey || e.altKey) {
                 // disable behavior when modifier keys are pressed
                 return;
               }
 
-              if (e.key === "ArrowUp") {
-                todo.escape.up();
-              } else if (e.key === "ArrowDown") {
-                todo.escape.down();
-              } else if (
-                e.key === "ArrowLeft" &&
-                e.currentTarget.selectionStart === 0 &&
-                e.currentTarget.selectionEnd === 0
-              ) {
-                todo.escape.exitFromStart();
-              } else if (
-                e.key === "ArrowRight" &&
-                e.currentTarget.selectionStart === todo.text.length &&
-                e.currentTarget.selectionEnd === todo.text.length
-              ) {
-                todo.escape.exitFromEnd();
-              } else if (
-                e.key === "Backspace" &&
-                e.currentTarget.selectionStart === 0 &&
-                e.currentTarget.selectionEnd === 0
-              ) {
+              if (e.key === "Backspace" && e.currentTarget.selectionStart === 0 && e.currentTarget.selectionEnd === 0) {
                 requestAnimationFrame(() => {
                   // avoid keyup affecting a re-focus on another todo input
                   todo.joinTodoBackwards();
@@ -86,7 +102,16 @@
       addTodo.add();
     }}
   >
-    <input type="text" bind:value={addTodo.text} bind:this={addTodo.htmlInputElement} />
+    <input
+      type="text"
+      bind:value={addTodo.text}
+      bind:this={addTodo.htmlInputElement}
+      on:keydown={(e) => {
+        if (handleArrowTraversal(addTodo, e)) {
+          return;
+        }
+      }}
+    />
     <button type="submit">Add</button>
   </form>
 
