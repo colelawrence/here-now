@@ -37,7 +37,9 @@
 
 <main class="p-2 grow flex gap-2 justify-stretch" data-tauri-drag-region>
   {#if nextTodo != null}
-    <TodoItem todo={nextTodo} nonEditableText />
+    {#key nextTodo.id}
+      <TodoItem todo={nextTodo} nonEditableText />
+    {/key}
   {:else}
     <div class="grow text-sys-on-primary text-opacity-50" data-tauri-drag-region>All done.</div>
   {/if}
