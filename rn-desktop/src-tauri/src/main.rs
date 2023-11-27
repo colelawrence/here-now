@@ -36,11 +36,12 @@ pub(crate) mod rn_tracker_window {
     ) -> tauri::Result<tauri::Window> {
         let scale_factor = reference_window.scale_factor()?;
         // in logical sizes
-        let tracker_min_width = 200f64;
+        let tracker_min_width = 400f64;
         let tracker_max_width = 1200f64;
         // TODO: make configurable
         let tracker_height = 58f64;
 
+        // TODO: Make tacker window state positions work correctly
         let reference_pos = reference_window
             .outer_position()?
             .to_logical::<f64>(scale_factor);
@@ -63,13 +64,13 @@ pub(crate) mod rn_tracker_window {
         .title("Right Now Tracker")
         .hidden_title(true)
         .max_inner_size(tracker_max_width, tracker_height)
+        .min_inner_size(tracker_min_width, tracker_height)
         .inner_size(
             reference_size
                 .width
                 .clamp(tracker_min_width, tracker_max_width),
             tracker_height,
         )
-        .min_inner_size(tracker_min_width, tracker_height)
         .position(
             reference_pos.x,
             reference_pos.y + reference_size.height - tracker_height,
@@ -82,7 +83,7 @@ pub(crate) mod rn_planner_window {
     use tauri::Manager;
 
     /// Use the reference to position the tracker at the bottom of the reference window
-    pub fn create_planner_window(app_handle: &tauri::AppHandle) -> tauri::Result<tauri::Window> {
+    pub fn ensure_planner_window(app_handle: &tauri::AppHandle) -> tauri::Result<tauri::Window> {
         if let Some(existing) = app_handle.get_window(crate::MAIN_WINDOW_LABEL) {
             return Ok(existing);
         }
@@ -96,6 +97,7 @@ pub(crate) mod rn_planner_window {
         .hidden_title(true)
         .title_bar_style(tauri::TitleBarStyle::Overlay)
         // .max_inner_size(1000, 4000)
+        .inner_size(350f64, 350f64)
         .min_inner_size(250f64, 200f64)
         .center()
         .build()
@@ -203,7 +205,7 @@ async fn main() -> Result<()> {
                 #[cfg(target_os = "macos")]
                 macos_title_bar::hide_window_buttons(tray_window);
 
-                crate::rn_planner_window::create_planner_window(&app.handle())
+                crate::rn_planner_window::ensure_planner_window(&app.handle())
                     .unwrap()
                     .show()
                     .unwrap();

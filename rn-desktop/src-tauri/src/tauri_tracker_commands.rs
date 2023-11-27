@@ -30,7 +30,7 @@ pub async fn stop_work_session(app_handle: tauri::AppHandle) -> tauri::Result<()
         include_bytes!("../icons/tray-base.png").to_vec(),
     ))?;
     tokio::time::sleep(Duration::from_millis(50)).await;
-    crate::rn_planner_window::create_planner_window(&app_handle)?.show()?;
+    crate::rn_planner_window::ensure_planner_window(&app_handle)?.show()?;
     Ok(())
 }
 

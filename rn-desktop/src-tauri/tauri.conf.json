@@ -51,7 +51,7 @@
         "label": "tray",
         "url": "/tray",
         "width": 400,
-        "height": 600,
+        "height": 400,
         "title": "Right Now",
         "titleBarStyle": "Transparent",
         "alwaysOnTop": true,

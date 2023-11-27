@@ -29,16 +29,17 @@
   }
 </script>
 
-<main class="flex flex-col gap-2 items-stretch" data-tauri-drag-region>
+<main class="flex flex-col items-stretch" data-tauri-drag-region>
   <div class="flex justify-stretch cursor-default" data-tauri-drag-region>
-    <div></div>
-    <h1 class="text-ui-lg font-semi grow" data-tauri-drag-region>Todos</h1>
+    <div>
+      <!-- placeholder for window buttons -->
+    </div>
+    <h1 class="text-ui-base font-semi grow py-2" data-tauri-drag-region>Planner</h1>
     <button on:click={collapseIntoTracker}>
       <ArrowDown />
     </button>
   </div>
   <TodoList {app} />
-
   <div class="flex flex-col gap-2 justify-center items-center">
     <AddTodoForm addTodo={app.addTodo} />
 
