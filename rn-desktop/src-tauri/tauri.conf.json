@@ -48,24 +48,14 @@
     },
     "windows": [
       {
-        "label": "main",
-        "url": "/tracker-planner-window",
-        "width": 800,
-        "height": 800,
-        "fullscreen": false,
-        "resizable": true,
-        "alwaysOnTop": true,
-        "title": "Right Now",
-        "titleBarStyle": "Overlay",
-        "hiddenTitle": true
-      },
-      {
         "label": "tray",
         "url": "/tray",
         "width": 400,
         "height": 600,
         "title": "Right Now",
-        "titleBarStyle": "Overlay",
+        "titleBarStyle": "Transparent",
+        "alwaysOnTop": true,
+        "decorations": false,
         "hiddenTitle": true,
         "resizable": false,
         "visible": false,

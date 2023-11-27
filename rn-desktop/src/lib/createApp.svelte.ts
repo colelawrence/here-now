@@ -15,7 +15,7 @@ export type TodoItem = HasHtmlInput &
 
 export type VisibilityFilter = "SHOW_ALL" | "SHOW_COMPLETED" | "SHOW_ACTIVE";
 
-type AddTodo = HasHtmlInput &
+export type AddTodo = HasHtmlInput &
   HasInputTraversal & {
     text: string;
     add(): void;
@@ -31,14 +31,19 @@ export type NotifyService = {
   reportError(message: string, info: Record<string, unknown>): void;
 };
 
-export function createApp(context: { notify: NotifyService }): AppState {
+export function createApp(
+  context: { notify: NotifyService },
+  options?: {
+    filter?: VisibilityFilter;
+  },
+): AppState {
   const inputTraversalNav = createInputTraversal(() => [...todos, addTodo]);
   let todos = $state<TodoItem[]>([
     newTodo("Basic Todo App", true),
     newTodo("Add Tailwind"),
     newTodo("Synchronize state to Tauri"),
   ]);
-  let visibilityFilter = $state<VisibilityFilter>("SHOW_ALL");
+  let visibilityFilter = $state<VisibilityFilter>(options?.filter ?? "SHOW_ALL");
   let addTodoText = $state("");
 
   const addTodo: AddTodo = {

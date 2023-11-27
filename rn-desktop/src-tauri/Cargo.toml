@@ -41,8 +41,7 @@ tracing.workspace = true
 
 # tauri deps
 # https://docs.rs/tauri/latest/tauri/#cargo-features
-tauri = { version = "1.5", features = [
-  "system-tray",
+tauri = { version = "1.5", features = [ "system-tray",
   "notification-all",
   "window-start-dragging",
   "shell-open",
