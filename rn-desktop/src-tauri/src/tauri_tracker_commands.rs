@@ -3,6 +3,7 @@ use std::time::Duration;
 use tauri::{CustomMenuItem, SystemTray, SystemTrayMenu};
 
 #[tauri::command(async)]
+#[tracing::instrument]
 pub async fn start_work_session(
     app_handle: tauri::AppHandle,
     source_window: tauri::Window,
@@ -21,6 +22,7 @@ pub async fn start_work_session(
 }
 
 #[tauri::command(async)]
+#[tracing::instrument]
 pub async fn stop_work_session(app_handle: tauri::AppHandle) -> tauri::Result<()> {
     let tray = get_tray(&app_handle).await?;
     #[cfg(target_os = "macos")]

@@ -1,0 +1,9 @@
+{
+  "version": "2",
+  "remote": {
+    "https://deno.land/x/derive_codegen@v0.0.4-1/Code.ts": "89790e9508f8cd3e5d266d73df6500bd497ff1f6a6ac7073e70fae63f4c7eb75",
+    "https://deno.land/x/derive_codegen@v0.0.4-1/_codegen-types/types.ts": "b3397af1160f83533afc11f0ae84c840c7c17b15dcdc02ad401dfb2b315d074d",
+    "https://deno.land/x/derive_codegen@v0.0.4-1/gen.ts": "97919d85ba267c038c90d662c1218c0a82646c4ebe1009ef08c32d5aa2f20d6b",
+    "https://deno.land/x/derive_codegen@v0.0.4-1/mod.ts": "2bb26d59aa346e1e3d302cff88727b3d26c1f6636433e0f70db6d2e4a4af3c48"
+  }
+}

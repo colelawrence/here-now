@@ -2,19 +2,14 @@
   import AddTodoForm from "$lib/AddTodoForm.svelte";
   import TodoList from "$lib/TodoList.svelte";
   import { call } from "$lib/call";
-  import { createApp } from "$lib/createApp.svelte";
+  import { mountAppInSvelte } from "$lib/mountApp.svelte";
   import { invoke } from "@tauri-apps/api";
   import { getCurrent } from "@tauri-apps/api/window";
+  import { useStore } from "jotai-svelte";
   import { ArrowDown } from "phosphor-svelte";
 
-  const app = createApp({
-    notify: {
-      reportError(message, info) {
-        console.error(message, info);
-        alert(message);
-      },
-    },
-  });
+  const store = useStore();
+  const app = mountAppInSvelte(store);
 
   function collapseIntoTracker() {
     call(async () => {

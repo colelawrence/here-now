@@ -1,0 +1,55 @@
+{
+  "folders": [
+    {
+      "name": "🌳 Right Now",
+      "path": ".."
+    },
+    {
+      "name": "derive-codegen",
+      "path": "../vendor/derive-codegen"
+    },
+    {
+      "name": "🦀 Tauri",
+      "path": "../rn-desktop/src-tauri"
+    },
+    {
+      "name": "⛵️ rn-desktop",
+      "path": "../rn-desktop"
+    }
+  ],
+  "settings": {
+    "slint.preview.style": "fluent",
+    "files.exclude": {
+      "src-tauri": true,
+      "hn-server": true,
+      "hn-desktop": true,
+      "hn-desktop-*": true,
+      "rn-desktop": true
+    },
+    "tailwindCSS.emmetCompletions": true,
+    "editor.linkedEditing": true,
+    "search.exclude": {
+      "**/*.compiled.*": true,
+      "**/*.gen.*": true,
+      "**/design-tokens/references/**": true,
+      "**/vendor/quickjs-rs/**": true,
+      "**/out/**": true,
+      // ignore xtask from other projects
+      "**/*/xtask/**": true,
+      "**/node_modules": true,
+      "**/bower_components": true,
+      "**/*.code-search": true
+    },
+    "explorer.fileNesting.patterns": {
+      "*.template.svelte": "${capture}.template.*.cjs, ${capture}.props.ts",
+      "*.ts": "${capture}.spec.ts",
+      "*.tsx": "${capture}.tsx, ${capture}.css, ${capture}@*.png",
+      "*.type.ts": "create${capture}.ts",
+      ".gitignore": ".git*",
+      "package.json": "pnpm-lock.yaml, package-lock.json, .prettier*, lint-staged*, .lintstaged*, .eslint*, postcss.config*, tailwind.*, vite.*, tsconfig.json, tsconfig.*.json",
+      "index.html": "global.css, index.css, manifest.json"
+    },
+    "explorer.fileNesting.enabled": true,
+    "rust-analyzer.showUnlinkedFileNotification": false
+  }
+}

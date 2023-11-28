@@ -37,12 +37,13 @@ pub fn ecs_bundle(
         };
     }
 
-    let ident = idents
+    let ident_list_print = idents
         .iter()
         .map(|i| format!("[{i}]"))
         .collect::<Vec<_>>()
         .join(", ");
-    let doc = format!("💠💠💠 Bundle saved to disk\nSee {ident}\n");
+
+    let doc = format!("💠💠💠 Bundle saved to disk\nSee {ident_list_print}\n");
     let mut output = TokenStream::from(quote::quote! {
         #[doc = #doc]
         #[derive(Clone, serde::Serialize, serde::Deserialize)]

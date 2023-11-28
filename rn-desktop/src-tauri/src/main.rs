@@ -138,14 +138,14 @@ async fn db_setup(db_url: &str) -> Result<DatabaseConnection> {
         .context("connect to database")
 }
 
-pub enum RNMode {
-    Planning,
-    Tracking,
-}
+mod rn_todos_plugin;
+mod state;
+mod ui;
 
-pub struct RNState {
-    db: DatabaseConnection,
-    mode: RNMode,
+#[tauri::command]
+fn report_error(window: tauri::Window, error: serde_json::Value) {
+    let window_label = window.label();
+    error!(?window_label, ?error, "error reported")
 }
 
 #[tokio::main]
@@ -178,19 +178,19 @@ async fn main() -> Result<()> {
         .await
         .with_context(|| format!("setup with db at {db_url:?}"))?;
 
-    // Checks if current instance is the primary instance
-    tauri_plugin_deep_link::prepare("com.colelawrence.rightnow");
+    // // Checks if current instance is the primary instance
+    // tauri_plugin_deep_link::prepare("com.colelawrence.rightnow");
 
     tauri::Builder::default()
         .setup({
             // let app_dir = app_dir.clone();
             move |app| {
-                let handle = app.handle();
-                tauri_plugin_deep_link::register("rightnow", move |request| {
-                    // TODO: Actually intercept
-                    handle.emit_all("scheme-request", request).unwrap();
-                })
-                .unwrap();
+                let _handle = app.handle();
+                // tauri_plugin_deep_link::register("rightnow", move |request| {
+                //     // TODO: Actually intercept
+                //     handle.emit_all("scheme-request", request).unwrap();
+                // })
+                // .unwrap();
 
                 // Called the binary with a URL, so we need to handle that as a request
                 #[cfg(not(target_os = "macos"))]
@@ -200,15 +200,19 @@ async fn main() -> Result<()> {
 
                 // hide tray initially
                 let tray_window = app.get_window(TRAY_WINDOW_LABEL).unwrap();
-                tray_window.hide().unwrap();
+                // tray_window.hide().unwrap();
 
                 #[cfg(target_os = "macos")]
                 macos_title_bar::hide_window_buttons(tray_window);
 
-                crate::rn_planner_window::ensure_planner_window(&app.handle())
-                    .unwrap()
-                    .show()
-                    .unwrap();
+                let planner_window =
+                    crate::rn_planner_window::ensure_planner_window(&app.handle()).unwrap();
+                planner_window.show().unwrap();
+                #[cfg(debug_assertions)] // only include this code on debug builds
+                {
+                    planner_window.open_devtools();
+                    // planner_window.close_devtools();
+                }
                 // #[cfg(not(target_os = "macos"))]
                 // tray_window.set_decorations(false).unwrap();
 
@@ -222,9 +226,11 @@ async fn main() -> Result<()> {
             MacosLauncher::LaunchAgent,
             Some(vec![""]),
         ))
+        .plugin(rn_todos_plugin::init())
         .plugin(tauri_plugin_positioner::init())
         .invoke_handler(tauri::generate_handler![
             greet,
+            report_error,
             tauri_tracker_commands::start_work_session,
             tauri_tracker_commands::stop_work_session,
             tauri_tray_commands::update_tray,

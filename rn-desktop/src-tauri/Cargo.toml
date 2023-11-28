@@ -20,6 +20,7 @@ sea-orm = { version = "0.12.7", features = [
   "sqlx-sqlite",
   "macros",
   "runtime-tokio",
+  "with-json",
 ] }
 # so we can directly enable runtime-tokio feature since sea-orm doesn't enable it
 sqlx = { version = "0.7.3", default-features = false, features = [
@@ -33,6 +34,7 @@ workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 
 # general deps
 anyhow.workspace = true
+derive-codegen.workspace = true
 reqwest = { version = "0.11.18", features = ["json", "serde_json"] }
 serde.workspace = true
 serde_json.workspace = true
@@ -50,11 +52,12 @@ tauri = { version = "1.5", features = [ "system-tray",
   # "clipboard",
 ] }
 # tauri-utils = { version = "1.5", features = ["schema"] }
+# tauri-plugin-stronghold = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "v1" }
+# tauri-plugin-deep-link = "0.1.2"
 tauri-plugin-window-state = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "v1" }
-tauri-plugin-stronghold = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "v1" }
 tauri-plugin-autostart = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "v1" }
-tauri-plugin-deep-link = "0.1.2"
 tauri-plugin-positioner = { version = "1.0.4", features = ["system-tray"] }
+thiserror = "1.0"
 
 [target.'cfg(target_os = "macos")'.dependencies]
 cocoa = "0.25"

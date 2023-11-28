@@ -1,6 +1,7 @@
 use tauri::{CustomMenuItem, SystemTray, SystemTrayMenu, SystemTrayMenuItem};
 
 #[tauri::command]
+#[tracing::instrument]
 pub fn update_tray(app_handle: tauri::AppHandle, title: Option<String>, new_icon: Option<bool>) {
     let tray_handle = app_handle.tray_handle_by_id(crate::SYSTEM_TRAY_ID).unwrap();
     #[cfg(target_os = "macos")]
@@ -25,6 +26,7 @@ pub fn update_tray(app_handle: tauri::AppHandle, title: Option<String>, new_icon
 }
 
 #[tauri::command]
+#[tracing::instrument]
 pub fn toggle_tray(app_handle: tauri::AppHandle, show: bool) {
     let tray_handle = app_handle.tray_handle_by_id(crate::SYSTEM_TRAY_ID).unwrap();
     tray_handle.destroy().unwrap();

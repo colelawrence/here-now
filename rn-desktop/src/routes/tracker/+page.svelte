@@ -1,24 +1,15 @@
 <script lang="ts">
   import TodoItem from "$lib/TodoItem.svelte";
   import { call } from "$lib/call";
-  import { createApp } from "$lib/createApp.svelte";
+  import { mountAppInSvelte } from "$lib/mountApp.svelte";
   import { invoke } from "@tauri-apps/api";
   import { getCurrent } from "@tauri-apps/api/window";
+  import { useStore } from "jotai-svelte";
   import { ArrowUp } from "phosphor-svelte";
 
-  const app = createApp(
-    {
-      notify: {
-        reportError(message, info) {
-          console.error(message, info);
-          alert(message);
-        },
-      },
-    },
-    {
-      filter: "SHOW_ACTIVE",
-    },
-  );
+  const store = useStore();
+  const app = mountAppInSvelte(store);
+  app.visibilityFilter = "SHOW_ACTIVE";
 
   function expandIntoPlanner() {
     call(async () => {
@@ -35,7 +26,10 @@
   const nextTodo = $derived(app.todos[0]);
 </script>
 
-<main class="p-2 grow flex gap-2 justify-stretch" data-tauri-drag-region>
+<main
+  class="p-2 grow flex gap-2 justify-stretch border-2 border-sys-primary-container rounded-lg"
+  data-tauri-drag-region
+>
   {#if nextTodo != null}
     {#key nextTodo.id}
       <TodoItem todo={nextTodo} nonEditableText />

@@ -1,3 +1,4 @@
 [alias]
 # https://github.com/matklad/cargo-xtask
 xtask = "run --package xtask --quiet --"
+x = "run --package xtask --quiet --"

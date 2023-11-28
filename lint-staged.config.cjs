@@ -14,7 +14,13 @@ module.exports = {
       if (match) crates.add(match[1]);
     }
     return [
-      ...Array.from(crates).map((a) => `cargo clippy --fix --allow-staged --color always --package ${a} --no-deps`),
+      ...(crates.size > 0
+        ? [
+            `cargo clippy --fix --allow-staged --color always ${[...crates]
+              .map((a) => `--package ${a}`)
+              .join(" ")} --no-deps`,
+          ]
+        : []),
       ...files.map((filepath) => `rustfmt --edition 2021 "${filepath}"`),
     ];
   },

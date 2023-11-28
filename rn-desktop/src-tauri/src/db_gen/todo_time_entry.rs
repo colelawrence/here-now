@@ -5,12 +5,12 @@ use sea_orm::entity::prelude::*;
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq)]
 #[sea_orm(table_name = "TodoTimeEntry")]
 pub struct Model {
-    #[sea_orm(primary_key)]
-    pub id: i32,
-    pub for_todo_id: i32,
-    pub during_work_session_id: i32,
-    pub start_time: DateTime,
-    pub end_time: DateTime,
+    #[sea_orm(primary_key, auto_increment = false)]
+    pub id: String,
+    pub for_todo_id: String,
+    pub during_work_session_id: String,
+    pub start_time: i32,
+    pub end_time: i32,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

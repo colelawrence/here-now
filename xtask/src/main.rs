@@ -2,8 +2,10 @@ use clap::{self, Parser};
 use devx_cmd::Cmd;
 use std::ffi::OsString;
 use std::fmt::Write;
+use std::os::unix::process;
 use std::path::PathBuf;
 use std::process::Command;
+use std::thread::JoinHandle;
 use std::{collections::BTreeMap, ops::Rem};
 use tracing::*;
 
@@ -116,6 +118,12 @@ enum RnArgs {
         /// Connect to jaeger
         #[clap(long)]
         no_jaeger: bool,
+    },
+    /// Generate ui interfaces
+    GenUi {
+        /// Watch and regenerate on changes
+        #[clap(long)]
+        watch: bool,
     },
     /// Regenerate icons with tauri cli
     GenIcons,
@@ -315,6 +323,7 @@ fn run_right_now_cmd(subcommand: RnArgs) {
         RnArgs::Dev { no_jaeger } => right_now_dev_cmd(no_jaeger),
         RnArgs::DbAddMigration { rest } => right_now_db_add_migration_cmd(&rest),
         RnArgs::DbGenRust => right_now_db_gen_rust_cmd(),
+        RnArgs::GenUi { watch } => right_now_rust_code_gen_thread(watch).join(),
         RnArgs::GenIcons => {
             let src = get_project_root_dir().join("rn-desktop/src-tauri/icons/app-icon.png");
             if !src.exists() {
@@ -350,10 +359,22 @@ fn run_right_now_cmd(subcommand: RnArgs) {
     }
 }
 
+fn right_now_rust_code_gen_thread(watch: bool) -> jod_thread::JoinHandle<()> {
+    Cmd::new("cargo")
+        .args("test --package rn-desktop --bin rn-desktop -- ui::generate_ui_typescript --exact --nocapture --ignored".split(' '))
+        .root_dir("./rn-desktop")
+        .watchable(
+            watch,
+            "-w src-tauri/src/ui.rs -w src-tauri/dev-codegen -e ts,rs",
+        ).run_in_thread("generated ui typescript code for Tauri front-end")
+}
+
 #[instrument]
 fn right_now_dev_cmd(no_jaeger: bool) {
-    Cmd::new("npm")
-        .args("run tauri dev".split(' '))
+    // drop on exiting
+    let _codegen = right_now_rust_code_gen_thread(true);
+    Cmd::new("pnpm")
+        .args("tauri dev".split(' '))
         .root_dir("./rn-desktop")
         .env(
             "RIGHTNOW_APP_DATA_DIR",
@@ -365,6 +386,8 @@ fn right_now_dev_cmd(no_jaeger: bool) {
             "http://localhost:14268/api/traces",
         )
         .run_it("build or run rn-desktop Tauri program");
+
+    std::process::exit(0);
 }
 
 #[instrument]
@@ -386,8 +409,11 @@ fn right_now_db_sqlx_scoped_cmd() -> Cmd {
 
 #[instrument]
 fn right_now_db_gen_rust_cmd() {
+    right_now_db_sqlx_scoped_cmd()
+        .args("migrate run".split(' '))
+        .run_it("apply migrations before generating");
     Cmd::new("cargo")
-        .env("DATABASE_URL", "sqlite:./rightnow.sqlite")
+        .env("DATABASE_URL", "sqlite:./rightnow.sqlite?mode=rwc")
         .args("xtask sea-orm-generate entity".split(' '))
         .arg2("--output-dir", "./src/db_gen")
         .root_dir("./rn-desktop/src-tauri")
