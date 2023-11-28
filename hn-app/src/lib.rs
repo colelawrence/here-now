@@ -18,7 +18,7 @@ pub mod _result_ {
         /// // for example
         /// .todo(f!("configuring watcher (dur: {:?})", self.polling_duration));
         /// ```
-        fn todo<'a>(self, f: std::fmt::Arguments<'a>) -> T;
+        fn todo(self, f: std::fmt::Arguments<'_>) -> T;
     }
 
     pub use std::format_args as f;
@@ -28,7 +28,7 @@ pub mod _result_ {
         E: std::error::Error + Send + Sync + 'static,
     {
         #[track_caller]
-        fn todo<'a>(self, f: std::fmt::Arguments<'a>) -> T {
+        fn todo(self, f: std::fmt::Arguments<'_>) -> T {
             self.with_context(|| format!("{}", f))
                 .expect("todo: handle error")
         }
@@ -71,10 +71,10 @@ pub mod _result_ {
     }
 
     impl<T, E: Debug> Debug for ArcError<T, E> {
-        fn fmt(&self, mut f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
             match self.0.as_ref() {
                 Ok(_) => unreachable!(),
-                Err(err) => Debug::fmt(err, &mut f),
+                Err(err) => Debug::fmt(err, f),
             }
         }
     }
