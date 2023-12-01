@@ -22,7 +22,7 @@ serde_json.workspace = true
 i-hn-server-proc = { version = "0.0.0", path = "./proc" }
 actionable = "0.2.0"
 axum = "0.6.18"
-bonsaidb = { workspace = true, default-features = false, features = ["local", "instrument"] }
+bonsaidb = { workspace = true, features = ["local", "instrument"] }
 quick-js = { version = "0.4.2-alpha.0", path = "../vendor/quickjs-rs", features = ["serde"]}
 env_logger = "0.10.0"
 futures = "0.3.28"

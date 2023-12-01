@@ -8,9 +8,9 @@ pub type UID = String;
 #[codegen(tags = "rn-ui")]
 pub struct AppSettings {
     /// How long should breaks last (5m in pomodoro)
-    pub break_secs: usize,
+    pub break_secs: u64,
     /// How long should work sessions last (25m in pomodoro)
-    pub working_secs: usize,
+    pub working_secs: u64,
     /// Todo items that can be re-used
     pub template_todos: Vec<TemplateTodo>,
 }
@@ -19,7 +19,7 @@ pub struct AppSettings {
 #[codegen(tags = "rn-ui")]
 pub enum ToUITodoUpdate {
     UpdateFields(TodoFields),
-    UpdateCompletedAt(Option<usize>),
+    UpdateCompletedAt(Option<u64>),
     AddWorkDuration(TodoWorkDuration),
     UpdateOrd(f64),
 }
@@ -60,21 +60,21 @@ pub enum ToUIUpdate {
     RemoveTemplateTodo(UID),
 }
 
-#[derive(Serialize, Deserialize, Codegen, Clone)]
+#[derive(Serialize, Deserialize, Debug, Codegen, Clone, PartialEq)]
 #[codegen(tags = "rn-ui")]
 pub enum WorkState {
     Planning,
     Break {
         /// Time the break is over
-        ends_at_unix: usize,
+        ends_at_unix: u64,
         /// Time the break started
-        started_at_unix: usize,
+        started_at_unix: u64,
     },
     Working {
         /// Time the work session is over
-        ends_at_unix: usize,
+        ends_at_unix: u64,
         /// Time the work session started
-        started_at_unix: usize,
+        started_at_unix: u64,
     },
 }
 
@@ -85,7 +85,7 @@ pub struct TodoFields {
     /// Future: Can link to media IDs
     pub title: String,
     /// In minutes
-    pub time_estimate_mins: usize,
+    pub time_estimate_mins: u64,
     /// Tags for categorization and quick organization
     /// e.g. `["user:Passport", "when:later", "user:Important"]`
     pub mvp_tags: Vec<String>,
@@ -98,7 +98,7 @@ pub struct Todo {
     /// What order is this todo item in the universal ordering
     pub ord: f64,
     /// Seconds since Unix epoch
-    pub completed_at: Option<usize>,
+    pub completed_at: Option<u64>,
     /// Segments of work performed
     pub worked: Vec<TodoWorkDuration>,
     pub fields: TodoFields,
@@ -107,8 +107,8 @@ pub struct Todo {
 #[derive(Serialize, Deserialize, Debug, Codegen, Clone)]
 #[codegen(tags = "rn-ui")]
 pub struct TodoWorkDuration {
-    pub started_at_unix: usize,
-    pub stopped_at_unix: usize,
+    pub started_at_unix: u64,
+    pub stopped_at_unix: u64,
 }
 
 #[derive(Serialize, Deserialize, Codegen, Clone)]

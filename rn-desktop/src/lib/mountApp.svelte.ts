@@ -1,5 +1,6 @@
 import { invoke } from "@tauri-apps/api";
 import { listen } from "@tauri-apps/api/event";
+import type { InvokeArgs } from "@tauri-apps/api/tauri";
 import { createApp, type AppState } from "./createApp.svelte";
 import type { JotaiStore } from "./jotai-types";
 import { ui } from "./ui";
@@ -35,7 +36,10 @@ export function mountAppInSvelte(store: JotaiStore): AppState {
       return () => unsub();
     },
     store,
-    rnState: ui.createRightNowInvoker(invoke),
+    rnState: ui.createRightNowInvoker((eventName: string, payload: InvokeArgs | undefined) => {
+      console.log("Invoked", eventName, payload);
+      return invoke(eventName, payload);
+    }),
     notify: {
       reportError(message, info) {
         console.error(message, info);

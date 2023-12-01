@@ -14,20 +14,20 @@ function createInvoker(invoke: Function, prefix = ""): any {
 }
 // TODO: make this generic for other plugins
 export function createRightNowInvoker(invoke: Function): RightNowStateInvoke {
-  return createInvoker(invoke, "plugin:right-now-state|");
+  return createInvoker(invoke, "plugin:RightNowTodos|");
 }
 
 export interface RightNowStateInvoke {
   /**
    * `invoke("get_all_todos", {})`
    *
-   * `#[codegen(tauri_command, tags = "rn-ui", tauri_plugin = "right-now-state")]`
+   * `#[codegen(tauri_command, tags = "rn-ui", tauri_plugin = "RightNowTodos")]`
    */
   get_all_todos(): Promise<Result_OkTodo_List_ErrError.Ok["Ok"]>;
   /**
    * `invoke("update_todo_fields", { uid, fields, template })`
    *
-   * `#[codegen(tauri_command, tags = "rn-ui", tauri_plugin = "right-now-state")]`
+   * `#[codegen(tauri_command, tags = "rn-ui", tauri_plugin = "RightNowTodos")]`
    */
   update_todo_fields(options: {
     uid: UID;
@@ -37,26 +37,28 @@ export interface RightNowStateInvoke {
   /**
    * `invoke("update_todo_completed", { uid, completed })`
    *
-   * `#[codegen(tauri_command, tags = "rn-ui", tauri_plugin = "right-now-state")]`
+   * `#[codegen(tauri_command, tags = "rn-ui", tauri_plugin = "RightNowTodos")]`
    */
   update_todo_completed(options: { uid: UID; completed: boolean }): Promise<Result_OkTuple_ErrError.Ok["Ok"]>;
-  /** `#[codegen(tauri_command, tags = "rn-ui", tauri_plugin = "right-now-state")]` */
+  /** `#[codegen(tauri_command, tags = "rn-ui", tauri_plugin = "RightNowTodos")]` */
   update_todo_ord(options: { uid: UID; ord: number; template: boolean }): Promise<Result_OkTuple_ErrError.Ok["Ok"]>;
-  /** `#[codegen(tauri_command, tags = "rn-ui", tauri_plugin = "right-now-state")]` */
+  /** `#[codegen(tauri_command, tags = "rn-ui", tauri_plugin = "RightNowTodos")]` */
   add_todo(options: {
     uid: UID;
     ord: number;
     fields: TodoFields;
     template: boolean;
   }): Promise<Result_OkTuple_ErrError.Ok["Ok"]>;
-  /** `#[codegen(tauri_command, tags = "rn-ui", tauri_plugin = "right-now-state")]` */
+  /** `#[codegen(tauri_command, tags = "rn-ui", tauri_plugin = "RightNowTodos")]` */
   delete_todo(options: { uid: UID; template: boolean }): Promise<Result_OkTuple_ErrError.Ok["Ok"]>;
-  /** `#[codegen(tauri_command, tags = "rn-ui", tauri_plugin = "right-now-state")]` */
+  /** `#[codegen(tauri_command, tags = "rn-ui", tauri_plugin = "RightNowTodos")]` */
   start_session(): Promise<Result_OkTuple_ErrError.Ok["Ok"]>;
-  /** `#[codegen(tauri_command, tags = "rn-ui", tauri_plugin = "right-now-state")]` */
-  stop_session(): Promise<Result_OkTuple_ErrError.Ok["Ok"]>;
-  /** `#[codegen(tauri_command, tags = "rn-ui", tauri_plugin = "right-now-state")]` */
+  /** `#[codegen(tauri_command, tags = "rn-ui", tauri_plugin = "RightNowTodos")]` */
   take_a_break(): Promise<Result_OkTuple_ErrError.Ok["Ok"]>;
+  /** `#[codegen(tauri_command, tags = "rn-ui", tauri_plugin = "RightNowTodos")]` */
+  toggle_size(options: { big: boolean }): Promise<Result_OkTuple_ErrError.Ok["Ok"]>;
+  /** `#[codegen(tauri_command, tags = "rn-ui", tauri_plugin = "RightNowTodos")]` */
+  stop_session(): Promise<Result_OkTuple_ErrError.Ok["Ok"]>;
 }
 /**
  * Future: Store this as the only state stored to disk for this app
@@ -455,7 +457,7 @@ export function TemplateTodo(inner: TemplateTodo): TemplateTodo {
 /**
  * `Result` is a type that represents either success ([`Ok`]) or failure ([`Err`]).
  *
- * [Source `rn-desktop/src-tauri/src/rn_todos_plugin.rs:35`](../../../rn-desktop/src-tauri/src/rn_todos_plugin.rs)
+ * [Source `rn-desktop/src-tauri/src/rn_todos_plugin.rs:45`](../../../rn-desktop/src-tauri/src/rn_todos_plugin.rs)
  */
 // deno-lint-ignore no-namespace
 export namespace Result_OkTodo_List_ErrError {
@@ -504,13 +506,13 @@ export namespace Result_OkTodo_List_ErrError {
 /**
  * `Result` is a type that represents either success ([`Ok`]) or failure ([`Err`]).
  *
- * [Source `rn-desktop/src-tauri/src/rn_todos_plugin.rs:35`](../../../rn-desktop/src-tauri/src/rn_todos_plugin.rs)
+ * [Source `rn-desktop/src-tauri/src/rn_todos_plugin.rs:45`](../../../rn-desktop/src-tauri/src/rn_todos_plugin.rs)
  */
 export type Result_OkTodo_List_ErrError = Result_OkTodo_List_ErrError.Ok | Result_OkTodo_List_ErrError.Err;
 /**
  * `Result` is a type that represents either success ([`Ok`]) or failure ([`Err`]).
  *
- * [Source `rn-desktop/src-tauri/src/rn_todos_plugin.rs:44`](../../../rn-desktop/src-tauri/src/rn_todos_plugin.rs)
+ * [Source `rn-desktop/src-tauri/src/rn_todos_plugin.rs:54`](../../../rn-desktop/src-tauri/src/rn_todos_plugin.rs)
  */
 // deno-lint-ignore no-namespace
 export namespace Result_OkTuple_ErrError {
@@ -559,6 +561,6 @@ export namespace Result_OkTuple_ErrError {
 /**
  * `Result` is a type that represents either success ([`Ok`]) or failure ([`Err`]).
  *
- * [Source `rn-desktop/src-tauri/src/rn_todos_plugin.rs:44`](../../../rn-desktop/src-tauri/src/rn_todos_plugin.rs)
+ * [Source `rn-desktop/src-tauri/src/rn_todos_plugin.rs:54`](../../../rn-desktop/src-tauri/src/rn_todos_plugin.rs)
  */
 export type Result_OkTuple_ErrError = Result_OkTuple_ErrError.Ok | Result_OkTuple_ErrError.Err;

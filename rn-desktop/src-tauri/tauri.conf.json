@@ -46,22 +46,7 @@
     "security": {
       "csp": null
     },
-    "windows": [
-      {
-        "label": "tray",
-        "url": "/tray",
-        "width": 400,
-        "height": 400,
-        "title": "Right Now",
-        "titleBarStyle": "Transparent",
-        "alwaysOnTop": true,
-        "decorations": false,
-        "hiddenTitle": true,
-        "resizable": false,
-        "visible": false,
-        "focus": false
-      }
-    ],
+    "windows": [],
     "systemTray": {
       "iconPath": "icons/tray-base.png",
       "iconAsTemplate": true,

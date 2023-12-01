@@ -2,8 +2,9 @@
 use cocoa::appkit::{NSWindow, NSWindowButton};
 use tauri::Window;
 
+/// Used by windows controllers for tray window
 #[cfg(target_os = "macos")]
-pub fn hide_window_buttons(window: Window) {
+pub fn hide_window_buttons<R: tauri::Runtime>(window: &Window<R>) {
     unsafe {
         let id = window.ns_window().unwrap() as cocoa::base::id;
         let close_button = id.standardWindowButton_(NSWindowButton::NSWindowCloseButton);

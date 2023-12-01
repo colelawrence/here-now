@@ -10,7 +10,7 @@ hn-hinted-id.workspace = true
 shipyard.workspace = true
 shipyard_app.workspace = true
 anyhow.workspace = true
-bonsaidb = { workspace = true, default-features = false }
+bonsaidb = { workspace = true }
 tracing.workspace = true
 i-hn-app-proc = { version = "0.0.0", path = "./proc" }
 tokio.workspace = true

@@ -31,6 +31,8 @@ export type AppState = {
   visibilityFilter: VisibilityFilter;
   addTodo: AddTodo;
   isReady: boolean;
+  expandIntoPlanner(): void;
+  collapseIntoTracker(): void;
 };
 
 export type AppCtx = {
@@ -172,6 +174,16 @@ export function createApp(
     inputTraversal: inputTraversalNav.getEscapeInput(() => addTodo),
   };
 
+  function toggleBig(big: boolean) {
+    call(async () => {
+      try {
+        await ctx.rnState.toggle_size({ big });
+      } catch (error) {
+        ctx.notify.reportError("Failed to toggle size", { error });
+      }
+    });
+  }
+
   return {
     get todos() {
       if (visibilityFilter === "SHOW_COMPLETED") return todos.filter((todo) => todo.completed);
@@ -188,6 +200,12 @@ export function createApp(
       visibilityFilter = updatedFilter;
     },
     addTodo,
+    collapseIntoTracker() {
+      toggleBig(false);
+    },
+    expandIntoPlanner() {
+      toggleBig(true);
+    },
   };
 
   function newTodo(initText: string, initDone = false): TodoItem {

@@ -1,5 +1,5 @@
 /*
-! tailwindcss v3.3.2 | MIT License | https://tailwindcss.com
+! tailwindcss v3.3.5 | MIT License | https://tailwindcss.com
 */
 
 /*
@@ -22,7 +22,7 @@
 
 ::before,
 ::after {
-  --tw-content: '';
+  --tw-content: "";
 }
 
 /*
@@ -42,9 +42,23 @@ html {
   -moz-tab-size: 4;
   /* 3 */
   -o-tab-size: 4;
-     tab-size: 4;
+  tab-size: 4;
   /* 3 */
-  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    "Helvetica Neue",
+    Arial,
+    "Noto Sans",
+    sans-serif,
+    "Apple Color Emoji",
+    "Segoe UI Emoji",
+    "Segoe UI Symbol",
+    "Noto Color Emoji";
   /* 4 */
   font-feature-settings: normal;
   /* 5 */
@@ -85,7 +99,7 @@ Add the correct text decoration in Chrome, Edge, and Safari.
 
 abbr:where([title]) {
   -webkit-text-decoration: underline dotted;
-          text-decoration: underline dotted;
+  text-decoration: underline dotted;
 }
 
 /*
@@ -191,6 +205,10 @@ select,
 textarea {
   font-family: inherit;
   /* 1 */
+  font-feature-settings: inherit;
+  /* 1 */
+  font-variation-settings: inherit;
+  /* 1 */
   font-size: 100%;
   /* 1 */
   font-weight: inherit;
@@ -220,9 +238,9 @@ select {
 */
 
 button,
-[type='button'],
-[type='reset'],
-[type='submit'] {
+[type="button"],
+[type="reset"],
+[type="submit"] {
   -webkit-appearance: button;
   /* 1 */
   background-color: transparent;
@@ -269,7 +287,7 @@ Correct the cursor style of increment and decrement buttons in Safari.
 2. Correct the outline style in Safari.
 */
 
-[type='search'] {
+[type="search"] {
   -webkit-appearance: textfield;
   /* 1 */
   outline-offset: -2px;
@@ -342,6 +360,14 @@ menu {
 }
 
 /*
+Reset default styling for dialogs.
+*/
+
+dialog {
+  padding: 0;
+}
+
+/*
 Prevent resizing textareas horizontally by default.
 */
 
@@ -354,7 +380,8 @@ textarea {
 2. Set the default placeholder color to the user's configured gray 400 color.
 */
 
-input::-moz-placeholder, textarea::-moz-placeholder {
+input::-moz-placeholder,
+textarea::-moz-placeholder {
   opacity: 1;
   /* 1 */
   color: #9ca3af;
@@ -422,7 +449,9 @@ video {
   display: none;
 }
 
-*, ::before, ::after {
+*,
+::before,
+::after {
   --tw-border-spacing-x: 0;
   --tw-border-spacing-y: 0;
   --tw-translate-x: 0;
@@ -559,54 +588,54 @@ video {
 .text-ui-xs {
   letter-spacing: 0.0456em;
   line-height: 12px;
-  font-size: 9.6250px;
+  font-size: 9.625px;
   font-family: apui, system-ui, sans-serif, color-emoji;
 }
 
 .text-ui-sm {
   letter-spacing: 0.0267em;
   line-height: 16px;
-  font-size: 12.3750px;
+  font-size: 12.375px;
   font-family: apui, system-ui, sans-serif, color-emoji;
 }
 
 .text-ui-base {
   letter-spacing: 0.0107em;
   line-height: 20px;
-  font-size: 16.5000px;
+  font-size: 16.5px;
   font-family: apui, system-ui, sans-serif, color-emoji;
 }
 
 .text-ui-lg {
   letter-spacing: 0.0028em;
   line-height: 28px;
-  font-size: 20.6250px;
+  font-size: 20.625px;
   font-family: apui, system-ui, sans-serif, color-emoji;
 }
 
 .text-ui-xl {
   letter-spacing: -0.0019em;
   line-height: 32px;
-  font-size: 26.1250px;
+  font-size: 26.125px;
   font-family: apui, system-ui, sans-serif, color-emoji;
 }
 
 .text-ui-2xl {
   letter-spacing: -0.0042em;
   line-height: 44px;
-  font-size: 34.3750px;
+  font-size: 34.375px;
   font-family: apui, system-ui, sans-serif, color-emoji;
 }
 
 .text-ui-3xl {
   letter-spacing: -0.0048em;
   line-height: 56px;
-  font-size: 42.6250px;
+  font-size: 42.625px;
   font-family: apui, system-ui, sans-serif, color-emoji;
 }
 
 .text-ui-4xl {
-  letter-spacing: -0.0050em;
+  letter-spacing: -0.005em;
   line-height: 68px;
   font-size: 55px;
   font-family: apui, system-ui, sans-serif, color-emoji;
@@ -615,54 +644,54 @@ video {
 .text-content-xs {
   letter-spacing: 0.0456em;
   line-height: 16px;
-  font-size: 9.6250px;
+  font-size: 9.625px;
   font-family: apcontent, system-ui, sans-serif, color-emoji;
 }
 
 .text-content-sm {
   letter-spacing: 0.0267em;
   line-height: 20px;
-  font-size: 12.3750px;
+  font-size: 12.375px;
   font-family: apcontent, system-ui, sans-serif, color-emoji;
 }
 
 .text-content-base {
   letter-spacing: 0.0107em;
   line-height: 28px;
-  font-size: 16.5000px;
+  font-size: 16.5px;
   font-family: apcontent, system-ui, sans-serif, color-emoji;
 }
 
 .text-content-lg {
   letter-spacing: 0.0028em;
   line-height: 32px;
-  font-size: 20.6250px;
+  font-size: 20.625px;
   font-family: apcontent, system-ui, sans-serif, color-emoji;
 }
 
 .text-content-xl {
   letter-spacing: -0.0019em;
   line-height: 44px;
-  font-size: 26.1250px;
+  font-size: 26.125px;
   font-family: apcontent, system-ui, sans-serif, color-emoji;
 }
 
 .text-content-2xl {
   letter-spacing: -0.0042em;
   line-height: 56px;
-  font-size: 34.3750px;
+  font-size: 34.375px;
   font-family: apcontent, system-ui, sans-serif, color-emoji;
 }
 
 .text-content-3xl {
   letter-spacing: -0.0048em;
   line-height: 68px;
-  font-size: 42.6250px;
+  font-size: 42.625px;
   font-family: apcontent, system-ui, sans-serif, color-emoji;
 }
 
 .text-content-4xl {
-  letter-spacing: -0.0050em;
+  letter-spacing: -0.005em;
   line-height: 88px;
   font-size: 55px;
   font-family: apcontent, system-ui, sans-serif, color-emoji;
@@ -732,23 +761,23 @@ video {
 }
 
 .text-mono-sm {
-  letter-spacing: 0.0240em;
+  letter-spacing: 0.024em;
   line-height: 16px;
-  font-size: 12.8940px;
+  font-size: 12.894px;
   font-family: apmono, monospace, color-emoji;
 }
 
 .text-mono-base {
-  letter-spacing: 0.0090em;
+  letter-spacing: 0.009em;
   line-height: 20px;
-  font-size: 17.1920px;
+  font-size: 17.192px;
   font-family: apmono, monospace, color-emoji;
 }
 
 .text-mono-lg {
   letter-spacing: 0.0017em;
   line-height: 28px;
-  font-size: 21.4900px;
+  font-size: 21.49px;
   font-family: apmono, monospace, color-emoji;
 }
 
@@ -774,7 +803,7 @@ video {
 }
 
 .text-mono-4xl {
-  letter-spacing: -0.0050em;
+  letter-spacing: -0.005em;
   line-height: 72px;
   font-size: 57.3066px;
   font-family: apmono, monospace, color-emoji;
@@ -953,7 +982,7 @@ body {
 body {
   letter-spacing: 0.0107em;
   line-height: 20px;
-  font-size: 16.5000px;
+  font-size: 16.5px;
   font-family: apui, system-ui, sans-serif, color-emoji;
   --tw-bg-opacity: 1;
   background-color: rgb(var(--sys-color-surface, 251 252 254) / var(--tw-bg-opacity));
@@ -987,7 +1016,8 @@ button:hover {
   padding-bottom: 0.25rem;
 }
 
-input, textarea {
+input,
+textarea {
   border-bottom-width: 1px;
   border-radius: 3px;
   padding: 0.25rem;
@@ -995,7 +1025,8 @@ input, textarea {
   border-color: rgb(var(--ext-color-yellow-container, 255 223 150) / var(--tw-border-opacity));
 }
 
-input:focus, textarea:focus {
+input:focus,
+textarea:focus {
   --tw-text-opacity: 1;
   color: rgb(var(--ext-color-on-yellow-container, 37 26 0) / var(--tw-text-opacity));
   --tw-border-opacity: 1;

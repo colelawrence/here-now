@@ -12,7 +12,7 @@ path = "examples/generate.rs"
 [dependencies]
 serde.workspace = true
 shipyard.workspace = true
-bonsaidb = { workspace = true, default-features = false, features = ["local", "instrument"] }
+bonsaidb = { workspace = true, features = ["local", "instrument"] }
 tracing.workspace = true
 xid = "1.0.3"
 smartstring = { version = "1.0.1", features = ["serde"] }

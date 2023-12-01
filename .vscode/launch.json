@@ -7,6 +7,26 @@
     {
       "type": "lldb",
       "request": "launch",
+      "name": "Tauri Development Debug",
+      "cargo": {
+        "args": ["build", "--manifest-path=./rn-desktop/src-tauri/Cargo.toml", "--no-default-features"]
+      }
+      // // task for the `beforeDevCommand` if used, must be configured in `.vscode/tasks.json`
+      // "preLaunchTask": "ui:dev"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Tauri Production Debug",
+      "cargo": {
+        "args": ["build", "--release", "--manifest-path=./rn-desktop/src-tauri/Cargo.toml"]
+      }
+      // // task for the `beforeBuildCommand` if used, must be configured in `.vscode/tasks.json`
+      // "preLaunchTask": "ui:build"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
       "name": "Debug executable 'desktop'",
       "cargo": {
         "args": ["build", "--bin=desktop", "--package=desktop"],

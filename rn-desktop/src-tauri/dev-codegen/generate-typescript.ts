@@ -16,7 +16,7 @@ function createInvoker(invoke: Function, prefix = ""): any {
 }
 // TODO: make this generic for other plugins
 export function createRightNowInvoker(invoke: Function): RightNowStateInvoke {
-  return createInvoker(invoke, "plugin:right-now-state|");
+  return createInvoker(invoke, "plugin:RightNowTodos|");
 }
 `,
   includeLocationsRelativeTo: "../../../",
@@ -38,8 +38,8 @@ function convert(input: gen.Input): gen.Output {
       }
 
       const tauriPluginIDOpt = fnDecl.codegen_attrs?.tauri_plugin?.[0];
-      if (tauriPluginIDOpt !== "right-now-state") {
-        console.error("Skipping non-`right-now-state` command", fnDecl);
+      if (tauriPluginIDOpt !== "RightNowTodos") {
+        console.error("Skipping non-`RightNowTodos` command", fnDecl);
         continue;
       }
       // const commandPrefix = tauriPluginIDOpt ? `plugin:${tauriPluginIDOpt}|` : "";

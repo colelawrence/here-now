@@ -1,27 +1,12 @@
 <script lang="ts">
   import AddTodoForm from "$lib/AddTodoForm.svelte";
   import TodoList from "$lib/TodoList.svelte";
-  import { call } from "$lib/call";
   import { mountAppInSvelte } from "$lib/mountApp.svelte";
-  import { invoke } from "@tauri-apps/api";
-  import { getCurrent } from "@tauri-apps/api/window";
   import { useStore } from "jotai-svelte";
   import { ArrowDown } from "phosphor-svelte";
 
   const store = useStore();
   const app = mountAppInSvelte(store);
-
-  function collapseIntoTracker() {
-    call(async () => {
-      try {
-        await invoke("start_work_session");
-        await getCurrent().close();
-      } catch (error) {
-        console.error(error);
-        alert(error);
-      }
-    });
-  }
 </script>
 
 <main class="flex flex-col items-stretch" data-tauri-drag-region>
@@ -30,7 +15,7 @@
       <!-- placeholder for window buttons -->
     </div>
     <h1 class="text-ui-base font-semi grow py-2" data-tauri-drag-region>Planner</h1>
-    <button on:click={collapseIntoTracker}>
+    <button on:click={app.collapseIntoTracker}>
       <ArrowDown />
     </button>
   </div>
