@@ -36,14 +36,17 @@ export function mountAppInSvelte(store: JotaiStore): AppState {
       return () => unsub();
     },
     store,
-    rnState: ui.createRightNowInvoker((eventName: string, payload: InvokeArgs | undefined) => {
+    rn: ui.createRightNowInvoker((eventName: string, payload: InvokeArgs | undefined) => {
       console.log("Invoked", eventName, payload);
       return invoke(eventName, payload);
     }),
     notify: {
       reportError(message, info) {
+        alert(message + "\n\n" + JSON.stringify(info, null, 2));
         console.error(message, info);
-        alert(message);
+        invoke("report_error", { error: { message, info } }).catch((e) => {
+          console.error("Failed to report error", e);
+        });
       },
     },
   });

@@ -26,19 +26,30 @@ export type AddTodo = HasHtmlInput &
     add(): void;
   };
 
+export type WorkStateWorking = {
+  state: "working";
+  collapseIntoTracker(): void;
+  expandIntoPlanner(): void;
+  stop(): void;
+};
+
+export type WorkStatePlanning = {
+  state: "planning";
+  start(): void;
+};
+
 export type AppState = {
   readonly todos: TodoItem[];
   visibilityFilter: VisibilityFilter;
   addTodo: AddTodo;
   isReady: boolean;
-  expandIntoPlanner(): void;
-  collapseIntoTracker(): void;
+  workState: WorkStateWorking | WorkStatePlanning;
 };
 
 export type AppCtx = {
   store: JotaiStore;
   notify: NotifyService;
-  rnState: ui.RightNowStateInvoke;
+  rn: ui.RightNowTodosInvoke;
   listenToUIUpdates(handler: Partial<ui.ToUIUpdate.ApplyFns<void>>): () => void;
   sub<T>(pool: DisposePool, a: Atom<T>, fn: (val: T) => void): () => void;
 };
@@ -87,6 +98,7 @@ export function createApp(
   const inputTraversalNav = createInputTraversal(() => [...todos, addTodo]);
   let todos = $state<TodoItem[]>([]);
   let isReady = $state(false);
+  let workState: "working" | "planning" = $state("planning");
   const memoTodoAndCache = memoize((uid: string) => {
     const cached = createCachedItem<ui.Todo>(
       ctx.store,
@@ -146,7 +158,7 @@ export function createApp(
 
   async function refreshTodos() {
     try {
-      const allTodos = await ctx.rnState.get_all_todos();
+      const allTodos = await ctx.rn.get_all_todos();
       loadTodos(allTodos);
     } catch (error) {
       ctx.notify.reportError("Failed to load todos", { error });
@@ -177,7 +189,7 @@ export function createApp(
   function toggleBig(big: boolean) {
     call(async () => {
       try {
-        await ctx.rnState.toggle_size({ big });
+        await ctx.rn.toggle_size({ big });
       } catch (error) {
         ctx.notify.reportError("Failed to toggle size", { error });
       }
@@ -200,11 +212,44 @@ export function createApp(
       visibilityFilter = updatedFilter;
     },
     addTodo,
-    collapseIntoTracker() {
-      toggleBig(false);
-    },
-    expandIntoPlanner() {
-      toggleBig(true);
+    get workState(): WorkStatePlanning | WorkStateWorking {
+      if (workState === "planning") {
+        return {
+          state: "planning",
+          start() {
+            call(async () => {
+              try {
+                await ctx.rn.start_session();
+                await ctx.rn.toggle_size({ big: false });
+                workState = "working";
+              } catch (error) {
+                ctx.notify.reportError("Failed to start session", { error });
+              }
+            });
+          },
+        };
+      } else {
+        return {
+          state: "working",
+          stop() {
+            call(async () => {
+              try {
+                await ctx.rn.stop_session();
+                await ctx.rn.toggle_size({ big: true });
+                workState = "planning";
+              } catch (error) {
+                ctx.notify.reportError("Failed to stop session", { error });
+              }
+            });
+          },
+          collapseIntoTracker() {
+            toggleBig(false);
+          },
+          expandIntoPlanner() {
+            toggleBig(true);
+          },
+        };
+      }
     },
   };
 
@@ -213,14 +258,14 @@ export function createApp(
     const ord = ++lastOrd;
     const fields: ui.TodoFields = { mvp_tags: [], time_estimate_mins: 25, title: initText };
     call(async () => {
-      await ctx.rnState.add_todo({
+      await ctx.rn.add_todo({
         uid,
         fields,
         ord,
         template: false,
       });
       if (initDone) {
-        await ctx.rnState.update_todo_completed({ uid, completed: true });
+        await ctx.rn.update_todo_completed({ uid, completed: true });
       }
     });
     const { cached, vm } = memoTodoAndCache(uid);
@@ -241,7 +286,7 @@ export function createApp(
     });
     function syncTodoFields() {
       call(async () => {
-        await ctx.rnState.update_todo_fields({
+        await ctx.rn.update_todo_fields({
           template: false,
           uid: init.uid,
           fields: {
@@ -269,7 +314,7 @@ export function createApp(
       set completed(updated) {
         completed = updated;
         call(async () => {
-          await ctx.rnState.update_todo_completed({ uid: init.uid, completed });
+          await ctx.rn.update_todo_completed({ uid: init.uid, completed });
         });
       },
       inputTraversal: inputTraversalNav.getEscapeInput(() => self),

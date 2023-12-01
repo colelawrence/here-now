@@ -9,13 +9,14 @@ function createInvoker(invoke: Function, prefix = ""): any {
     get(target, command, receiver) {
       if (typeof command !== "string") throw new TypeError("Expected string command");
       return function (options: any) {
+        console.debug("Invoking", prefix + command, options);
         return invoke(prefix + command, options);
       }
     },
   })
 }
 // TODO: make this generic for other plugins
-export function createRightNowInvoker(invoke: Function): RightNowStateInvoke {
+export function createRightNowInvoker(invoke: Function): RightNowTodosInvoke {
   return createInvoker(invoke, "plugin:RightNowTodos|");
 }
 `,
@@ -29,7 +30,7 @@ function convert(input: gen.Input): gen.Output {
 
   console.error("Number of functions: ", input.functions.length);
 
-  generated.add`export interface RightNowStateInvoke {`;
+  generated.add`export interface RightNowTodosInvoke {`;
   generated.scope(($fns) => {
     for (const fnDecl of input.functions) {
       if (!fnDecl.codegen_flags?.tauri_command) {

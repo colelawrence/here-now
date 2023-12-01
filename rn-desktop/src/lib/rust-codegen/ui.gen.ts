@@ -6,6 +6,7 @@ function createInvoker(invoke: Function, prefix = ""): any {
       get(target, command, receiver) {
         if (typeof command !== "string") throw new TypeError("Expected string command");
         return function (options: any) {
+          console.debug("Invoking", prefix + command, options);
           return invoke(prefix + command, options);
         };
       },
@@ -13,11 +14,11 @@ function createInvoker(invoke: Function, prefix = ""): any {
   );
 }
 // TODO: make this generic for other plugins
-export function createRightNowInvoker(invoke: Function): RightNowStateInvoke {
+export function createRightNowInvoker(invoke: Function): RightNowTodosInvoke {
   return createInvoker(invoke, "plugin:RightNowTodos|");
 }
 
-export interface RightNowStateInvoke {
+export interface RightNowTodosInvoke {
   /**
    * `invoke("get_all_todos", {})`
    *

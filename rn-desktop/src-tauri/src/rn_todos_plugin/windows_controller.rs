@@ -98,7 +98,7 @@ pub fn ensure_tracker_window_below(
     let reference_size = reference_window
         .outer_size()?
         .to_logical::<f64>(scale_factor);
-    let tracker_window = ensure_planner_window(app_handle)?;
+    let tracker_window = ensure_tracker_window(app_handle)?;
     tracker_window.set_size(tauri::LogicalSize {
         height: TRACKER_HEIGHT,
         width: reference_size

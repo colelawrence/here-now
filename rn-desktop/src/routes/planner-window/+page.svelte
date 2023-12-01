@@ -3,7 +3,7 @@
   import TodoList from "$lib/TodoList.svelte";
   import { mountAppInSvelte } from "$lib/mountApp.svelte";
   import { useStore } from "jotai-svelte";
-  import { ArrowDown } from "phosphor-svelte";
+  import { ArrowDown, Play, Stop } from "phosphor-svelte";
 
   const store = useStore();
   const app = mountAppInSvelte(store);
@@ -15,9 +15,20 @@
       <!-- placeholder for window buttons -->
     </div>
     <h1 class="text-ui-base font-semi grow py-2" data-tauri-drag-region>Planner</h1>
-    <button on:click={app.collapseIntoTracker}>
-      <ArrowDown />
-    </button>
+    {#if app.workState.state === "planning"}
+      <button on:click={app.workState.start}>
+        <Play />
+      </button>
+    {:else if app.workState.state === "working"}
+      <div class="flex gap-1">
+        <button on:click={app.workState.stop}>
+          <Stop />
+        </button>
+        <button on:click={app.workState.collapseIntoTracker}>
+          <ArrowDown />
+        </button>
+      </div>
+    {/if}
   </div>
   <TodoList {app} />
   <div class="flex flex-col gap-2 justify-center items-center">

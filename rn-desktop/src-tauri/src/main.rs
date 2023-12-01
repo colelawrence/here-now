@@ -7,7 +7,7 @@ extern crate objc;
 
 use std::sync::Arc;
 use tauri::Manager;
-use tauri::SystemTray;
+
 use tauri_plugin_autostart::MacosLauncher;
 
 use hn_app::_result_::*;
@@ -140,7 +140,6 @@ async fn main() -> Result<()> {
         .invoke_handler(tauri::generate_handler![greet, report_error,])
         // Probably based on gitlight, I don't know what this does for us, though.
         // .enable_macos_default_menu(false)
-        .system_tray(SystemTray::new().with_id(SYSTEM_TRAY_ID))
         .on_system_tray_event(|app, event| {
             tauri_plugin_positioner::on_tray_event(app, &event);
             rn_todos_plugin::on_tray_event(app, &event);
@@ -150,8 +149,6 @@ async fn main() -> Result<()> {
         .run(|_app_handle, event| {
             if let tauri::RunEvent::ExitRequested { api, .. } = event {
                 api.prevent_exit();
-            } else {
-                eprintln!("{event:?}")
             }
         });
 

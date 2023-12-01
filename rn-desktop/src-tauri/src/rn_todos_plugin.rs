@@ -45,7 +45,7 @@ fn broadcast_ui_update<R: Runtime>(
 #[fn_codegen]
 #[codegen(tauri_command, tauri_plugin = "RightNowTodos", tags = "rn-ui")]
 #[tauri::command(async)]
-#[tracing::instrument]
+#[tracing::instrument(skip(app))]
 async fn get_all_todos<R: Runtime>(app: tauri::AppHandle<R>) -> Result<Vec<ui::Todo>, Error> {
     Ok(app.state::<AppState>().todos.read().await.clone())
 }
@@ -54,7 +54,7 @@ async fn get_all_todos<R: Runtime>(app: tauri::AppHandle<R>) -> Result<Vec<ui::T
 #[fn_codegen]
 #[codegen(tauri_command, tauri_plugin = "RightNowTodos", tags = "rn-ui")]
 #[tauri::command(async)]
-#[tracing::instrument]
+#[tracing::instrument(skip(app))]
 async fn update_todo_fields<R: Runtime>(
     app: tauri::AppHandle<R>,
     uid: ui::UID,
@@ -82,7 +82,7 @@ async fn update_todo_fields<R: Runtime>(
                 return Ok(());
             }
         }
-        return Err(Error::Other(format!("Template todo ({uid:?}) not found")));
+        return Err(Error::App(format!("Template todo ({uid:?}) not found")));
     } else {
         for todo in app.state::<AppState>().todos.write().await.iter_mut() {
             if todo.uid == uid {
@@ -97,7 +97,7 @@ async fn update_todo_fields<R: Runtime>(
                 return Ok(());
             }
         }
-        return Err(Error::Other(format!("Todo ({uid:?}) not found")));
+        return Err(Error::App(format!("Todo ({uid:?}) not found")));
     }
 }
 
@@ -112,7 +112,7 @@ fn now_unix() -> u64 {
 #[fn_codegen]
 #[codegen(tauri_command, tauri_plugin = "RightNowTodos", tags = "rn-ui")]
 #[tauri::command(async)]
-#[tracing::instrument]
+#[tracing::instrument(skip(app))]
 async fn update_todo_completed<R: Runtime>(
     app: tauri::AppHandle<R>,
     uid: ui::UID,
@@ -132,13 +132,13 @@ async fn update_todo_completed<R: Runtime>(
             return Ok(());
         }
     }
-    return Err(Error::Other(format!("Todo ({uid:?}) not found")));
+    return Err(Error::App(format!("Todo ({uid:?}) not found")));
 }
 
 #[fn_codegen]
 #[codegen(tauri_command, tauri_plugin = "RightNowTodos", tags = "rn-ui")]
 #[tauri::command(async)]
-#[tracing::instrument]
+#[tracing::instrument(skip(app))]
 async fn update_todo_ord<R: Runtime>(
     app: tauri::AppHandle<R>,
     uid: ui::UID,
@@ -166,7 +166,7 @@ async fn update_todo_ord<R: Runtime>(
                 return Ok(());
             }
         }
-        return Err(Error::Other(format!("Template todo ({uid:?}) not found")));
+        return Err(Error::App(format!("Template todo ({uid:?}) not found")));
     } else {
         for todo in app.state::<AppState>().todos.write().await.iter_mut() {
             if todo.uid == uid {
@@ -180,14 +180,14 @@ async fn update_todo_ord<R: Runtime>(
                 return Ok(());
             }
         }
-        return Err(Error::Other(format!("Todo ({uid:?}) not found")));
+        return Err(Error::App(format!("Todo ({uid:?}) not found")));
     }
 }
 
 #[fn_codegen]
 #[codegen(tauri_command, tauri_plugin = "RightNowTodos", tags = "rn-ui")]
 #[tauri::command(async)]
-#[tracing::instrument]
+#[tracing::instrument(skip(app))]
 async fn add_todo<R: Runtime>(
     app: tauri::AppHandle<R>,
     uid: ui::UID,
@@ -230,7 +230,7 @@ async fn add_todo<R: Runtime>(
 #[fn_codegen]
 #[codegen(tauri_command, tauri_plugin = "RightNowTodos", tags = "rn-ui")]
 #[tauri::command(async)]
-#[tracing::instrument]
+#[tracing::instrument(skip(app))]
 async fn delete_todo<R: Runtime>(
     app: tauri::AppHandle<R>,
     uid: ui::UID,
@@ -259,7 +259,7 @@ async fn delete_todo<R: Runtime>(
 #[fn_codegen]
 #[codegen(tauri_command, tauri_plugin = "RightNowTodos", tags = "rn-ui")]
 #[tauri::command(async)]
-#[tracing::instrument]
+#[tracing::instrument(skip(app))]
 async fn start_session(app: tauri::AppHandle) -> Result<(), Error> {
     let working_secs = {
         let state = app.state::<AppState>();
@@ -276,13 +276,14 @@ async fn start_session(app: tauri::AppHandle) -> Result<(), Error> {
         },
     )
     .await?;
+
     Ok(())
 }
 
 #[fn_codegen]
 #[codegen(tauri_command, tauri_plugin = "RightNowTodos", tags = "rn-ui")]
 #[tauri::command(async)]
-#[tracing::instrument]
+#[tracing::instrument(skip(app))]
 async fn take_a_break(app: tauri::AppHandle) -> Result<(), Error> {
     let break_secs = {
         let state = app.state::<AppState>();
@@ -304,12 +305,12 @@ async fn take_a_break(app: tauri::AppHandle) -> Result<(), Error> {
 #[fn_codegen]
 #[codegen(tauri_command, tauri_plugin = "RightNowTodos", tags = "rn-ui")]
 #[tauri::command(async)]
-#[tracing::instrument]
+#[tracing::instrument(skip(app))]
 async fn toggle_size(app: tauri::AppHandle, big: bool) -> Result<(), Error> {
     match app.state::<AppState>().work_state.read().await.deref() {
         ui::WorkState::Working { .. } => {}
         other => {
-            return Err(Error::Other(format!(
+            return Err(Error::App(format!(
                 "Can only toggle size during work\n{other:?}"
             )))
         }
@@ -320,23 +321,24 @@ async fn toggle_size(app: tauri::AppHandle, big: bool) -> Result<(), Error> {
         if let Some(tracker) = windows_controller::get_tracker_window(&app)? {
             tracker.close()?;
         }
+        tracing::info!("toggle_size: showing planner, closed tracker");
     } else {
-        let tracker = if let Some(planner) = windows_controller::get_planner_window(&app)? {
-            let window = windows_controller::ensure_tracker_window_below(&app, &planner)?;
+        if let Some(planner) = windows_controller::get_planner_window(&app)? {
+            windows_controller::ensure_tracker_window_below(&app, &planner)?.show()?;
             planner.close()?;
-            window
         } else {
-            windows_controller::ensure_tracker_window(&app)?
+            windows_controller::ensure_tracker_window(&app)?.show()?;
         };
-        tracker.show()?;
+        tracing::info!("toggle_size: hid planner, showed tracker");
     }
+
     Ok(())
 }
 
 #[fn_codegen]
 #[codegen(tauri_command, tauri_plugin = "RightNowTodos", tags = "rn-ui")]
 #[tauri::command(async)]
-#[tracing::instrument]
+#[tracing::instrument(skip(app))]
 async fn stop_session(app: tauri::AppHandle) -> Result<(), Error> {
     // Future: Some "summary" view?
     set_work_state(&app, ui::WorkState::Planning).await?;
@@ -422,31 +424,36 @@ async fn set_work_state(app: &tauri::AppHandle, update: ui::WorkState) -> Result
         }
     }
 
+    *current_state = update;
+
     Ok(())
 }
 
-pub fn on_tray_event<R: Runtime>(app: &AppHandle<R>, event: &SystemTrayEvent) {
+pub fn on_tray_event<R: Runtime>(app_handle: &AppHandle<R>, event: &SystemTrayEvent) {
     match event {
         SystemTrayEvent::LeftClick { .. } => {
-            if let Some(planner_w) = windows_controller::get_planner_window(app).unwrap() {
+            if let Some(_tracker) = windows_controller::get_tracker_window(app_handle).unwrap() {
+                // tracker is open, so we should show the tray todos list
+                let tray_window = windows_controller::ensure_tray_window(app_handle).unwrap();
+                if tray_window.is_visible().unwrap() {
+                    // tray is already open, so shift focus to tracker window
+                    tray_window.hide().unwrap();
+                    if let Some(tracker_window) =
+                        windows_controller::get_tracker_window(app_handle).unwrap()
+                    {
+                        tracker_window.show().unwrap();
+                        tracker_window.set_focus().unwrap();
+                    }
+                } else {
+                    tray_window.move_window(Position::TrayCenter).unwrap();
+                    tray_window.show().unwrap();
+                    tray_window.set_focus().unwrap();
+                }
+            } else {
+                let planner_w = windows_controller::ensure_planner_window(app_handle).unwrap();
                 // we're in planning mode, so we should focus on that window.
                 planner_w.show().unwrap();
                 planner_w.set_focus().unwrap();
-                return;
-            }
-
-            let tray_window = windows_controller::ensure_tray_window(app).unwrap();
-            if tray_window.is_visible().unwrap() {
-                // tray is already open, so shift focus to tracker window
-                tray_window.hide().unwrap();
-                if let Some(tracker_window) = windows_controller::get_tracker_window(app).unwrap() {
-                    tracker_window.show().unwrap();
-                    tracker_window.set_focus().unwrap();
-                }
-            } else {
-                tray_window.move_window(Position::TrayCenter).unwrap();
-                tray_window.show().unwrap();
-                tray_window.set_focus().unwrap();
             }
         }
         SystemTrayEvent::MenuItemClick { id, .. } => match id.as_str() {
@@ -576,6 +583,7 @@ pub fn init() -> TauriPlugin<tauri::Wry> {
             start_session,
             stop_session,
             take_a_break,
+            toggle_size,
         ])
         .build()
 }

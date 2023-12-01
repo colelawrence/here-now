@@ -28,7 +28,7 @@
       "design-tools": true,
       "svelte-tools": true
     },
-    "tailwindCSS.emmetCompletions": true,
+    "tailwindCSS.emmetCompletions": false,
     "tailwindCSS.includeLanguages": {
       "jinja-html": "html"
     },
