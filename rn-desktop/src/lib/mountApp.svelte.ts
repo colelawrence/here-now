@@ -21,9 +21,11 @@ export function mountAppInSvelte(store: JotaiStore): AppState {
       listen("ui_update", (e) => {
         console.log("ui update event", e);
         for (let i = 0; i < handlers.length; i++) {
+          // e.g. "UpdateTodos" or "UpdateWorkState" or "AddTodo" etc
           const variantId = handlers[i][0];
-          if (variantId in e) {
-            handlers[i][1]((e.payload as any)[variantId] as any);
+          const { payload } = e as any;
+          if (variantId in payload) {
+            handlers[i][1](payload[variantId]);
           }
         }
       }).then((unlisten) => {

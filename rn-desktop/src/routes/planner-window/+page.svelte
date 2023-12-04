@@ -16,12 +16,12 @@
     </div>
     <h1 class="text-ui-base font-semi grow py-2" data-tauri-drag-region>Planner</h1>
     {#if app.workState.state === "planning"}
-      <button on:click={app.workState.start}>
+      <button on:click={app.workState.startSession}>
         <Play />
       </button>
     {:else if app.workState.state === "working"}
       <div class="flex gap-1">
-        <button on:click={app.workState.stop}>
+        <button on:click={app.workState.stopSession}>
           <Stop />
         </button>
         <button on:click={app.workState.collapseIntoTracker}>

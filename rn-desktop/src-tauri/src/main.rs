@@ -136,7 +136,7 @@ async fn main() -> Result<()> {
         ))
         .plugin(tauri_plugin_positioner::init())
         .plugin(rn_todos_plugin::tray_controller::init())
-        .plugin(rn_todos_plugin::init())
+        .plugin(rn_todos_plugin::init(&app_dir).await)
         .invoke_handler(tauri::generate_handler![greet, report_error,])
         // Probably based on gitlight, I don't know what this does for us, though.
         // .enable_macos_default_menu(false)

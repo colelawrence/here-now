@@ -11,6 +11,7 @@ import { ui } from "./ui";
 export type TodoItem = HasHtmlInput &
   HasInputTraversal & {
     readonly id: string;
+    htmlCheckboxId: string;
     text: string;
     completed: boolean;
     delete(): void;
@@ -26,16 +27,32 @@ export type AddTodo = HasHtmlInput &
     add(): void;
   };
 
+export type TimerInfo = {
+  /** Unix seconds since EPOCH */
+  endsAtUnix: number;
+  /** Unix seconds since EPOCH */
+  startedAtUnix: number;
+};
+
 export type WorkStateWorking = {
   state: "working";
+  timer: TimerInfo;
   collapseIntoTracker(): void;
   expandIntoPlanner(): void;
-  stop(): void;
+  takeBreak(): void;
+  stopSession(): void;
 };
 
 export type WorkStatePlanning = {
   state: "planning";
-  start(): void;
+  startSession(): void;
+};
+
+export type WorkStateBreak = {
+  state: "break";
+  timer: TimerInfo;
+  continueWorking(): void;
+  stopSession(): void;
 };
 
 export type AppState = {
@@ -43,7 +60,7 @@ export type AppState = {
   visibilityFilter: VisibilityFilter;
   addTodo: AddTodo;
   isReady: boolean;
-  workState: WorkStateWorking | WorkStatePlanning;
+  workState: WorkStatePlanning | WorkStateWorking | WorkStateBreak;
 };
 
 export type AppCtx = {
@@ -98,7 +115,7 @@ export function createApp(
   const inputTraversalNav = createInputTraversal(() => [...todos, addTodo]);
   let todos = $state<TodoItem[]>([]);
   let isReady = $state(false);
-  let workState: "working" | "planning" = $state("planning");
+  let workState: ui.WorkState = $state(ui.WorkState.Planning());
   const memoTodoAndCache = memoize((uid: string) => {
     const cached = createCachedItem<ui.Todo>(
       ctx.store,
@@ -116,6 +133,10 @@ export function createApp(
     ctx.listenToUIUpdates({
       LoadTodos(inner) {
         loadTodos(inner.todos);
+      },
+      UpdateWorkState(update) {
+        console.debug("UpdateWorkState", update);
+        workState = update;
       },
       AddTodo(todo) {
         const { cached, vm } = memoTodoAndCache(todo.uid);
@@ -212,31 +233,59 @@ export function createApp(
       visibilityFilter = updatedFilter;
     },
     addTodo,
-    get workState(): WorkStatePlanning | WorkStateWorking {
-      if (workState === "planning") {
-        return {
+    get workState() {
+      return ui.WorkState.match<WorkStatePlanning | WorkStateWorking | WorkStateBreak>(workState, {
+        Planning: (): WorkStatePlanning => ({
           state: "planning",
-          start() {
+          startSession() {
             call(async () => {
               try {
                 await ctx.rn.start_session();
                 await ctx.rn.toggle_size({ big: false });
-                workState = "working";
               } catch (error) {
                 ctx.notify.reportError("Failed to start session", { error });
               }
             });
           },
-        };
-      } else {
-        return {
-          state: "working",
-          stop() {
+        }),
+        Break: (inner): WorkStateBreak => ({
+          state: "break",
+          timer: {
+            endsAtUnix: inner.ends_at_unix,
+            startedAtUnix: inner.started_at_unix,
+          },
+          continueWorking() {
+            call(async () => {
+              try {
+                await ctx.rn.continue_working();
+                await ctx.rn.toggle_size({ big: false });
+              } catch (error) {
+                ctx.notify.reportError("Failed to continue working", { error });
+              }
+            });
+          },
+          stopSession() {
             call(async () => {
               try {
                 await ctx.rn.stop_session();
                 await ctx.rn.toggle_size({ big: true });
-                workState = "planning";
+              } catch (error) {
+                ctx.notify.reportError("Failed to stop session", { error });
+              }
+            });
+          },
+        }),
+        Working: (inner): WorkStateWorking => ({
+          state: "working",
+          timer: {
+            endsAtUnix: inner.ends_at_unix,
+            startedAtUnix: inner.started_at_unix,
+          },
+          stopSession() {
+            call(async () => {
+              try {
+                await ctx.rn.stop_session();
+                await ctx.rn.toggle_size({ big: true });
               } catch (error) {
                 ctx.notify.reportError("Failed to stop session", { error });
               }
@@ -248,8 +297,18 @@ export function createApp(
           expandIntoPlanner() {
             toggleBig(true);
           },
-        };
-      }
+          takeBreak() {
+            call(async () => {
+              try {
+                await ctx.rn.take_a_break();
+                await ctx.rn.toggle_size({ big: true });
+              } catch (error) {
+                ctx.notify.reportError("Failed to take break", { error });
+              }
+            });
+          },
+        }),
+      });
     },
   };
 
@@ -300,6 +359,7 @@ export function createApp(
 
     const self: TodoItem = {
       id: init.uid,
+      htmlCheckboxId: `todo-checkbox-${init.uid}`,
       htmlInputElement: null,
       get text() {
         return text;

@@ -2,6 +2,7 @@
   import { handleArrowTraversalDOM } from "$lib/handleInputTraversalDOM";
   import { Trash } from "phosphor-svelte";
   import type { TodoItem } from "./createApp.svelte";
+  import TodoItemCheckbox from "./TodoItemCheckbox.svelte";
 
   const { todo, nonEditableText } = $props<{
     todo: TodoItem;
@@ -10,7 +11,7 @@
 </script>
 
 <div class="flex grow justify-stretch gap-2 items-center" data-tauri-drag-region>
-  <input type="checkbox" bind:checked={todo.completed} class="w-4 h-4" />
+  <TodoItemCheckbox {todo} />
   <input
     type="text"
     class="grow"

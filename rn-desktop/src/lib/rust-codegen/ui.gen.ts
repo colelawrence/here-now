@@ -55,6 +55,8 @@ export interface RightNowTodosInvoke {
   /** `#[codegen(tauri_command, tags = "rn-ui", tauri_plugin = "RightNowTodos")]` */
   start_session(): Promise<Result_OkTuple_ErrError.Ok["Ok"]>;
   /** `#[codegen(tauri_command, tags = "rn-ui", tauri_plugin = "RightNowTodos")]` */
+  continue_working(): Promise<Result_OkTuple_ErrError.Ok["Ok"]>;
+  /** `#[codegen(tauri_command, tags = "rn-ui", tauri_plugin = "RightNowTodos")]` */
   take_a_break(): Promise<Result_OkTuple_ErrError.Ok["Ok"]>;
   /** `#[codegen(tauri_command, tags = "rn-ui", tauri_plugin = "RightNowTodos")]` */
   toggle_size(options: { big: boolean }): Promise<Result_OkTuple_ErrError.Ok["Ok"]>;
@@ -89,7 +91,7 @@ export function AppSettings(inner: AppSettings): AppSettings {
 /**
  * `#[codegen(tags = "rn-ui")]`
  *
- * [Source `rn-desktop/src-tauri/src/ui.rs:18`](../../../rn-desktop/src-tauri/src/ui.rs)
+ * [Source `rn-desktop/src-tauri/src/ui.rs:28`](../../../rn-desktop/src-tauri/src/ui.rs)
  */
 // deno-lint-ignore no-namespace
 export namespace ToUITodoUpdate {
@@ -146,7 +148,7 @@ export namespace ToUITodoUpdate {
 /**
  * `#[codegen(tags = "rn-ui")]`
  *
- * [Source `rn-desktop/src-tauri/src/ui.rs:18`](../../../rn-desktop/src-tauri/src/ui.rs)
+ * [Source `rn-desktop/src-tauri/src/ui.rs:28`](../../../rn-desktop/src-tauri/src/ui.rs)
  */
 export type ToUITodoUpdate =
   | ToUITodoUpdate.UpdateFields
@@ -156,7 +158,7 @@ export type ToUITodoUpdate =
 /**
  * `#[codegen(tags = "rn-ui")]`
  *
- * [Source `rn-desktop/src-tauri/src/ui.rs:33`](../../../rn-desktop/src-tauri/src/ui.rs)
+ * [Source `rn-desktop/src-tauri/src/ui.rs:43`](../../../rn-desktop/src-tauri/src/ui.rs)
  */
 // deno-lint-ignore no-namespace
 export namespace ToUITemplateTodoUpdate {
@@ -197,13 +199,13 @@ export namespace ToUITemplateTodoUpdate {
 /**
  * `#[codegen(tags = "rn-ui")]`
  *
- * [Source `rn-desktop/src-tauri/src/ui.rs:33`](../../../rn-desktop/src-tauri/src/ui.rs)
+ * [Source `rn-desktop/src-tauri/src/ui.rs:43`](../../../rn-desktop/src-tauri/src/ui.rs)
  */
 export type ToUITemplateTodoUpdate = ToUITemplateTodoUpdate.UpdateFields | ToUITemplateTodoUpdate.UpdateOrd;
 /**
  * `#[codegen(tags = "rn-ui")]`
  *
- * [Source `rn-desktop/src-tauri/src/ui.rs:46`](../../../rn-desktop/src-tauri/src/ui.rs)
+ * [Source `rn-desktop/src-tauri/src/ui.rs:56`](../../../rn-desktop/src-tauri/src/ui.rs)
  */
 // deno-lint-ignore no-namespace
 export namespace ToUIUpdate {
@@ -295,7 +297,7 @@ export namespace ToUIUpdate {
 /**
  * `#[codegen(tags = "rn-ui")]`
  *
- * [Source `rn-desktop/src-tauri/src/ui.rs:46`](../../../rn-desktop/src-tauri/src/ui.rs)
+ * [Source `rn-desktop/src-tauri/src/ui.rs:56`](../../../rn-desktop/src-tauri/src/ui.rs)
  */
 export type ToUIUpdate =
   | ToUIUpdate.LoadTodos
@@ -309,7 +311,7 @@ export type ToUIUpdate =
 /**
  * `#[codegen(tags = "rn-ui")]`
  *
- * [Source `rn-desktop/src-tauri/src/ui.rs:63`](../../../rn-desktop/src-tauri/src/ui.rs)
+ * [Source `rn-desktop/src-tauri/src/ui.rs:73`](../../../rn-desktop/src-tauri/src/ui.rs)
  */
 // deno-lint-ignore no-namespace
 export namespace WorkState {
@@ -366,13 +368,13 @@ export namespace WorkState {
 /**
  * `#[codegen(tags = "rn-ui")]`
  *
- * [Source `rn-desktop/src-tauri/src/ui.rs:63`](../../../rn-desktop/src-tauri/src/ui.rs)
+ * [Source `rn-desktop/src-tauri/src/ui.rs:73`](../../../rn-desktop/src-tauri/src/ui.rs)
  */
 export type WorkState = WorkState.Planning | WorkState.Break | WorkState.Working;
 /**
  * `#[codegen(tags = "rn-ui")]`
  *
- * [Source `rn-desktop/src-tauri/src/ui.rs:81`](../../../rn-desktop/src-tauri/src/ui.rs)
+ * [Source `rn-desktop/src-tauri/src/ui.rs:97`](../../../rn-desktop/src-tauri/src/ui.rs)
  */
 export type TodoFields = {
   /**
@@ -391,7 +393,7 @@ export type TodoFields = {
 /**
  * `#[codegen(tags = "rn-ui")]`
  *
- * [Source `rn-desktop/src-tauri/src/ui.rs:81`](../../../rn-desktop/src-tauri/src/ui.rs)
+ * [Source `rn-desktop/src-tauri/src/ui.rs:97`](../../../rn-desktop/src-tauri/src/ui.rs)
  */
 export function TodoFields(inner: TodoFields): TodoFields {
   return inner;
@@ -399,7 +401,7 @@ export function TodoFields(inner: TodoFields): TodoFields {
 /**
  * `#[codegen(tags = "rn-ui")]`
  *
- * [Source `rn-desktop/src-tauri/src/ui.rs:94`](../../../rn-desktop/src-tauri/src/ui.rs)
+ * [Source `rn-desktop/src-tauri/src/ui.rs:110`](../../../rn-desktop/src-tauri/src/ui.rs)
  */
 export type Todo = {
   uid: UID;
@@ -414,7 +416,7 @@ export type Todo = {
 /**
  * `#[codegen(tags = "rn-ui")]`
  *
- * [Source `rn-desktop/src-tauri/src/ui.rs:94`](../../../rn-desktop/src-tauri/src/ui.rs)
+ * [Source `rn-desktop/src-tauri/src/ui.rs:110`](../../../rn-desktop/src-tauri/src/ui.rs)
  */
 export function Todo(inner: Todo): Todo {
   return inner;
@@ -422,7 +424,7 @@ export function Todo(inner: Todo): Todo {
 /**
  * `#[codegen(tags = "rn-ui")]`
  *
- * [Source `rn-desktop/src-tauri/src/ui.rs:107`](../../../rn-desktop/src-tauri/src/ui.rs)
+ * [Source `rn-desktop/src-tauri/src/ui.rs:123`](../../../rn-desktop/src-tauri/src/ui.rs)
  */
 export type TodoWorkDuration = {
   started_at_unix: number;
@@ -431,7 +433,7 @@ export type TodoWorkDuration = {
 /**
  * `#[codegen(tags = "rn-ui")]`
  *
- * [Source `rn-desktop/src-tauri/src/ui.rs:107`](../../../rn-desktop/src-tauri/src/ui.rs)
+ * [Source `rn-desktop/src-tauri/src/ui.rs:123`](../../../rn-desktop/src-tauri/src/ui.rs)
  */
 export function TodoWorkDuration(inner: TodoWorkDuration): TodoWorkDuration {
   return inner;
@@ -439,7 +441,7 @@ export function TodoWorkDuration(inner: TodoWorkDuration): TodoWorkDuration {
 /**
  * `#[codegen(tags = "rn-ui")]`
  *
- * [Source `rn-desktop/src-tauri/src/ui.rs:114`](../../../rn-desktop/src-tauri/src/ui.rs)
+ * [Source `rn-desktop/src-tauri/src/ui.rs:130`](../../../rn-desktop/src-tauri/src/ui.rs)
  */
 export type TemplateTodo = {
   uid: UID;
@@ -450,7 +452,7 @@ export type TemplateTodo = {
 /**
  * `#[codegen(tags = "rn-ui")]`
  *
- * [Source `rn-desktop/src-tauri/src/ui.rs:114`](../../../rn-desktop/src-tauri/src/ui.rs)
+ * [Source `rn-desktop/src-tauri/src/ui.rs:130`](../../../rn-desktop/src-tauri/src/ui.rs)
  */
 export function TemplateTodo(inner: TemplateTodo): TemplateTodo {
   return inner;
@@ -458,7 +460,7 @@ export function TemplateTodo(inner: TemplateTodo): TemplateTodo {
 /**
  * `Result` is a type that represents either success ([`Ok`]) or failure ([`Err`]).
  *
- * [Source `rn-desktop/src-tauri/src/rn_todos_plugin.rs:45`](../../../rn-desktop/src-tauri/src/rn_todos_plugin.rs)
+ * [Source `rn-desktop/src-tauri/src/rn_todos_plugin.rs:48`](../../../rn-desktop/src-tauri/src/rn_todos_plugin.rs)
  */
 // deno-lint-ignore no-namespace
 export namespace Result_OkTodo_List_ErrError {
@@ -507,13 +509,13 @@ export namespace Result_OkTodo_List_ErrError {
 /**
  * `Result` is a type that represents either success ([`Ok`]) or failure ([`Err`]).
  *
- * [Source `rn-desktop/src-tauri/src/rn_todos_plugin.rs:45`](../../../rn-desktop/src-tauri/src/rn_todos_plugin.rs)
+ * [Source `rn-desktop/src-tauri/src/rn_todos_plugin.rs:48`](../../../rn-desktop/src-tauri/src/rn_todos_plugin.rs)
  */
 export type Result_OkTodo_List_ErrError = Result_OkTodo_List_ErrError.Ok | Result_OkTodo_List_ErrError.Err;
 /**
  * `Result` is a type that represents either success ([`Ok`]) or failure ([`Err`]).
  *
- * [Source `rn-desktop/src-tauri/src/rn_todos_plugin.rs:54`](../../../rn-desktop/src-tauri/src/rn_todos_plugin.rs)
+ * [Source `rn-desktop/src-tauri/src/rn_todos_plugin.rs:57`](../../../rn-desktop/src-tauri/src/rn_todos_plugin.rs)
  */
 // deno-lint-ignore no-namespace
 export namespace Result_OkTuple_ErrError {
@@ -562,6 +564,6 @@ export namespace Result_OkTuple_ErrError {
 /**
  * `Result` is a type that represents either success ([`Ok`]) or failure ([`Err`]).
  *
- * [Source `rn-desktop/src-tauri/src/rn_todos_plugin.rs:54`](../../../rn-desktop/src-tauri/src/rn_todos_plugin.rs)
+ * [Source `rn-desktop/src-tauri/src/rn_todos_plugin.rs:57`](../../../rn-desktop/src-tauri/src/rn_todos_plugin.rs)
  */
 export type Result_OkTuple_ErrError = Result_OkTuple_ErrError.Ok | Result_OkTuple_ErrError.Err;

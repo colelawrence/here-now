@@ -7,7 +7,7 @@ use std::process::Command;
 use std::{collections::BTreeMap, ops::Rem};
 use tracing::*;
 
-use command_ext::{get_project_root_dir, CommandExt};
+use command_ext::{get_project_root_dir, CmdHandle, CommandExt};
 
 mod command_ext;
 
@@ -219,7 +219,7 @@ fn generate_hinted_id(prefix: &str, count: Option<usize>) {
         .run_it("generate hinted id")
 }
 
-fn jaeger(docker: bool, no_proxy: bool) -> jod_thread::JoinHandle {
+fn jaeger(docker: bool, no_proxy: bool) -> CmdHandle {
     let proxy_base_path = "/dev/traces";
     if docker {
         Cmd::new("docker")
@@ -363,7 +363,7 @@ fn run_right_now_cmd(subcommand: RnArgs) {
     }
 }
 
-fn right_now_rust_code_gen_thread(watch: bool, postpone: bool) -> jod_thread::JoinHandle<()> {
+fn right_now_rust_code_gen_thread(watch: bool, postpone: bool) -> CmdHandle {
     let postpone_watch_arg = if postpone { "--postpone " } else { "" };
     Cmd::new("cargo")
         .args("test --package rn-desktop --bin rn-desktop -- ui::generate_ui_typescript --exact --nocapture --ignored".split(' '))
@@ -377,7 +377,7 @@ fn right_now_rust_code_gen_thread(watch: bool, postpone: bool) -> jod_thread::Jo
 #[instrument]
 fn right_now_dev_cmd(no_jaeger: bool) {
     // drop on exiting
-    let _codegen = right_now_rust_code_gen_thread(true, true);
+    let codegen = right_now_rust_code_gen_thread(true, true);
     Cmd::new("pnpm")
         .args("tauri dev".split(' '))
         .root_dir("./rn-desktop")
@@ -392,7 +392,8 @@ fn right_now_dev_cmd(no_jaeger: bool) {
         )
         .run_it("build or run rn-desktop Tauri program");
 
-    std::process::exit(0);
+    // kill codegen if tauri exited from some reason...
+    codegen.kill();
 }
 
 #[instrument]

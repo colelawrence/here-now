@@ -1,4 +1,3 @@
-use jod_thread::JoinHandle;
 use std::{
     borrow::BorrowMut,
     ffi::OsString,
@@ -6,6 +5,7 @@ use std::{
     path::PathBuf,
     process::{self, Stdio},
 };
+use sysinfo::SystemExt;
 
 pub fn get_project_root_dir() -> PathBuf {
     std::env::var_os("CARGO_MANIFEST_DIR")
@@ -16,12 +16,9 @@ pub fn get_project_root_dir() -> PathBuf {
 pub trait CommandExt {
     fn root_dir(&mut self, rel: &str) -> &mut Self;
     fn run_it(&mut self, reason: &str);
-    fn run_in_thread(&mut self, reason: &'static str) -> JoinHandle;
-    fn run_with_printer(
-        &mut self,
-        reason: &'static str,
-        printer: for<'a> fn(&'a str),
-    ) -> JoinHandle;
+    fn run_in_thread(&mut self, reason: &'static str) -> CmdHandle;
+    fn run_with_printer(&mut self, reason: &'static str, printer: for<'a> fn(&'a str))
+        -> CmdHandle;
     fn arg_if(&mut self, cond: bool, arg: &str) -> &mut Self;
     fn args_if(&mut self, cond: bool, args_spaced: &str) -> &mut Self;
     fn env_if(&mut self, cond: bool, key: &str, value: &str) -> &mut Self;
@@ -50,7 +47,7 @@ impl CommandExt for devx_cmd::Cmd {
     }
     #[track_caller]
     #[tracing::instrument]
-    fn run_in_thread(&mut self, reason: &'static str) -> JoinHandle {
+    fn run_in_thread(&mut self, reason: &'static str) -> CmdHandle {
         let current_span = tracing::span::Span::current();
         eprintln!("${ASCII_CYAN} {self:?}\n{ASCII_DIM}{reason}{ASCII_RESET}");
         let mut child = self
@@ -58,19 +55,23 @@ impl CommandExt for devx_cmd::Cmd {
             .map_err(|err| format!("Command for {reason:?} failed to start: {self:?}\n{err:#?}"))
             .unwrap();
         let self_debug = format!("{self:?}");
-        jod_thread::spawn(move || {
-            let _span = current_span.enter();
-            match child.wait() {
-                Err(err) => {
-                    tracing::error!(
-                        reason,
-                        self_debug,
-                        "Command in thread exited with non-zero code: {err:#?}"
-                    );
+        let pid = sysinfo::Pid::from(child.child_mut().id() as usize);
+        CmdHandle(
+            pid,
+            Some(jod_thread::spawn(move || {
+                let _span = current_span.enter();
+                match child.wait() {
+                    Err(err) => {
+                        tracing::error!(
+                            reason,
+                            self_debug,
+                            "Command in thread exited with non-zero code: {err:#?}"
+                        );
+                    }
+                    Ok(_) => {}
                 }
-                Ok(_) => {}
-            }
-        })
+            })),
+        )
     }
 
     #[track_caller]
@@ -78,25 +79,29 @@ impl CommandExt for devx_cmd::Cmd {
         &mut self,
         reason: &'static str,
         printer: for<'a> fn(&'a str),
-    ) -> JoinHandle {
+    ) -> CmdHandle {
         eprintln!("${ASCII_CYAN} {self:?}\n{ASCII_DIM}{reason}{ASCII_RESET}");
         let mut child = self
             .spawn_with(Stdio::inherit(), Stdio::piped())
             .map_err(|err| format!("Command for {reason:?} failed to start: {self:?}\n{err:#?}"))
             .unwrap();
         let self_debug = format!("{self:?}");
-        jod_thread::spawn(move || {
-            let buf = BufReader::new(child.child_mut().stderr.take().unwrap());
-            for line in buf.lines() {
-                match line {
-                    Ok(line) => printer(&line),
-                    Err(err) => eprintln!("Line read error: {err:#?}"),
+        let pid = sysinfo::Pid::from(child.child_mut().id() as usize);
+        CmdHandle(
+            pid,
+            Some(jod_thread::spawn(move || {
+                let buf = BufReader::new(child.child_mut().stderr.take().unwrap());
+                for line in buf.lines() {
+                    match line {
+                        Ok(line) => printer(&line),
+                        Err(err) => eprintln!("Line read error: {err:#?}"),
+                    }
                 }
-            }
-            child.wait().map_err(|err| {
-                format!("{ASCII_RED} Command for {reason:?} in thread exited with non-zero code: {self_debug:?}\n{ASCII_DIM}{err:#?}{ASCII_RESET}")
-            }).unwrap()
-        })
+                child.wait().map_err(|err| {
+                    format!("{ASCII_RED} Command for {reason:?} in thread exited with non-zero code: {self_debug:?}\n{ASCII_DIM}{err:#?}{ASCII_RESET}")
+                }).unwrap()
+            })),
+        )
     }
 
     fn arg_if(&mut self, cond: bool, arg: &str) -> &mut Self {
@@ -154,5 +159,35 @@ impl CommandExt for devx_cmd::Cmd {
             self.args(all_args_it);
         }
         self
+    }
+}
+
+/// Kills the underlying command on drop.
+pub struct CmdHandle(sysinfo::Pid, Option<jod_thread::JoinHandle>);
+
+impl CmdHandle {
+    pub fn join(mut self) {
+        self.join_mut();
+    }
+    fn join_mut(&mut self) {
+        if let Some(handle) = self.1.take() {
+            handle.join()
+        }
+    }
+    pub fn kill(mut self) {
+        self.kill_mut()
+    }
+    fn kill_mut(&mut self) {
+        let sys = sysinfo::System::new_all();
+        if let Some(proc) = sys.process(self.0) {
+            sysinfo::ProcessExt::kill(proc);
+        }
+        self.join_mut();
+    }
+}
+
+impl Drop for CmdHandle {
+    fn drop(&mut self) {
+        self.kill_mut();
     }
 }

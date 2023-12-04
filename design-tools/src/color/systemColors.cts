@@ -1,5 +1,5 @@
-import type { Theme } from "@artprompt/material-color-utilities";
-import { hexFromArgb, themeFromImage, argbFromHex, themeFromSourceColor } from "@artprompt/material-color-utilities";
+import type { Theme } from "@material/material-color-utilities";
+import { argbFromHex, hexFromArgb, themeFromImage, themeFromSourceColor } from "@material/material-color-utilities";
 
 export type ExtendedColors = {
   ID: string;

@@ -15,6 +15,16 @@ pub struct AppSettings {
     pub template_todos: Vec<TemplateTodo>,
 }
 
+impl Default for AppSettings {
+    fn default() -> Self {
+        AppSettings {
+            break_secs: 5 * 60,
+            working_secs: 25 * 60,
+            template_todos: Vec::new(),
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize, Codegen, Clone)]
 #[codegen(tags = "rn-ui")]
 pub enum ToUITodoUpdate {
@@ -62,7 +72,9 @@ pub enum ToUIUpdate {
 
 #[derive(Serialize, Deserialize, Debug, Codegen, Clone, PartialEq)]
 #[codegen(tags = "rn-ui")]
+#[derive(Default)]
 pub enum WorkState {
+    #[default]
     Planning,
     Break {
         /// Time the break is over

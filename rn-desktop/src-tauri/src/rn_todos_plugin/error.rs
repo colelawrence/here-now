@@ -4,6 +4,12 @@ pub enum Error {
     App(String),
 }
 
+impl From<anyhow::Error> for Error {
+    fn from(value: anyhow::Error) -> Self {
+        Error::App(value.to_string())
+    }
+}
+
 impl serde::Serialize for Error {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where

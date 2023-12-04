@@ -28,3 +28,4 @@ sea-orm-cli = { version = "0.12.6", default-features = false, features = [
   "cli",
   "sqlx",
 ] }
+sysinfo = "0.29.11"
