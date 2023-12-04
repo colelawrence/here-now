@@ -75,6 +75,7 @@ sqlx-postgres = { version = "0.7", default-features = false, features = ["any", 
 sqlx-sqlite = { version = "0.7", default-features = false, features = ["any", "chrono", "json", "migrate", "offline", "time", "uuid"] }
 subtle = { version = "2", default-features = false, features = ["i128"] }
 syn-f595c2ba2a3f28df = { package = "syn", version = "2", features = ["extra-traits", "full", "visit", "visit-mut"] }
+sysinfo = { version = "0.29" }
 tauri-utils = { version = "1", default-features = false, features = ["build", "compression", "resources"] }
 time = { version = "0.3", features = ["formatting", "macros", "parsing", "serde"] }
 tokio = { version = "1", features = ["full"] }
@@ -154,6 +155,7 @@ sqlx-sqlite = { version = "0.7", default-features = false, features = ["any", "c
 subtle = { version = "2", default-features = false, features = ["i128"] }
 syn-dff4ba8e3ae991db = { package = "syn", version = "1", features = ["extra-traits", "fold", "full", "visit"] }
 syn-f595c2ba2a3f28df = { package = "syn", version = "2", features = ["extra-traits", "full", "visit", "visit-mut"] }
+sysinfo = { version = "0.29" }
 tauri-utils = { version = "1", default-features = false, features = ["build", "compression", "resources"] }
 time = { version = "0.3", features = ["formatting", "macros", "parsing", "serde"] }
 tokio = { version = "1", features = ["full"] }
