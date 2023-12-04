@@ -1,5 +1,6 @@
 <script lang="ts">
   import AddTodoForm from "$lib/AddTodoForm.svelte";
+  import Timer from "$lib/Timer.svelte";
   import TodoList from "$lib/TodoList.svelte";
   import { mountAppInSvelte } from "$lib/mountApp.svelte";
   import { useStore } from "jotai-svelte";
@@ -7,19 +8,42 @@
 
   const store = useStore();
   const app = mountAppInSvelte(store);
+
+  // t.on("drag:start", function () {
+  //   u.default.Single.play("cubeUp");
+  // }),
+  // t.on("drag:over", function () {
+  //   n && u.default.Single.play("cubeOver");
+  // }),
+  // t.on("drag:out", function () {
+  //   n = !0;
+  // }),
+  // t.on("drag:stop", function () {
+  //   u.default.Single.play("cubeDown"), (n = !1);
+  // }),
+  // t.on("collidable:in", function (e) {
+  //   var t = e.collidingElement;
+  //   u.default.Single.play("cubeCollide"), t.classList.add("isColliding");
+  // }),
+  // t.on("collidable:out", function (e) {
+  //   e.collidingElement.classList.remove("isColliding");
+  // });
 </script>
 
-<main class="flex flex-col items-stretch" data-tauri-drag-region>
+<main class="flex flex-col items-stretch select-none" data-tauri-drag-region>
   <div class="flex justify-stretch cursor-default" data-tauri-drag-region>
     <div>
       <!-- placeholder for window buttons -->
     </div>
-    <h1 class="text-ui-base font-semi grow py-2" data-tauri-drag-region>Planner</h1>
     {#if app.workState.state === "planning"}
+      <h1 class="text-ui-base font-semi grow py-2 select-none" data-tauri-drag-region>Planner</h1>
       <button on:click={app.workState.startSession}>
         <Play />
       </button>
     {:else if app.workState.state === "working"}
+      <div class="flex flex-grow justify-center">
+        <Timer info={app.workState.timer} />
+      </div>
       <div class="flex gap-1">
         <button on:click={app.workState.stopSession}>
           <Stop />
@@ -33,7 +57,7 @@
   <TodoList {app} />
   <div class="flex flex-col gap-2 justify-center items-center">
     <AddTodoForm addTodo={app.addTodo} />
-
+    <!-- 
     <div class="flex gap-1">
       <button
         on:click={() => (app.visibilityFilter = "SHOW_ACTIVE")}
@@ -47,6 +71,6 @@
         on:click={() => (app.visibilityFilter = "SHOW_ALL")}
         class:opacity-50={app.visibilityFilter === "SHOW_ALL"}>All</button
       >
-    </div>
+    </div> -->
   </div>
 </main>

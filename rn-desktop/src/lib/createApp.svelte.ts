@@ -8,10 +8,24 @@ import { DisposePool } from "./DisposePool";
 import type { JotaiStore } from "./jotai-types";
 import { ui } from "./ui";
 
-export type TodoItem = HasHtmlInput &
+export type TodoTimeEstimate = HasHtmlInput &
+  HasInputTraversal & {
+    /** Flexible time text */
+    text: string;
+    /** Value is understood as this amount */
+    readonly understoodAs?: string;
+    /** Submit the current text */
+    enter(): void;
+    /** Unfocus, thereby resetting the value to current */
+    blur(): void;
+  };
+
+export type ITodo = HasHtmlInput &
   HasInputTraversal & {
     readonly id: string;
-    htmlCheckboxId: string;
+    readonly htmlCheckboxId: string;
+    readonly timeEstimate: TodoTimeEstimate;
+    ord: number;
     text: string;
     completed: boolean;
     delete(): void;
@@ -29,14 +43,14 @@ export type AddTodo = HasHtmlInput &
 
 export type TimerInfo = {
   /** Unix seconds since EPOCH */
-  endsAtUnix: number;
+  readonly endsAtUnix: number;
   /** Unix seconds since EPOCH */
-  startedAtUnix: number;
+  readonly startedAtUnix: number;
 };
 
 export type WorkStateWorking = {
-  state: "working";
-  timer: TimerInfo;
+  readonly state: "working";
+  readonly timer: TimerInfo;
   collapseIntoTracker(): void;
   expandIntoPlanner(): void;
   takeBreak(): void;
@@ -44,29 +58,29 @@ export type WorkStateWorking = {
 };
 
 export type WorkStatePlanning = {
-  state: "planning";
+  readonly state: "planning";
   startSession(): void;
 };
 
 export type WorkStateBreak = {
-  state: "break";
-  timer: TimerInfo;
+  readonly state: "break";
+  readonly timer: TimerInfo;
   continueWorking(): void;
   stopSession(): void;
 };
 
 export type AppState = {
-  readonly todos: TodoItem[];
+  readonly todos: ITodo[];
   visibilityFilter: VisibilityFilter;
-  addTodo: AddTodo;
-  isReady: boolean;
-  workState: WorkStatePlanning | WorkStateWorking | WorkStateBreak;
+  readonly addTodo: AddTodo;
+  readonly isReady: boolean;
+  readonly workState: WorkStatePlanning | WorkStateWorking | WorkStateBreak;
 };
 
 export type AppCtx = {
-  store: JotaiStore;
-  notify: NotifyService;
-  rn: ui.RightNowTodosInvoke;
+  readonly store: JotaiStore;
+  readonly notify: NotifyService;
+  readonly rn: ui.RightNowTodosInvoke;
   listenToUIUpdates(handler: Partial<ui.ToUIUpdate.ApplyFns<void>>): () => void;
   sub<T>(pool: DisposePool, a: Atom<T>, fn: (val: T) => void): () => void;
 };
@@ -108,7 +122,8 @@ let lastOrd = Math.random();
 export function createApp(ctx: AppCtx): AppState {
   const rootPool = new DisposePool();
   const inputTraversalNav = createInputTraversal(() => [...todos, addTodo]);
-  let todos = $state<TodoItem[]>([]);
+  let todos = $state<ITodo[]>([]);
+  let todosSorted = $derived(todos.toSorted((a, b) => a.ord - b.ord));
   let isReady = $state(false);
   let workState: ui.WorkState = $state(ui.WorkState.Planning());
   const memoTodoAndCache = memoize((uid: string) => {
@@ -221,9 +236,9 @@ export function createApp(ctx: AppCtx): AppState {
 
   return {
     get todos() {
-      if (visibilityFilter === "SHOW_COMPLETED") return todos.filter((todo) => todo.completed);
-      if (visibilityFilter === "SHOW_ACTIVE") return todos.filter((todo) => !todo.completed);
-      return todos;
+      if (visibilityFilter === "SHOW_COMPLETED") return todosSorted.filter((todo) => todo.completed);
+      if (visibilityFilter === "SHOW_ACTIVE") return todosSorted.filter((todo) => !todo.completed);
+      return todosSorted;
     },
     get isReady() {
       return isReady;
@@ -314,7 +329,7 @@ export function createApp(ctx: AppCtx): AppState {
     },
   };
 
-  function newTodo(initText: string, initDone = false): TodoItem {
+  function newTodo(initText: string, initDone = false): ITodo {
     const uid = "T" + Date.now().toString(36) + Math.random().toString(36).slice(1);
     const ord = ++lastOrd;
     const fields: ui.TodoFields = { mvp_tags: [], time_estimate_mins: 25, title: initText };
@@ -334,13 +349,15 @@ export function createApp(ctx: AppCtx): AppState {
     return vm;
   }
 
-  function createTodo(ctx: AppCtx, pool: DisposePool, cached: CachedItem<ui.Todo>): TodoItem {
+  function createTodo(ctx: AppCtx, pool: DisposePool, cached: CachedItem<ui.Todo>): ITodo {
     const init = ctx.store.get(cached.valueAtom);
     let text = $state(init.fields.title);
     let completed = $state(init.completed_at != null);
     let totalMinuteEstimate = $state(init.fields.time_estimate_mins);
+    let ord = $state(init.ord);
     let mvpTags = $state(init.fields.mvp_tags);
     ctx.sub(pool, cached.valueAtom, (upd) => {
+      ord = upd.ord;
       text = upd.fields.title;
       completed = upd.completed_at != null;
       totalMinuteEstimate = upd.fields.time_estimate_mins;
@@ -363,10 +380,19 @@ export function createApp(ctx: AppCtx): AppState {
       });
     }
 
-    const self: TodoItem = {
+    const self: ITodo = {
       id: init.uid,
       htmlCheckboxId: `todo-checkbox-${init.uid}`,
       htmlInputElement: null,
+      get ord() {
+        return ord;
+      },
+      set ord(updated) {
+        ord = updated;
+        call(async () => {
+          await ctx.rn.update_todo_ord({ uid: init.uid, ord, template: false });
+        });
+      },
       get text() {
         return text;
       },
@@ -384,6 +410,7 @@ export function createApp(ctx: AppCtx): AppState {
         });
       },
       inputTraversal: inputTraversalNav.getEscapeInput(() => self),
+      timeEstimate: createTimeEstimate(),
       delete() {
         const input = self.htmlInputElement;
         if (input) {
@@ -424,6 +451,53 @@ export function createApp(ctx: AppCtx): AppState {
       },
     };
 
+    function createTimeEstimate(): TodoTimeEstimate {
+      let understoodMins = $state<number>();
+      let currentEditing = $state<string>();
+      const est: TodoTimeEstimate = {
+        blur() {
+          // apply
+          if (understoodMins) {
+            totalMinuteEstimate = understoodMins;
+            syncTodoFields();
+          }
+          currentEditing = undefined;
+        },
+        enter() {
+          if (understoodMins) {
+            totalMinuteEstimate = understoodMins;
+            syncTodoFields();
+          }
+          currentEditing = undefined;
+        },
+        htmlInputElement: null,
+        // pretend we're the input and we'll snap to the nearby inputs?
+        inputTraversal: inputTraversalNav.getEscapeInput(() => self),
+        get text() {
+          return currentEditing ?? `${totalMinuteEstimate}m`;
+        },
+        set text(updatedText) {
+          currentEditing = updatedText;
+          understoodMins = humanParseDuration(updatedText)?.minutes;
+        },
+        get understoodAs() {
+          return understoodMins ? `${understoodMins}m` : undefined;
+        },
+      };
+
+      return est;
+    }
+
     return self;
   }
+}
+
+function humanParseDuration(input: string): undefined | { minutes: number } {
+  {
+    const match = input.match(/^(?<minutes>\d+)m$/);
+    if (match) {
+      return { minutes: parseInt(match.groups!.minutes, 10) };
+    }
+  }
+  return undefined;
 }

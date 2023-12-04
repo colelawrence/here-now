@@ -18,9 +18,9 @@
 >
   {#key nextTodo?.id}
     {#if nextTodo != null}
-      <div class="flex gap-1 items-center">
+      <div class="flex grow gap-4 items-center">
         <TodoItemCheckbox todo={nextTodo} />
-        <label for={nextTodo.htmlCheckboxId}>{nextTodo.text}</label>
+        <label for={nextTodo.htmlCheckboxId} class="text-lg font-medium">{nextTodo.text}</label>
       </div>
     {:else}
       <div class="grow text-sys-on-primary text-opacity-50" data-tauri-drag-region>All done.</div>

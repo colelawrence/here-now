@@ -1,8 +1,8 @@
 <script lang="ts">
-  import type { TodoItem } from "./createApp.svelte";
+  import type { ITodo } from "./createApp.svelte";
 
   const { todo } = $props<{
-    todo: TodoItem;
+    todo: ITodo;
   }>();
 </script>
 
