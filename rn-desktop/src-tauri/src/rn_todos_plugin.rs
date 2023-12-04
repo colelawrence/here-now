@@ -1,37 +1,36 @@
-use std::{
-    marker::PhantomData,
-    ops::DerefMut,
-    path::{Path, PathBuf},
-    sync::Arc,
-};
-
-use crate::ui;
-use anyhow::Context;
-use derive_codegen::{fn_codegen, i_codegen_derive::codegen};
+use error::Error;
+use std::{ops::DerefMut, path::Path, sync::Arc};
+use stored_json::StoredJSON;
 use tauri::{
     plugin::{Builder as PluginBuilder, TauriPlugin},
     AppHandle, Manager, RunEvent, Runtime, SystemTrayEvent,
 };
 use tauri_plugin_positioner::{Position, WindowExt};
-
-type ArcRw<T> = Arc<tokio::sync::RwLock<T>>;
-mod error;
-use error::Error;
-use tokio::sync::{Mutex, RwLock};
+use tokio::sync::Mutex;
 use tracing::Instrument;
 
+use crate::ui;
+use i_rn_desktop_proc::ui_command;
+
+type ArcRw<T> = Arc<tokio::sync::RwLock<T>>;
+
 mod audio_controller;
+mod error;
+mod stored_json;
 pub mod tray_controller;
 pub mod windows_controller;
 
 #[derive(Clone)]
 pub struct AppState {
     pub todos: ArcRw<Vec<ui::Todo>>,
+    pub todos_stored: StoredJSON<Vec<ui::Todo>>,
     pub work_state: ArcRw<ui::WorkState>,
+    pub work_state_stored: StoredJSON<ui::WorkState>,
     /// Keep track of the current active task that will switch the mode automatically,
     /// so we can cancel that task when switching
     pub work_state_timer: Arc<Mutex<Option<tokio::task::AbortHandle>>>,
     pub app_settings: ArcRw<ui::AppSettings>,
+    pub app_settings_stored: StoredJSON<ui::AppSettings>,
 }
 
 const UI_UPDATE_EVENT: &str = "ui_update";
@@ -45,19 +44,15 @@ fn broadcast_ui_update<R: Runtime>(
 }
 
 /// `invoke("get_all_todos", {})`
-#[fn_codegen]
-#[codegen(tauri_command, tauri_plugin = "RightNowTodos", tags = "rn-ui")]
-#[tauri::command(async)]
-#[tracing::instrument(skip(app))]
+
+#[ui_command]
 async fn get_all_todos<R: Runtime>(app: tauri::AppHandle<R>) -> Result<Vec<ui::Todo>, Error> {
     Ok(app.state::<AppState>().todos.read().await.clone())
 }
 
 /// `invoke("update_todo_fields", { uid, fields, template })`
-#[fn_codegen]
-#[codegen(tauri_command, tauri_plugin = "RightNowTodos", tags = "rn-ui")]
-#[tauri::command(async)]
-#[tracing::instrument(skip(app))]
+
+#[ui_command]
 async fn update_todo_fields<R: Runtime>(
     app: tauri::AppHandle<R>,
     uid: ui::UID,
@@ -112,10 +107,7 @@ fn now_unix() -> u64 {
 }
 
 /// `invoke("update_todo_completed", { uid, completed })`
-#[fn_codegen]
-#[codegen(tauri_command, tauri_plugin = "RightNowTodos", tags = "rn-ui")]
-#[tauri::command(async)]
-#[tracing::instrument(skip(app))]
+#[ui_command]
 async fn update_todo_completed<R: Runtime>(
     app: tauri::AppHandle<R>,
     uid: ui::UID,
@@ -138,10 +130,7 @@ async fn update_todo_completed<R: Runtime>(
     return Err(Error::App(format!("Todo ({uid:?}) not found")));
 }
 
-#[fn_codegen]
-#[codegen(tauri_command, tauri_plugin = "RightNowTodos", tags = "rn-ui")]
-#[tauri::command(async)]
-#[tracing::instrument(skip(app))]
+#[ui_command]
 async fn update_todo_ord<R: Runtime>(
     app: tauri::AppHandle<R>,
     uid: ui::UID,
@@ -187,10 +176,7 @@ async fn update_todo_ord<R: Runtime>(
     }
 }
 
-#[fn_codegen]
-#[codegen(tauri_command, tauri_plugin = "RightNowTodos", tags = "rn-ui")]
-#[tauri::command(async)]
-#[tracing::instrument(skip(app))]
+#[ui_command]
 async fn add_todo<R: Runtime>(
     app: tauri::AppHandle<R>,
     uid: ui::UID,
@@ -230,10 +216,7 @@ async fn add_todo<R: Runtime>(
     }
 }
 
-#[fn_codegen]
-#[codegen(tauri_command, tauri_plugin = "RightNowTodos", tags = "rn-ui")]
-#[tauri::command(async)]
-#[tracing::instrument(skip(app))]
+#[ui_command]
 async fn delete_todo<R: Runtime>(
     app: tauri::AppHandle<R>,
     uid: ui::UID,
@@ -259,10 +242,7 @@ async fn delete_todo<R: Runtime>(
     }
 }
 
-#[fn_codegen]
-#[codegen(tauri_command, tauri_plugin = "RightNowTodos", tags = "rn-ui")]
-#[tauri::command(async)]
-#[tracing::instrument(skip(app))]
+#[ui_command]
 async fn start_session(app: tauri::AppHandle) -> Result<(), Error> {
     let working_secs = {
         let state = app.state::<AppState>();
@@ -283,20 +263,14 @@ async fn start_session(app: tauri::AppHandle) -> Result<(), Error> {
     Ok(())
 }
 
-#[fn_codegen]
-#[codegen(tauri_command, tauri_plugin = "RightNowTodos", tags = "rn-ui")]
-#[tauri::command(async)]
-#[tracing::instrument(skip(app))]
+#[ui_command]
 async fn continue_working(app: tauri::AppHandle) -> Result<(), Error> {
     start_session(app).await?;
 
     Ok(())
 }
 
-#[fn_codegen]
-#[codegen(tauri_command, tauri_plugin = "RightNowTodos", tags = "rn-ui")]
-#[tauri::command(async)]
-#[tracing::instrument(skip(app))]
+#[ui_command]
 async fn take_a_break(app: tauri::AppHandle) -> Result<(), Error> {
     let break_secs = {
         let state = app.state::<AppState>();
@@ -315,10 +289,7 @@ async fn take_a_break(app: tauri::AppHandle) -> Result<(), Error> {
     Ok(())
 }
 
-#[fn_codegen]
-#[codegen(tauri_command, tauri_plugin = "RightNowTodos", tags = "rn-ui")]
-#[tauri::command(async)]
-#[tracing::instrument(skip(app))]
+#[ui_command]
 async fn toggle_size(app: tauri::AppHandle, big: bool) -> Result<(), Error> {
     // match app.state::<AppState>().work_state.read().await.deref() {
     //     ui::WorkState::Working { .. } => {}
@@ -348,10 +319,7 @@ async fn toggle_size(app: tauri::AppHandle, big: bool) -> Result<(), Error> {
     Ok(())
 }
 
-#[fn_codegen]
-#[codegen(tauri_command, tauri_plugin = "RightNowTodos", tags = "rn-ui")]
-#[tauri::command(async)]
-#[tracing::instrument(skip(app))]
+#[ui_command]
 async fn stop_session(app: tauri::AppHandle) -> Result<(), Error> {
     // Future: Some "summary" view?
     set_work_state(&app, ui::WorkState::Planning).await?;
@@ -439,6 +407,8 @@ async fn set_work_state(app: &tauri::AppHandle, update: ui::WorkState) -> Result
         }
     }
 
+    state.work_state_stored.write(&update).await?;
+
     *current_state = update;
 
     Ok(())
@@ -481,97 +451,43 @@ pub fn on_tray_event<R: Runtime>(app_handle: &AppHandle<R>, event: &SystemTrayEv
     }
 }
 
-fn setup(app: &AppHandle) -> tauri::Result<()> {
-    tracing::info!("Setting up RightNowTodos");
-    app.manage(AppState {
-        app_settings: Arc::new(RwLock::new(ui::AppSettings {
-            working_secs: 25 * 60,
-            break_secs: 5 * 60,
-            template_todos: vec![
-                ui::TemplateTodo {
-                    uid: "PLAN_DAY".to_string(),
-                    fields: ui::TodoFields {
-                        mvp_tags: vec![],
-                        time_estimate_mins: 25,
-                        title: "Plan your day".to_string(),
-                    },
-                    ord_in_template_list: 0.1f64,
-                },
-                ui::TemplateTodo {
-                    uid: "WATER_PLANTS".to_string(),
-                    fields: ui::TodoFields {
-                        mvp_tags: vec![],
-                        time_estimate_mins: 10,
-                        title: "Water plants".to_string(),
-                    },
-                    ord_in_template_list: 0.5f64,
-                },
-            ],
-        })),
-        todos: Arc::new(RwLock::new(vec![ui::Todo {
-            completed_at: None,
-            uid: "T0".to_string(),
-            fields: ui::TodoFields {
-                mvp_tags: Vec::new(),
-                time_estimate_mins: 25,
-                title: "Persist Todos to disk".to_string(),
-            },
-            ord: 0.0,
-            worked: Vec::new(),
-        }])),
-        work_state: Arc::new(RwLock::new(ui::WorkState::Planning)),
-        work_state_timer: Arc::default(),
-    });
+#[ui_command]
+async fn load_self(app: tauri::AppHandle, window: tauri::Window) -> Result<(), Error> {
+    load_for_window(&app, window.label()).await;
+    Ok(())
+}
+
+async fn save_everything<R: Runtime>(app_handle: &AppHandle<R>) -> Result<(), Error> {
+    let app_state = app_handle.state::<AppState>();
+    let state_rguard = app_state.app_settings.read().await;
+    app_state.app_settings_stored.write(&state_rguard).await?;
+
+    let todos_rguard = app_state.todos.read().await;
+    app_state.todos_stored.write(&todos_rguard).await?;
 
     Ok(())
 }
 
-struct StoredJSON<T> {
-    path: PathBuf,
-    // last_contents: tokio::sync::Mutex<Option<String>>,
-    _marker: PhantomData<T>,
-}
-
-impl<T> StoredJSON<T> {
-    fn new(path: PathBuf) -> Self {
-        StoredJSON {
-            path,
-            // last_contents: Default::default(),
-            _marker: PhantomData,
-        }
-    }
-}
-impl<T: serde::Serialize + serde::de::DeserializeOwned> StoredJSON<T> {
-    pub async fn read(&self) -> Result<T, Error> {
-        let contents = tokio::fs::read(&self.path)
-            .await
-            .with_context(|| format!("Reading file from {:?}", self.path))?;
-        let value = serde_json::from_slice(&contents)
-            .with_context(|| format!("Parsing json file from {:?}", self.path))?;
-
-        Ok(value)
-    }
-    pub async fn write(&self, value: &T) -> Result<(), Error> {
-        let value = serde_json::to_vec_pretty(&value).context("To json")?;
-        tokio::fs::write(&self.path, &value)
-            .await
-            .with_context(|| format!("Writing JSON file to {:?}", self.path))?;
-        Ok(())
-    }
-}
-
 pub async fn init(save_dir: &Path) -> TauriPlugin<tauri::Wry> {
-    let _stored_todos = StoredJSON::<Vec<ui::Todo>>::new(save_dir.join("todos.json"));
-    let _stored_work_state = StoredJSON::<ui::WorkState>::new(save_dir.join("work-state.json"));
-    let _stored_settings = StoredJSON::<ui::AppSettings>::new(save_dir.join("settings.json"));
-
+    let save_dir = save_dir.to_path_buf();
     PluginBuilder::new("RightNowTodos")
-        .setup(|app| match setup(app) {
-            Ok(()) => Ok(()),
-            Err(err) => {
-                tracing::error!(?err, "Failed to setup RightNowTodos");
-                panic!("Failed to setup RightNowTodos {err:?}");
-            }
+        .setup(move |app| {
+            tracing::info!("Setting up RightNowTodos");
+            app.manage(AppState {
+                app_settings: Default::default(),
+                app_settings_stored: StoredJSON::<ui::AppSettings>::new(
+                    save_dir.join("settings.json"),
+                ),
+                todos: Default::default(),
+                todos_stored: StoredJSON::<Vec<ui::Todo>>::new(save_dir.join("todos.json")),
+                work_state: Default::default(),
+                work_state_stored: StoredJSON::<ui::WorkState>::new(
+                    save_dir.join("work-state.json"),
+                ),
+                work_state_timer: Arc::default(),
+            });
+
+            Ok(())
         })
         // .on_webview_ready(|w| {
         //     let mut state_flags = StateFlags::all();
@@ -587,6 +503,20 @@ pub async fn init(save_dir: &Path) -> TauriPlugin<tauri::Wry> {
                 tokio::spawn({
                     let app = app.clone();
                     async move {
+                        let app_state = app.state::<AppState>();
+                        if let Some(work_state) = app_state.work_state_stored.read().await.unwrap()
+                        {
+                            // sets up timers for automatic mode switch and such
+                            set_work_state(&app, work_state.0).await.unwrap();
+                        }
+                        if let Some(todos) = app_state.todos_stored.read().await.unwrap() {
+                            *app_state.todos.write().await = todos.0;
+                        }
+                        if let Some(settings) = app_state.app_settings_stored.read().await.unwrap()
+                        {
+                            *app_state.app_settings.write().await = settings.0;
+                        }
+
                         let planner_w = windows_controller::ensure_planner_window(&app).unwrap();
                         planner_w.show().unwrap();
                         planner_w.set_focus().unwrap();
@@ -595,13 +525,30 @@ pub async fn init(save_dir: &Path) -> TauriPlugin<tauri::Wry> {
                 });
             }
             RunEvent::WindowEvent { label, event, .. } => match event {
-                tauri::WindowEvent::Focused(_) => reload_window(app, label.as_str(), "focused"),
+                tauri::WindowEvent::Focused(focused) => {
+                    if *focused {
+                        reload_window(app, label.as_str(), "focused");
+                    } else {
+                        // store all data
+                        let app = app.clone();
+                        tokio::spawn(async move {
+                            match save_everything(&app).await {
+                                Ok(_) => {}
+                                Err(error) => {
+                                    tracing::error!(?error, "failed to save everything");
+                                }
+                            }
+                        });
+                    }
+                }
                 _ => {}
             },
             _ => (),
         })
         .invoke_handler(tauri::generate_handler![
             add_todo,
+            delete_todo,
+            load_self,
             update_todo_completed,
             update_todo_fields,
             update_todo_ord,
@@ -619,30 +566,30 @@ fn reload_window(app: &tauri::AppHandle, label: &str, reason: &str) {
     let app = app.clone();
     let span = tracing::info_span!("Initial load", ?label, ?reason);
     let label = label.to_string();
-    tokio::task::spawn(
-        async move {
-            let state = app.state::<AppState>();
-            let todos = state.todos.read().await.clone();
-            let template_todos = state.app_settings.read().await.template_todos.clone();
-            if let Err(err) = app.emit_to(
-                &label,
-                UI_UPDATE_EVENT,
-                ui::ToUIUpdate::LoadTodos {
-                    todos,
-                    template_todos,
-                },
-            ) {
-                tracing::error!(?label, ?err, "Error loading todos for a new window")
-            };
-            let work_state = state.work_state.read().await.clone();
-            if let Err(err) = app.emit_to(
-                &label,
-                UI_UPDATE_EVENT,
-                ui::ToUIUpdate::UpdateWorkState(work_state),
-            ) {
-                tracing::error!(?label, ?err, "Error loading work state for a new window")
-            };
-        }
-        .instrument(span),
-    );
+    tokio::task::spawn(async move { load_for_window(&app, &label).await }.instrument(span));
+}
+
+async fn load_for_window(app: &tauri::AppHandle, label: &str) {
+    let app = app.clone();
+    let state = app.state::<AppState>();
+    let todos = state.todos.read().await.clone();
+    let template_todos = state.app_settings.read().await.template_todos.clone();
+    if let Err(err) = app.emit_to(
+        label,
+        UI_UPDATE_EVENT,
+        ui::ToUIUpdate::LoadTodos {
+            todos,
+            template_todos,
+        },
+    ) {
+        tracing::error!(?label, ?err, "Error loading todos for a new window")
+    };
+    let work_state = state.work_state.read().await.clone();
+    if let Err(err) = app.emit_to(
+        label,
+        UI_UPDATE_EVENT,
+        ui::ToUIUpdate::UpdateWorkState(work_state),
+    ) {
+        tracing::error!(?label, ?err, "Error loading work state for a new window")
+    };
 }

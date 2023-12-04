@@ -35,6 +35,7 @@ workspace-members = [
     "i-hn-app-proc",
     # "i-hn-desktop-ui-messages-proc",
     "i-hn-server-proc",
+    "i-rn-desktop-proc",
     # slint commented out unless we submodule the slint project
     # "i-slint-backend-qt",
     # "i-slint-backend-selector",

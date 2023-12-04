@@ -105,12 +105,7 @@ function memoize<K, T>(fn: (key: K) => T): (key: K) => T {
 
 let lastOrd = Math.random();
 
-export function createApp(
-  ctx: AppCtx,
-  options?: {
-    filter?: VisibilityFilter;
-  },
-): AppState {
+export function createApp(ctx: AppCtx): AppState {
   const rootPool = new DisposePool();
   const inputTraversalNav = createInputTraversal(() => [...todos, addTodo]);
   let todos = $state<TodoItem[]>([]);
@@ -167,6 +162,13 @@ export function createApp(
       },
     }),
   );
+  call(async () => {
+    try {
+      await ctx.rn.load_self();
+    } catch (error) {
+      ctx.notify.reportError("Failed initial load", { error });
+    }
+  });
   function loadTodos(allTodos: ui.Todo[]) {
     todos = allTodos.map((serverTodo) => {
       const { cached, vm } = memoTodoAndCache(serverTodo.uid);
@@ -188,7 +190,7 @@ export function createApp(
 
   refreshTodos();
 
-  let visibilityFilter = $state<VisibilityFilter>(options?.filter ?? "SHOW_ALL");
+  let visibilityFilter = $state<VisibilityFilter>("SHOW_ALL");
   let addTodoText = $state("");
 
   const addTodo: AddTodo = {
@@ -345,15 +347,19 @@ export function createApp(
     });
     function syncTodoFields() {
       call(async () => {
-        await ctx.rn.update_todo_fields({
-          template: false,
-          uid: init.uid,
-          fields: {
-            title: text,
-            time_estimate_mins: totalMinuteEstimate,
-            mvp_tags: mvpTags,
-          },
-        });
+        try {
+          await ctx.rn.update_todo_fields({
+            template: false,
+            uid: init.uid,
+            fields: {
+              title: text,
+              time_estimate_mins: totalMinuteEstimate,
+              mvp_tags: mvpTags,
+            },
+          });
+        } catch (error) {
+          ctx.notify.reportError("Failed to update todo fields", { error });
+        }
       });
     }
 
@@ -386,7 +392,19 @@ export function createApp(
             attemptToFocusOnInput(todos[before], text.length);
           }
         }
+        const prev = todos;
         todos = todos.filter((todo) => todo.id !== self.id);
+        call(async () => {
+          try {
+            await ctx.rn.delete_todo({
+              uid: init.uid,
+              template: false,
+            });
+          } catch (error) {
+            ctx.notify.reportError("Failed to delete todo", { error });
+            todos = prev;
+          }
+        });
       },
       addTodoAfter(text) {
         const indexOfSelf = todos.indexOf(self);

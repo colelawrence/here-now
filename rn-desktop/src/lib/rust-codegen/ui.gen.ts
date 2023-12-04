@@ -1,17 +1,14 @@
 type UID = string;
 function createInvoker(invoke: Function, prefix = ""): any {
-  return new Proxy(
-    {},
-    {
-      get(target, command, receiver) {
-        if (typeof command !== "string") throw new TypeError("Expected string command");
-        return function (options: any) {
-          console.debug("Invoking", prefix + command, options);
-          return invoke(prefix + command, options);
-        };
-      },
+  return new Proxy({}, {
+    get(target, command, receiver) {
+      if (typeof command !== "string") throw new TypeError("Expected string command");
+      return function (options: any) {
+        console.debug("Invoking", prefix + command, options);
+        return invoke(prefix + command, options);
+      }
     },
-  );
+  })
 }
 // TODO: make this generic for other plugins
 export function createRightNowInvoker(invoke: Function): RightNowTodosInvoke {
@@ -24,45 +21,183 @@ export interface RightNowTodosInvoke {
    *
    * `#[codegen(tauri_command, tags = "rn-ui", tauri_plugin = "RightNowTodos")]`
    */
-  get_all_todos(): Promise<Result_OkTodo_List_ErrError.Ok["Ok"]>;
+  get_all_todos(): Promise<Result_OkTodo_List_ErrError.Ok["Ok"]>
   /**
    * `invoke("update_todo_fields", { uid, fields, template })`
    *
    * `#[codegen(tauri_command, tags = "rn-ui", tauri_plugin = "RightNowTodos")]`
    */
   update_todo_fields(options: {
-    uid: UID;
-    fields: TodoFields;
-    template: boolean;
-  }): Promise<Result_OkTuple_ErrError.Ok["Ok"]>;
+    uid: UID,
+    fields: TodoFields,
+    template: boolean,
+  }): Promise<Result_OkTuple_ErrError.Ok["Ok"]>
   /**
    * `invoke("update_todo_completed", { uid, completed })`
    *
    * `#[codegen(tauri_command, tags = "rn-ui", tauri_plugin = "RightNowTodos")]`
    */
-  update_todo_completed(options: { uid: UID; completed: boolean }): Promise<Result_OkTuple_ErrError.Ok["Ok"]>;
+  update_todo_completed(options: {
+    uid: UID,
+    completed: boolean,
+  }): Promise<Result_OkTuple_ErrError.Ok["Ok"]>
   /** `#[codegen(tauri_command, tags = "rn-ui", tauri_plugin = "RightNowTodos")]` */
-  update_todo_ord(options: { uid: UID; ord: number; template: boolean }): Promise<Result_OkTuple_ErrError.Ok["Ok"]>;
+  update_todo_ord(options: {
+    uid: UID,
+    ord: number,
+    template: boolean,
+  }): Promise<Result_OkTuple_ErrError.Ok["Ok"]>
   /** `#[codegen(tauri_command, tags = "rn-ui", tauri_plugin = "RightNowTodos")]` */
   add_todo(options: {
-    uid: UID;
-    ord: number;
-    fields: TodoFields;
-    template: boolean;
-  }): Promise<Result_OkTuple_ErrError.Ok["Ok"]>;
+    uid: UID,
+    ord: number,
+    fields: TodoFields,
+    template: boolean,
+  }): Promise<Result_OkTuple_ErrError.Ok["Ok"]>
   /** `#[codegen(tauri_command, tags = "rn-ui", tauri_plugin = "RightNowTodos")]` */
-  delete_todo(options: { uid: UID; template: boolean }): Promise<Result_OkTuple_ErrError.Ok["Ok"]>;
+  delete_todo(options: {
+    uid: UID,
+    template: boolean,
+  }): Promise<Result_OkTuple_ErrError.Ok["Ok"]>
   /** `#[codegen(tauri_command, tags = "rn-ui", tauri_plugin = "RightNowTodos")]` */
-  start_session(): Promise<Result_OkTuple_ErrError.Ok["Ok"]>;
+  start_session(): Promise<Result_OkTuple_ErrError.Ok["Ok"]>
   /** `#[codegen(tauri_command, tags = "rn-ui", tauri_plugin = "RightNowTodos")]` */
-  continue_working(): Promise<Result_OkTuple_ErrError.Ok["Ok"]>;
+  continue_working(): Promise<Result_OkTuple_ErrError.Ok["Ok"]>
   /** `#[codegen(tauri_command, tags = "rn-ui", tauri_plugin = "RightNowTodos")]` */
-  take_a_break(): Promise<Result_OkTuple_ErrError.Ok["Ok"]>;
+  take_a_break(): Promise<Result_OkTuple_ErrError.Ok["Ok"]>
   /** `#[codegen(tauri_command, tags = "rn-ui", tauri_plugin = "RightNowTodos")]` */
-  toggle_size(options: { big: boolean }): Promise<Result_OkTuple_ErrError.Ok["Ok"]>;
+  toggle_size(options: {
+    big: boolean,
+  }): Promise<Result_OkTuple_ErrError.Ok["Ok"]>
   /** `#[codegen(tauri_command, tags = "rn-ui", tauri_plugin = "RightNowTodos")]` */
-  stop_session(): Promise<Result_OkTuple_ErrError.Ok["Ok"]>;
+  stop_session(): Promise<Result_OkTuple_ErrError.Ok["Ok"]>
+  /** `#[codegen(tauri_command, tags = "rn-ui", tauri_plugin = "RightNowTodos")]` */
+  load_self(): Promise<Result_OkTuple_ErrError.Ok["Ok"]>
 }
+/**
+ * `Result` is a type that represents either success ([`Ok`]) or failure ([`Err`]).
+ *
+ * [Source `rn-desktop/src-tauri/src/rn_todos_plugin.rs:48`](../../../rn-desktop/src-tauri/src/rn_todos_plugin.rs)
+ */
+// deno-lint-ignore no-namespace
+export namespace Result_OkTodo_List_ErrError {
+  export type ApplyFns<R> = {
+    // callbacks
+    /** Contains the success value */
+    Ok(inner: Ok["Ok"]): R;
+    /** Contains the error value */
+    Err(inner: Err["Err"]): R;
+  }
+  /** Match helper for {@link Result_OkTodo_List_ErrError} */
+  export function apply<R>(
+    to: ApplyFns<R>,
+  ): (input: Result_OkTodo_List_ErrError) => R {
+    return function _match(input): R {
+      // if-else strings
+      // if-else objects
+      if (typeof input !== "object" || input == null) throw new TypeError("Unexpected non-object for input");
+      if ("Ok" in input) return to.Ok(input["Ok"]);
+      if ("Err" in input) return to.Err(input["Err"]);
+      const _exhaust: never = input;
+      throw new TypeError("Unknown object when expected Result_OkTodo_List_ErrError");
+    }
+  }
+  /** Match helper for {@link Result_OkTodo_List_ErrError} */
+  export function match<R>(
+    input: Result_OkTodo_List_ErrError,
+    to: ApplyFns<R>,
+  ): R {
+    return apply(to)(input)
+  }
+  /** Contains the success value */
+  export type Ok = {
+    /** Contains the success value */
+    Ok: Array<Todo>
+  };
+  /** Contains the success value */
+  export function Ok(value: Array<Todo>): Ok {
+    return { Ok: value };
+  }
+  /** Contains the error value */
+  export type Err = {
+    /** Contains the error value */
+    Err: Error
+  };
+  /** Contains the error value */
+  export function Err(value: Error): Err {
+    return { Err: value };
+  }
+}
+/**
+ * `Result` is a type that represents either success ([`Ok`]) or failure ([`Err`]).
+ *
+ * [Source `rn-desktop/src-tauri/src/rn_todos_plugin.rs:48`](../../../rn-desktop/src-tauri/src/rn_todos_plugin.rs)
+ */
+export type Result_OkTodo_List_ErrError =
+  | Result_OkTodo_List_ErrError.Ok
+  | Result_OkTodo_List_ErrError.Err
+/**
+ * `Result` is a type that represents either success ([`Ok`]) or failure ([`Err`]).
+ *
+ * [Source `rn-desktop/src-tauri/src/rn_todos_plugin.rs:55`](../../../rn-desktop/src-tauri/src/rn_todos_plugin.rs)
+ */
+// deno-lint-ignore no-namespace
+export namespace Result_OkTuple_ErrError {
+  export type ApplyFns<R> = {
+    // callbacks
+    /** Contains the success value */
+    Ok(inner: Ok["Ok"]): R;
+    /** Contains the error value */
+    Err(inner: Err["Err"]): R;
+  }
+  /** Match helper for {@link Result_OkTuple_ErrError} */
+  export function apply<R>(
+    to: ApplyFns<R>,
+  ): (input: Result_OkTuple_ErrError) => R {
+    return function _match(input): R {
+      // if-else strings
+      // if-else objects
+      if (typeof input !== "object" || input == null) throw new TypeError("Unexpected non-object for input");
+      if ("Ok" in input) return to.Ok(input["Ok"]);
+      if ("Err" in input) return to.Err(input["Err"]);
+      const _exhaust: never = input;
+      throw new TypeError("Unknown object when expected Result_OkTuple_ErrError");
+    }
+  }
+  /** Match helper for {@link Result_OkTuple_ErrError} */
+  export function match<R>(
+    input: Result_OkTuple_ErrError,
+    to: ApplyFns<R>,
+  ): R {
+    return apply(to)(input)
+  }
+  /** Contains the success value */
+  export type Ok = {
+    /** Contains the success value */
+    Ok: []
+  };
+  /** Contains the success value */
+  export function Ok(value: []): Ok {
+    return { Ok: value };
+  }
+  /** Contains the error value */
+  export type Err = {
+    /** Contains the error value */
+    Err: Error
+  };
+  /** Contains the error value */
+  export function Err(value: Error): Err {
+    return { Err: value };
+  }
+}
+/**
+ * `Result` is a type that represents either success ([`Ok`]) or failure ([`Err`]).
+ *
+ * [Source `rn-desktop/src-tauri/src/rn_todos_plugin.rs:55`](../../../rn-desktop/src-tauri/src/rn_todos_plugin.rs)
+ */
+export type Result_OkTuple_ErrError =
+  | Result_OkTuple_ErrError.Ok
+  | Result_OkTuple_ErrError.Err
 /**
  * Future: Store this as the only state stored to disk for this app
  *
@@ -91,7 +226,7 @@ export function AppSettings(inner: AppSettings): AppSettings {
 /**
  * `#[codegen(tags = "rn-ui")]`
  *
- * [Source `rn-desktop/src-tauri/src/ui.rs:28`](../../../rn-desktop/src-tauri/src/ui.rs)
+ * [Source `rn-desktop/src-tauri/src/ui.rs:47`](../../../rn-desktop/src-tauri/src/ui.rs)
  */
 // deno-lint-ignore no-namespace
 export namespace ToUITodoUpdate {
@@ -101,9 +236,11 @@ export namespace ToUITodoUpdate {
     UpdateCompletedAt(inner: UpdateCompletedAt["UpdateCompletedAt"]): R;
     AddWorkDuration(inner: AddWorkDuration["AddWorkDuration"]): R;
     UpdateOrd(inner: UpdateOrd["UpdateOrd"]): R;
-  };
+  }
   /** Match helper for {@link ToUITodoUpdate} */
-  export function apply<R>(to: ApplyFns<R>): (input: ToUITodoUpdate) => R {
+  export function apply<R>(
+    to: ApplyFns<R>,
+  ): (input: ToUITodoUpdate) => R {
     return function _match(input): R {
       // if-else strings
       // if-else objects
@@ -114,32 +251,35 @@ export namespace ToUITodoUpdate {
       if ("UpdateOrd" in input) return to.UpdateOrd(input["UpdateOrd"]);
       const _exhaust: never = input;
       throw new TypeError("Unknown object when expected ToUITodoUpdate");
-    };
+    }
   }
   /** Match helper for {@link ToUITodoUpdate} */
-  export function match<R>(input: ToUITodoUpdate, to: ApplyFns<R>): R {
-    return apply(to)(input);
+  export function match<R>(
+    input: ToUITodoUpdate,
+    to: ApplyFns<R>,
+  ): R {
+    return apply(to)(input)
   }
   export type UpdateFields = {
-    UpdateFields: TodoFields;
+    UpdateFields: TodoFields
   };
   export function UpdateFields(value: TodoFields): UpdateFields {
     return { UpdateFields: value };
   }
   export type UpdateCompletedAt = {
-    UpdateCompletedAt: number | undefined | null;
+    UpdateCompletedAt: number | undefined | null
   };
   export function UpdateCompletedAt(value?: number | undefined | null): UpdateCompletedAt {
     return { UpdateCompletedAt: value };
   }
   export type AddWorkDuration = {
-    AddWorkDuration: TodoWorkDuration;
+    AddWorkDuration: TodoWorkDuration
   };
   export function AddWorkDuration(value: TodoWorkDuration): AddWorkDuration {
     return { AddWorkDuration: value };
   }
   export type UpdateOrd = {
-    UpdateOrd: number;
+    UpdateOrd: number
   };
   export function UpdateOrd(value: number): UpdateOrd {
     return { UpdateOrd: value };
@@ -148,17 +288,17 @@ export namespace ToUITodoUpdate {
 /**
  * `#[codegen(tags = "rn-ui")]`
  *
- * [Source `rn-desktop/src-tauri/src/ui.rs:28`](../../../rn-desktop/src-tauri/src/ui.rs)
+ * [Source `rn-desktop/src-tauri/src/ui.rs:47`](../../../rn-desktop/src-tauri/src/ui.rs)
  */
 export type ToUITodoUpdate =
   | ToUITodoUpdate.UpdateFields
   | ToUITodoUpdate.UpdateCompletedAt
   | ToUITodoUpdate.AddWorkDuration
-  | ToUITodoUpdate.UpdateOrd;
+  | ToUITodoUpdate.UpdateOrd
 /**
  * `#[codegen(tags = "rn-ui")]`
  *
- * [Source `rn-desktop/src-tauri/src/ui.rs:43`](../../../rn-desktop/src-tauri/src/ui.rs)
+ * [Source `rn-desktop/src-tauri/src/ui.rs:62`](../../../rn-desktop/src-tauri/src/ui.rs)
  */
 // deno-lint-ignore no-namespace
 export namespace ToUITemplateTodoUpdate {
@@ -166,9 +306,11 @@ export namespace ToUITemplateTodoUpdate {
     // callbacks
     UpdateFields(inner: UpdateFields["UpdateFields"]): R;
     UpdateOrd(inner: UpdateOrd["UpdateOrd"]): R;
-  };
+  }
   /** Match helper for {@link ToUITemplateTodoUpdate} */
-  export function apply<R>(to: ApplyFns<R>): (input: ToUITemplateTodoUpdate) => R {
+  export function apply<R>(
+    to: ApplyFns<R>,
+  ): (input: ToUITemplateTodoUpdate) => R {
     return function _match(input): R {
       // if-else strings
       // if-else objects
@@ -177,20 +319,23 @@ export namespace ToUITemplateTodoUpdate {
       if ("UpdateOrd" in input) return to.UpdateOrd(input["UpdateOrd"]);
       const _exhaust: never = input;
       throw new TypeError("Unknown object when expected ToUITemplateTodoUpdate");
-    };
+    }
   }
   /** Match helper for {@link ToUITemplateTodoUpdate} */
-  export function match<R>(input: ToUITemplateTodoUpdate, to: ApplyFns<R>): R {
-    return apply(to)(input);
+  export function match<R>(
+    input: ToUITemplateTodoUpdate,
+    to: ApplyFns<R>,
+  ): R {
+    return apply(to)(input)
   }
   export type UpdateFields = {
-    UpdateFields: TodoFields;
+    UpdateFields: TodoFields
   };
   export function UpdateFields(value: TodoFields): UpdateFields {
     return { UpdateFields: value };
   }
   export type UpdateOrd = {
-    UpdateOrd: number;
+    UpdateOrd: number
   };
   export function UpdateOrd(value: number): UpdateOrd {
     return { UpdateOrd: value };
@@ -199,30 +344,34 @@ export namespace ToUITemplateTodoUpdate {
 /**
  * `#[codegen(tags = "rn-ui")]`
  *
- * [Source `rn-desktop/src-tauri/src/ui.rs:43`](../../../rn-desktop/src-tauri/src/ui.rs)
+ * [Source `rn-desktop/src-tauri/src/ui.rs:62`](../../../rn-desktop/src-tauri/src/ui.rs)
  */
-export type ToUITemplateTodoUpdate = ToUITemplateTodoUpdate.UpdateFields | ToUITemplateTodoUpdate.UpdateOrd;
+export type ToUITemplateTodoUpdate =
+  | ToUITemplateTodoUpdate.UpdateFields
+  | ToUITemplateTodoUpdate.UpdateOrd
 /**
  * `#[codegen(tags = "rn-ui")]`
  *
- * [Source `rn-desktop/src-tauri/src/ui.rs:56`](../../../rn-desktop/src-tauri/src/ui.rs)
+ * [Source `rn-desktop/src-tauri/src/ui.rs:75`](../../../rn-desktop/src-tauri/src/ui.rs)
  */
 // deno-lint-ignore no-namespace
 export namespace ToUIUpdate {
   export type ApplyFns<R> = {
     // callbacks
     /** Initial load */
-    LoadTodos(inner: LoadTodos["LoadTodos"]): R;
+    LoadTodos(inner: LoadTodos["LoadTodos"]): R,
     UpdateWorkState(inner: UpdateWorkState["UpdateWorkState"]): R;
     AddTodo(inner: AddTodo["AddTodo"]): R;
-    UpdateTodo(inner: [UID, ToUITodoUpdate]): R;
+    UpdateTodo(inner: [UID, ToUITodoUpdate]): R,
     RemoveTodo(inner: RemoveTodo["RemoveTodo"]): R;
     AddTemplateTodo(inner: AddTemplateTodo["AddTemplateTodo"]): R;
-    UpdateTemplateTodo(inner: [UID, ToUITemplateTodoUpdate]): R;
+    UpdateTemplateTodo(inner: [UID, ToUITemplateTodoUpdate]): R,
     RemoveTemplateTodo(inner: RemoveTemplateTodo["RemoveTemplateTodo"]): R;
-  };
+  }
   /** Match helper for {@link ToUIUpdate} */
-  export function apply<R>(to: ApplyFns<R>): (input: ToUIUpdate) => R {
+  export function apply<R>(
+    to: ApplyFns<R>,
+  ): (input: ToUIUpdate) => R {
     return function _match(input): R {
       // if-else strings
       // if-else objects
@@ -237,11 +386,14 @@ export namespace ToUIUpdate {
       if ("RemoveTemplateTodo" in input) return to.RemoveTemplateTodo(input["RemoveTemplateTodo"]);
       const _exhaust: never = input;
       throw new TypeError("Unknown object when expected ToUIUpdate");
-    };
+    }
   }
   /** Match helper for {@link ToUIUpdate} */
-  export function match<R>(input: ToUIUpdate, to: ApplyFns<R>): R {
-    return apply(to)(input);
+  export function match<R>(
+    input: ToUIUpdate,
+    to: ApplyFns<R>,
+  ): R {
+    return apply(to)(input)
   }
   /** Initial load */
   export type LoadTodos = {
@@ -253,16 +405,16 @@ export namespace ToUIUpdate {
   };
   /** Initial load */
   export function LoadTodos(value: LoadTodos["LoadTodos"]): LoadTodos {
-    return { LoadTodos: value };
+    return { LoadTodos: value }
   }
   export type UpdateWorkState = {
-    UpdateWorkState: WorkState;
+    UpdateWorkState: WorkState
   };
   export function UpdateWorkState(value: WorkState): UpdateWorkState {
     return { UpdateWorkState: value };
   }
   export type AddTodo = {
-    AddTodo: Todo;
+    AddTodo: Todo
   };
   export function AddTodo(value: Todo): AddTodo {
     return { AddTodo: value };
@@ -272,13 +424,13 @@ export namespace ToUIUpdate {
     return { UpdateTodo: [a, b] };
   }
   export type RemoveTodo = {
-    RemoveTodo: UID;
+    RemoveTodo: UID
   };
   export function RemoveTodo(value: UID): RemoveTodo {
     return { RemoveTodo: value };
   }
   export type AddTemplateTodo = {
-    AddTemplateTodo: TemplateTodo;
+    AddTemplateTodo: TemplateTodo
   };
   export function AddTemplateTodo(value: TemplateTodo): AddTemplateTodo {
     return { AddTemplateTodo: value };
@@ -288,7 +440,7 @@ export namespace ToUIUpdate {
     return { UpdateTemplateTodo: [a, b] };
   }
   export type RemoveTemplateTodo = {
-    RemoveTemplateTodo: UID;
+    RemoveTemplateTodo: UID
   };
   export function RemoveTemplateTodo(value: UID): RemoveTemplateTodo {
     return { RemoveTemplateTodo: value };
@@ -297,7 +449,7 @@ export namespace ToUIUpdate {
 /**
  * `#[codegen(tags = "rn-ui")]`
  *
- * [Source `rn-desktop/src-tauri/src/ui.rs:56`](../../../rn-desktop/src-tauri/src/ui.rs)
+ * [Source `rn-desktop/src-tauri/src/ui.rs:75`](../../../rn-desktop/src-tauri/src/ui.rs)
  */
 export type ToUIUpdate =
   | ToUIUpdate.LoadTodos
@@ -307,22 +459,24 @@ export type ToUIUpdate =
   | ToUIUpdate.RemoveTodo
   | ToUIUpdate.AddTemplateTodo
   | ToUIUpdate.UpdateTemplateTodo
-  | ToUIUpdate.RemoveTemplateTodo;
+  | ToUIUpdate.RemoveTemplateTodo
 /**
  * `#[codegen(tags = "rn-ui")]`
  *
- * [Source `rn-desktop/src-tauri/src/ui.rs:73`](../../../rn-desktop/src-tauri/src/ui.rs)
+ * [Source `rn-desktop/src-tauri/src/ui.rs:92`](../../../rn-desktop/src-tauri/src/ui.rs)
  */
 // deno-lint-ignore no-namespace
 export namespace WorkState {
   export type ApplyFns<R> = {
     // callbacks
-    Planning(): R;
-    Break(inner: Break["Break"]): R;
-    Working(inner: Working["Working"]): R;
-  };
+    Planning(): R,
+    Break(inner: Break["Break"]): R,
+    Working(inner: Working["Working"]): R,
+  }
   /** Match helper for {@link WorkState} */
-  export function apply<R>(to: ApplyFns<R>): (input: WorkState) => R {
+  export function apply<R>(
+    to: ApplyFns<R>,
+  ): (input: WorkState) => R {
     return function _match(input): R {
       // if-else strings
       if (input === "Planning") return to.Planning();
@@ -332,13 +486,16 @@ export namespace WorkState {
       if ("Working" in input) return to.Working(input["Working"]);
       const _exhaust: never = input;
       throw new TypeError("Unknown object when expected WorkState");
-    };
+    }
   }
   /** Match helper for {@link WorkState} */
-  export function match<R>(input: WorkState, to: ApplyFns<R>): R {
-    return apply(to)(input);
+  export function match<R>(
+    input: WorkState,
+    to: ApplyFns<R>,
+  ): R {
+    return apply(to)(input)
   }
-  export type Planning = "Planning";
+  export type Planning = "Planning"
   export function Planning(): Planning {
     return "Planning";
   }
@@ -351,7 +508,7 @@ export namespace WorkState {
     };
   };
   export function Break(value: Break["Break"]): Break {
-    return { Break: value };
+    return { Break: value }
   }
   export type Working = {
     Working: {
@@ -362,19 +519,22 @@ export namespace WorkState {
     };
   };
   export function Working(value: Working["Working"]): Working {
-    return { Working: value };
+    return { Working: value }
   }
 }
 /**
  * `#[codegen(tags = "rn-ui")]`
  *
- * [Source `rn-desktop/src-tauri/src/ui.rs:73`](../../../rn-desktop/src-tauri/src/ui.rs)
+ * [Source `rn-desktop/src-tauri/src/ui.rs:92`](../../../rn-desktop/src-tauri/src/ui.rs)
  */
-export type WorkState = WorkState.Planning | WorkState.Break | WorkState.Working;
+export type WorkState =
+  | WorkState.Planning
+  | WorkState.Break
+  | WorkState.Working
 /**
  * `#[codegen(tags = "rn-ui")]`
  *
- * [Source `rn-desktop/src-tauri/src/ui.rs:97`](../../../rn-desktop/src-tauri/src/ui.rs)
+ * [Source `rn-desktop/src-tauri/src/ui.rs:112`](../../../rn-desktop/src-tauri/src/ui.rs)
  */
 export type TodoFields = {
   /**
@@ -393,7 +553,7 @@ export type TodoFields = {
 /**
  * `#[codegen(tags = "rn-ui")]`
  *
- * [Source `rn-desktop/src-tauri/src/ui.rs:97`](../../../rn-desktop/src-tauri/src/ui.rs)
+ * [Source `rn-desktop/src-tauri/src/ui.rs:112`](../../../rn-desktop/src-tauri/src/ui.rs)
  */
 export function TodoFields(inner: TodoFields): TodoFields {
   return inner;
@@ -401,7 +561,7 @@ export function TodoFields(inner: TodoFields): TodoFields {
 /**
  * `#[codegen(tags = "rn-ui")]`
  *
- * [Source `rn-desktop/src-tauri/src/ui.rs:110`](../../../rn-desktop/src-tauri/src/ui.rs)
+ * [Source `rn-desktop/src-tauri/src/ui.rs:125`](../../../rn-desktop/src-tauri/src/ui.rs)
  */
 export type Todo = {
   uid: UID;
@@ -416,7 +576,7 @@ export type Todo = {
 /**
  * `#[codegen(tags = "rn-ui")]`
  *
- * [Source `rn-desktop/src-tauri/src/ui.rs:110`](../../../rn-desktop/src-tauri/src/ui.rs)
+ * [Source `rn-desktop/src-tauri/src/ui.rs:125`](../../../rn-desktop/src-tauri/src/ui.rs)
  */
 export function Todo(inner: Todo): Todo {
   return inner;
@@ -424,7 +584,7 @@ export function Todo(inner: Todo): Todo {
 /**
  * `#[codegen(tags = "rn-ui")]`
  *
- * [Source `rn-desktop/src-tauri/src/ui.rs:123`](../../../rn-desktop/src-tauri/src/ui.rs)
+ * [Source `rn-desktop/src-tauri/src/ui.rs:138`](../../../rn-desktop/src-tauri/src/ui.rs)
  */
 export type TodoWorkDuration = {
   started_at_unix: number;
@@ -433,7 +593,7 @@ export type TodoWorkDuration = {
 /**
  * `#[codegen(tags = "rn-ui")]`
  *
- * [Source `rn-desktop/src-tauri/src/ui.rs:123`](../../../rn-desktop/src-tauri/src/ui.rs)
+ * [Source `rn-desktop/src-tauri/src/ui.rs:138`](../../../rn-desktop/src-tauri/src/ui.rs)
  */
 export function TodoWorkDuration(inner: TodoWorkDuration): TodoWorkDuration {
   return inner;
@@ -441,7 +601,7 @@ export function TodoWorkDuration(inner: TodoWorkDuration): TodoWorkDuration {
 /**
  * `#[codegen(tags = "rn-ui")]`
  *
- * [Source `rn-desktop/src-tauri/src/ui.rs:130`](../../../rn-desktop/src-tauri/src/ui.rs)
+ * [Source `rn-desktop/src-tauri/src/ui.rs:145`](../../../rn-desktop/src-tauri/src/ui.rs)
  */
 export type TemplateTodo = {
   uid: UID;
@@ -452,118 +612,8 @@ export type TemplateTodo = {
 /**
  * `#[codegen(tags = "rn-ui")]`
  *
- * [Source `rn-desktop/src-tauri/src/ui.rs:130`](../../../rn-desktop/src-tauri/src/ui.rs)
+ * [Source `rn-desktop/src-tauri/src/ui.rs:145`](../../../rn-desktop/src-tauri/src/ui.rs)
  */
 export function TemplateTodo(inner: TemplateTodo): TemplateTodo {
   return inner;
 }
-/**
- * `Result` is a type that represents either success ([`Ok`]) or failure ([`Err`]).
- *
- * [Source `rn-desktop/src-tauri/src/rn_todos_plugin.rs:48`](../../../rn-desktop/src-tauri/src/rn_todos_plugin.rs)
- */
-// deno-lint-ignore no-namespace
-export namespace Result_OkTodo_List_ErrError {
-  export type ApplyFns<R> = {
-    // callbacks
-    /** Contains the success value */
-    Ok(inner: Ok["Ok"]): R;
-    /** Contains the error value */
-    Err(inner: Err["Err"]): R;
-  };
-  /** Match helper for {@link Result_OkTodo_List_ErrError} */
-  export function apply<R>(to: ApplyFns<R>): (input: Result_OkTodo_List_ErrError) => R {
-    return function _match(input): R {
-      // if-else strings
-      // if-else objects
-      if (typeof input !== "object" || input == null) throw new TypeError("Unexpected non-object for input");
-      if ("Ok" in input) return to.Ok(input["Ok"]);
-      if ("Err" in input) return to.Err(input["Err"]);
-      const _exhaust: never = input;
-      throw new TypeError("Unknown object when expected Result_OkTodo_List_ErrError");
-    };
-  }
-  /** Match helper for {@link Result_OkTodo_List_ErrError} */
-  export function match<R>(input: Result_OkTodo_List_ErrError, to: ApplyFns<R>): R {
-    return apply(to)(input);
-  }
-  /** Contains the success value */
-  export type Ok = {
-    /** Contains the success value */
-    Ok: Array<Todo>;
-  };
-  /** Contains the success value */
-  export function Ok(value: Array<Todo>): Ok {
-    return { Ok: value };
-  }
-  /** Contains the error value */
-  export type Err = {
-    /** Contains the error value */
-    Err: Error;
-  };
-  /** Contains the error value */
-  export function Err(value: Error): Err {
-    return { Err: value };
-  }
-}
-/**
- * `Result` is a type that represents either success ([`Ok`]) or failure ([`Err`]).
- *
- * [Source `rn-desktop/src-tauri/src/rn_todos_plugin.rs:48`](../../../rn-desktop/src-tauri/src/rn_todos_plugin.rs)
- */
-export type Result_OkTodo_List_ErrError = Result_OkTodo_List_ErrError.Ok | Result_OkTodo_List_ErrError.Err;
-/**
- * `Result` is a type that represents either success ([`Ok`]) or failure ([`Err`]).
- *
- * [Source `rn-desktop/src-tauri/src/rn_todos_plugin.rs:57`](../../../rn-desktop/src-tauri/src/rn_todos_plugin.rs)
- */
-// deno-lint-ignore no-namespace
-export namespace Result_OkTuple_ErrError {
-  export type ApplyFns<R> = {
-    // callbacks
-    /** Contains the success value */
-    Ok(inner: Ok["Ok"]): R;
-    /** Contains the error value */
-    Err(inner: Err["Err"]): R;
-  };
-  /** Match helper for {@link Result_OkTuple_ErrError} */
-  export function apply<R>(to: ApplyFns<R>): (input: Result_OkTuple_ErrError) => R {
-    return function _match(input): R {
-      // if-else strings
-      // if-else objects
-      if (typeof input !== "object" || input == null) throw new TypeError("Unexpected non-object for input");
-      if ("Ok" in input) return to.Ok(input["Ok"]);
-      if ("Err" in input) return to.Err(input["Err"]);
-      const _exhaust: never = input;
-      throw new TypeError("Unknown object when expected Result_OkTuple_ErrError");
-    };
-  }
-  /** Match helper for {@link Result_OkTuple_ErrError} */
-  export function match<R>(input: Result_OkTuple_ErrError, to: ApplyFns<R>): R {
-    return apply(to)(input);
-  }
-  /** Contains the success value */
-  export type Ok = {
-    /** Contains the success value */
-    Ok: [];
-  };
-  /** Contains the success value */
-  export function Ok(value: []): Ok {
-    return { Ok: value };
-  }
-  /** Contains the error value */
-  export type Err = {
-    /** Contains the error value */
-    Err: Error;
-  };
-  /** Contains the error value */
-  export function Err(value: Error): Err {
-    return { Err: value };
-  }
-}
-/**
- * `Result` is a type that represents either success ([`Ok`]) or failure ([`Err`]).
- *
- * [Source `rn-desktop/src-tauri/src/rn_todos_plugin.rs:57`](../../../rn-desktop/src-tauri/src/rn_todos_plugin.rs)
- */
-export type Result_OkTuple_ErrError = Result_OkTuple_ErrError.Ok | Result_OkTuple_ErrError.Err;

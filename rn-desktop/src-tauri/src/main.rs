@@ -6,7 +6,6 @@
 extern crate objc;
 
 use std::sync::Arc;
-use tauri::Manager;
 
 use tauri_plugin_autostart::MacosLauncher;
 

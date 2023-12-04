@@ -20,7 +20,26 @@ impl Default for AppSettings {
         AppSettings {
             break_secs: 5 * 60,
             working_secs: 25 * 60,
-            template_todos: Vec::new(),
+            template_todos: vec![
+                TemplateTodo {
+                    uid: "PLAN_DAY".to_string(),
+                    fields: TodoFields {
+                        mvp_tags: vec![],
+                        time_estimate_mins: 25,
+                        title: "Plan your day".to_string(),
+                    },
+                    ord_in_template_list: 0.1f64,
+                },
+                TemplateTodo {
+                    uid: "WATER_PLANTS".to_string(),
+                    fields: TodoFields {
+                        mvp_tags: vec![],
+                        time_estimate_mins: 10,
+                        title: "Water plants".to_string(),
+                    },
+                    ord_in_template_list: 0.5f64,
+                },
+            ],
         }
     }
 }

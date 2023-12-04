@@ -3358,6 +3358,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "i-rn-desktop-proc"
+version = "0.0.0"
+dependencies = [
+ "derive-codegen",
+ "proc-macro2",
+ "quote",
+ "tauri",
+ "tracing",
+]
+
+[[package]]
 name = "iana-time-zone"
 version = "0.1.57"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5843,6 +5854,7 @@ dependencies = [
  "hn-app",
  "hn-keys",
  "hn-tracing",
+ "i-rn-desktop-proc",
  "objc",
  "reqwest",
  "sea-orm",
@@ -8986,6 +8998,10 @@ dependencies = [
  "syn 1.0.109",
  "syn 2.0.39",
  "sysinfo",
+ "tao",
+ "tauri-codegen",
+ "tauri-runtime",
+ "tauri-runtime-wry",
  "tauri-utils",
  "time",
  "tokio",
@@ -8998,6 +9014,7 @@ dependencies = [
  "unicode-normalization",
  "url",
  "uuid",
+ "wry",
  "zeroize",
 ]
 

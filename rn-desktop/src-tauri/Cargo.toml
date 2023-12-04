@@ -16,6 +16,7 @@ tauri-build = { version = "1.5", features = [] }
 hn-app.workspace = true
 hn-keys.workspace = true
 hn-tracing.workspace = true
+i-rn-desktop-proc = { path = "./proc" }
 sea-orm = { version = "0.12.7", features = [
   "sqlx-sqlite",
   "macros",
