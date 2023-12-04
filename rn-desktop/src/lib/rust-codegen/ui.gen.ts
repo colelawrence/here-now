@@ -75,130 +75,6 @@ export interface RightNowTodosInvoke {
   load_self(): Promise<Result_OkTuple_ErrError.Ok["Ok"]>
 }
 /**
- * `Result` is a type that represents either success ([`Ok`]) or failure ([`Err`]).
- *
- * [Source `rn-desktop/src-tauri/src/rn_todos_plugin.rs:48`](../../../rn-desktop/src-tauri/src/rn_todos_plugin.rs)
- */
-// deno-lint-ignore no-namespace
-export namespace Result_OkTodo_List_ErrError {
-  export type ApplyFns<R> = {
-    // callbacks
-    /** Contains the success value */
-    Ok(inner: Ok["Ok"]): R;
-    /** Contains the error value */
-    Err(inner: Err["Err"]): R;
-  }
-  /** Match helper for {@link Result_OkTodo_List_ErrError} */
-  export function apply<R>(
-    to: ApplyFns<R>,
-  ): (input: Result_OkTodo_List_ErrError) => R {
-    return function _match(input): R {
-      // if-else strings
-      // if-else objects
-      if (typeof input !== "object" || input == null) throw new TypeError("Unexpected non-object for input");
-      if ("Ok" in input) return to.Ok(input["Ok"]);
-      if ("Err" in input) return to.Err(input["Err"]);
-      const _exhaust: never = input;
-      throw new TypeError("Unknown object when expected Result_OkTodo_List_ErrError");
-    }
-  }
-  /** Match helper for {@link Result_OkTodo_List_ErrError} */
-  export function match<R>(
-    input: Result_OkTodo_List_ErrError,
-    to: ApplyFns<R>,
-  ): R {
-    return apply(to)(input)
-  }
-  /** Contains the success value */
-  export type Ok = {
-    /** Contains the success value */
-    Ok: Array<Todo>
-  };
-  /** Contains the success value */
-  export function Ok(value: Array<Todo>): Ok {
-    return { Ok: value };
-  }
-  /** Contains the error value */
-  export type Err = {
-    /** Contains the error value */
-    Err: Error
-  };
-  /** Contains the error value */
-  export function Err(value: Error): Err {
-    return { Err: value };
-  }
-}
-/**
- * `Result` is a type that represents either success ([`Ok`]) or failure ([`Err`]).
- *
- * [Source `rn-desktop/src-tauri/src/rn_todos_plugin.rs:48`](../../../rn-desktop/src-tauri/src/rn_todos_plugin.rs)
- */
-export type Result_OkTodo_List_ErrError =
-  | Result_OkTodo_List_ErrError.Ok
-  | Result_OkTodo_List_ErrError.Err
-/**
- * `Result` is a type that represents either success ([`Ok`]) or failure ([`Err`]).
- *
- * [Source `rn-desktop/src-tauri/src/rn_todos_plugin.rs:55`](../../../rn-desktop/src-tauri/src/rn_todos_plugin.rs)
- */
-// deno-lint-ignore no-namespace
-export namespace Result_OkTuple_ErrError {
-  export type ApplyFns<R> = {
-    // callbacks
-    /** Contains the success value */
-    Ok(inner: Ok["Ok"]): R;
-    /** Contains the error value */
-    Err(inner: Err["Err"]): R;
-  }
-  /** Match helper for {@link Result_OkTuple_ErrError} */
-  export function apply<R>(
-    to: ApplyFns<R>,
-  ): (input: Result_OkTuple_ErrError) => R {
-    return function _match(input): R {
-      // if-else strings
-      // if-else objects
-      if (typeof input !== "object" || input == null) throw new TypeError("Unexpected non-object for input");
-      if ("Ok" in input) return to.Ok(input["Ok"]);
-      if ("Err" in input) return to.Err(input["Err"]);
-      const _exhaust: never = input;
-      throw new TypeError("Unknown object when expected Result_OkTuple_ErrError");
-    }
-  }
-  /** Match helper for {@link Result_OkTuple_ErrError} */
-  export function match<R>(
-    input: Result_OkTuple_ErrError,
-    to: ApplyFns<R>,
-  ): R {
-    return apply(to)(input)
-  }
-  /** Contains the success value */
-  export type Ok = {
-    /** Contains the success value */
-    Ok: []
-  };
-  /** Contains the success value */
-  export function Ok(value: []): Ok {
-    return { Ok: value };
-  }
-  /** Contains the error value */
-  export type Err = {
-    /** Contains the error value */
-    Err: Error
-  };
-  /** Contains the error value */
-  export function Err(value: Error): Err {
-    return { Err: value };
-  }
-}
-/**
- * `Result` is a type that represents either success ([`Ok`]) or failure ([`Err`]).
- *
- * [Source `rn-desktop/src-tauri/src/rn_todos_plugin.rs:55`](../../../rn-desktop/src-tauri/src/rn_todos_plugin.rs)
- */
-export type Result_OkTuple_ErrError =
-  | Result_OkTuple_ErrError.Ok
-  | Result_OkTuple_ErrError.Err
-/**
  * Future: Store this as the only state stored to disk for this app
  *
  * `#[codegen(tags = "rn-ui")]`
@@ -617,3 +493,127 @@ export type TemplateTodo = {
 export function TemplateTodo(inner: TemplateTodo): TemplateTodo {
   return inner;
 }
+/**
+ * `Result` is a type that represents either success ([`Ok`]) or failure ([`Err`]).
+ *
+ * [Source `rn-desktop/src-tauri/src/rn_todos_plugin.rs:48`](../../../rn-desktop/src-tauri/src/rn_todos_plugin.rs)
+ */
+// deno-lint-ignore no-namespace
+export namespace Result_OkTodo_List_ErrError {
+  export type ApplyFns<R> = {
+    // callbacks
+    /** Contains the success value */
+    Ok(inner: Ok["Ok"]): R;
+    /** Contains the error value */
+    Err(inner: Err["Err"]): R;
+  }
+  /** Match helper for {@link Result_OkTodo_List_ErrError} */
+  export function apply<R>(
+    to: ApplyFns<R>,
+  ): (input: Result_OkTodo_List_ErrError) => R {
+    return function _match(input): R {
+      // if-else strings
+      // if-else objects
+      if (typeof input !== "object" || input == null) throw new TypeError("Unexpected non-object for input");
+      if ("Ok" in input) return to.Ok(input["Ok"]);
+      if ("Err" in input) return to.Err(input["Err"]);
+      const _exhaust: never = input;
+      throw new TypeError("Unknown object when expected Result_OkTodo_List_ErrError");
+    }
+  }
+  /** Match helper for {@link Result_OkTodo_List_ErrError} */
+  export function match<R>(
+    input: Result_OkTodo_List_ErrError,
+    to: ApplyFns<R>,
+  ): R {
+    return apply(to)(input)
+  }
+  /** Contains the success value */
+  export type Ok = {
+    /** Contains the success value */
+    Ok: Array<Todo>
+  };
+  /** Contains the success value */
+  export function Ok(value: Array<Todo>): Ok {
+    return { Ok: value };
+  }
+  /** Contains the error value */
+  export type Err = {
+    /** Contains the error value */
+    Err: Error
+  };
+  /** Contains the error value */
+  export function Err(value: Error): Err {
+    return { Err: value };
+  }
+}
+/**
+ * `Result` is a type that represents either success ([`Ok`]) or failure ([`Err`]).
+ *
+ * [Source `rn-desktop/src-tauri/src/rn_todos_plugin.rs:48`](../../../rn-desktop/src-tauri/src/rn_todos_plugin.rs)
+ */
+export type Result_OkTodo_List_ErrError =
+  | Result_OkTodo_List_ErrError.Ok
+  | Result_OkTodo_List_ErrError.Err
+/**
+ * `Result` is a type that represents either success ([`Ok`]) or failure ([`Err`]).
+ *
+ * [Source `rn-desktop/src-tauri/src/rn_todos_plugin.rs:55`](../../../rn-desktop/src-tauri/src/rn_todos_plugin.rs)
+ */
+// deno-lint-ignore no-namespace
+export namespace Result_OkTuple_ErrError {
+  export type ApplyFns<R> = {
+    // callbacks
+    /** Contains the success value */
+    Ok(inner: Ok["Ok"]): R;
+    /** Contains the error value */
+    Err(inner: Err["Err"]): R;
+  }
+  /** Match helper for {@link Result_OkTuple_ErrError} */
+  export function apply<R>(
+    to: ApplyFns<R>,
+  ): (input: Result_OkTuple_ErrError) => R {
+    return function _match(input): R {
+      // if-else strings
+      // if-else objects
+      if (typeof input !== "object" || input == null) throw new TypeError("Unexpected non-object for input");
+      if ("Ok" in input) return to.Ok(input["Ok"]);
+      if ("Err" in input) return to.Err(input["Err"]);
+      const _exhaust: never = input;
+      throw new TypeError("Unknown object when expected Result_OkTuple_ErrError");
+    }
+  }
+  /** Match helper for {@link Result_OkTuple_ErrError} */
+  export function match<R>(
+    input: Result_OkTuple_ErrError,
+    to: ApplyFns<R>,
+  ): R {
+    return apply(to)(input)
+  }
+  /** Contains the success value */
+  export type Ok = {
+    /** Contains the success value */
+    Ok: []
+  };
+  /** Contains the success value */
+  export function Ok(value: []): Ok {
+    return { Ok: value };
+  }
+  /** Contains the error value */
+  export type Err = {
+    /** Contains the error value */
+    Err: Error
+  };
+  /** Contains the error value */
+  export function Err(value: Error): Err {
+    return { Err: value };
+  }
+}
+/**
+ * `Result` is a type that represents either success ([`Ok`]) or failure ([`Err`]).
+ *
+ * [Source `rn-desktop/src-tauri/src/rn_todos_plugin.rs:55`](../../../rn-desktop/src-tauri/src/rn_todos_plugin.rs)
+ */
+export type Result_OkTuple_ErrError =
+  | Result_OkTuple_ErrError.Ok
+  | Result_OkTuple_ErrError.Err
