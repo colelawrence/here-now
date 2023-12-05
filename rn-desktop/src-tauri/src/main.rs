@@ -25,9 +25,6 @@ mod rn_todos_plugin;
 mod state;
 mod ui;
 
-const TRAY_WINDOW_LABEL: &str = "tray";
-const SYSTEM_TRAY_ID: &str = "tray";
-
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tauri::command]
 fn greet(name: &str) -> String {

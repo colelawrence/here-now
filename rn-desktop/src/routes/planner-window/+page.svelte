@@ -1,10 +1,11 @@
 <script lang="ts">
   import AddTodoForm from "$lib/AddTodoForm.svelte";
+  import DevInfo from "$lib/DevInfo.svelte";
   import Timer from "$lib/Timer.svelte";
   import TodoList from "$lib/TodoList.svelte";
   import { mountAppInSvelte } from "$lib/mountApp.svelte";
   import { useStore } from "jotai-svelte";
-  import { ArrowDown, Play, Stop } from "phosphor-svelte";
+  import { ArrowDown, Play, Stop, X } from "phosphor-svelte";
 
   const store = useStore();
   const app = mountAppInSvelte(store);
@@ -41,7 +42,7 @@
         <Play />
       </button>
     {:else if app.workState.state === "working"}
-      <div class="flex flex-grow justify-center">
+      <div class="flex flex-grow justify-center" data-tauri-drag-region>
         <Timer info={app.workState.timer} />
       </div>
       <div class="flex gap-1">
@@ -73,4 +74,20 @@
       >
     </div> -->
   </div>
+
+  <div class="flex flex-wrap">
+    {#each app.todoFilters.filters as filter (filter.display)}
+      <button
+        class="opacity-50 p-2 rounded-md hover:opacity-80"
+        class:opacity-100={filter.enabled}
+        on:click={filter.toggle}
+      >
+        {filter.display}
+      </button>
+    {/each}
+  </div>
+  <button class="opacity-50 p-2 rounded-md hover:opacity-80" on:click={app.todoFilters.disableAll}>
+    <X />
+  </button>
+  <DevInfo info={app.dev} />
 </main>

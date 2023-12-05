@@ -25,6 +25,8 @@ export type ITodo = HasHtmlInput &
     readonly id: string;
     readonly htmlCheckboxId: string;
     readonly timeEstimate: TodoTimeEstimate;
+    /** e.g. #bucket, [[Right Now]] */
+    readonly tagsInText: string[];
     ord: number;
     text: string;
     completed: boolean;
@@ -75,6 +77,19 @@ export type AppState = {
   readonly addTodo: AddTodo;
   readonly isReady: boolean;
   readonly workState: WorkStatePlanning | WorkStateWorking | WorkStateBreak;
+  readonly todoFilters: IAppStateFilters;
+  readonly dev: unknown;
+};
+
+export type IAppStateFilters = {
+  readonly filters: IFilter[];
+  disableAll(): void;
+};
+
+export type IFilter = {
+  readonly display: string;
+  readonly enabled: boolean;
+  toggle(): void;
 };
 
 export type AppCtx = {
@@ -122,6 +137,14 @@ export function createApp(ctx: AppCtx): AppState {
   const inputTraversalNav = createInputTraversal(() => [...todos.flatMap((a) => [a, a.timeEstimate]), addTodo]);
   let sourceTodos = $state<ITodo[]>([]);
   const todos = $derived(sourceTodos.toSorted((a, b) => a.ord - b.ord));
+  let enabledFilters = $state<string[]>([]);
+  const todosFiltered = $derived(
+    call(() => {
+      const filters = enabledFilters;
+      if (filters.length === 0) return todos;
+      return todos.filter((todo) => todo.tagsInText.some((a) => filters.includes(a)));
+    }),
+  );
   let isReady = $state(false);
   let workState: ui.WorkState = $state(ui.WorkState.Planning());
   const memoTodoAndCache = memoize((uid: string) => {
@@ -204,6 +227,31 @@ export function createApp(ctx: AppCtx): AppState {
   refreshTodos();
 
   let visibilityFilter = $state<VisibilityFilter>("SHOW_ALL");
+  const tagsRE = /(?:#(\S+)|\[\[([^\]]+)\]\])/g;
+  const allHashTags = $derived(
+    sourceTodos
+      .flatMap((todo) => (todo.completed ? [] : todo.tagsInText))
+      .reduce((totals, tag) => {
+        totals.set(tag, (totals.get(tag) ?? 0) + 1);
+        return totals;
+      }, new Map<string, number>()),
+  );
+  const filters = $derived(
+    [...allHashTags.entries()].map(
+      ([tag, count]): IFilter => ({
+        toggle() {
+          const curr = enabledFilters;
+          requestAnimationFrame(() => {
+            enabledFilters = curr.includes(tag) ? curr.filter((a) => a !== tag) : [...curr, tag];
+          });
+        },
+        display: `${tag} (${count})`,
+        get enabled() {
+          return enabledFilters.includes(tag);
+        },
+      }),
+    ),
+  );
   let addTodoText = $state("");
 
   const addTodo: AddTodo = {
@@ -233,10 +281,15 @@ export function createApp(ctx: AppCtx): AppState {
   }
 
   return {
+    get dev() {
+      return {
+        enabledFilters,
+      };
+    },
     get todos() {
-      if (visibilityFilter === "SHOW_COMPLETED") return todos.filter((todo) => todo.completed);
-      if (visibilityFilter === "SHOW_ACTIVE") return todos.filter((todo) => !todo.completed);
-      return todos;
+      if (visibilityFilter === "SHOW_COMPLETED") return todosFiltered.filter((todo) => todo.completed);
+      if (visibilityFilter === "SHOW_ACTIVE") return todosFiltered.filter((todo) => !todo.completed);
+      return todosFiltered;
     },
     get isReady() {
       return isReady;
@@ -248,6 +301,14 @@ export function createApp(ctx: AppCtx): AppState {
       visibilityFilter = updatedFilter;
     },
     addTodo,
+    todoFilters: {
+      get filters() {
+        return filters;
+      },
+      disableAll() {
+        enabledFilters = [];
+      },
+    },
     get workState() {
       return ui.WorkState.match<WorkStatePlanning | WorkStateWorking | WorkStateBreak>(workState, {
         Planning: (): WorkStatePlanning => ({
@@ -387,6 +448,8 @@ export function createApp(ctx: AppCtx): AppState {
       });
     }
 
+    const tags = $derived([...text.matchAll(tagsRE)].map((a) => a[1] ?? a[2]));
+
     const self: ITodo = {
       id: init.uid,
       htmlCheckboxId: `todo-checkbox-${init.uid}`,
@@ -406,6 +469,9 @@ export function createApp(ctx: AppCtx): AppState {
       set text(updatedText: string) {
         text = updatedText;
         syncTodoFields();
+      },
+      get tagsInText() {
+        return tags;
       },
       get completed() {
         return completed;

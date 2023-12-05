@@ -32,7 +32,7 @@ pub fn ensure_planner_window<R: tauri::Runtime>(
     .hidden_title(true)
     .title_bar_style(tauri::TitleBarStyle::Overlay)
     // .max_inner_size(1000, 4000)
-    .inner_size(350f64, 350f64)
+    .inner_size(450f64, 350f64)
     .min_inner_size(250f64, 200f64)
     .center()
     .build()

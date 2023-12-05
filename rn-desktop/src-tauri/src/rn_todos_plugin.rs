@@ -291,15 +291,6 @@ async fn take_a_break(app: tauri::AppHandle) -> Result<(), Error> {
 
 #[ui_command]
 async fn toggle_size(app: tauri::AppHandle, big: bool) -> Result<(), Error> {
-    // match app.state::<AppState>().work_state.read().await.deref() {
-    //     ui::WorkState::Working { .. } => {}
-    //     other => {
-    //         return Err(Error::App(format!(
-    //             "Can only toggle size during work\n{other:?}"
-    //         )))
-    //     }
-    // }
-
     if big {
         windows_controller::ensure_planner_window(&app)?.show()?;
         if let Some(tracker) = windows_controller::get_tracker_window(&app)? {
@@ -341,33 +332,26 @@ fn unix_to_instant(unix: u64) -> tokio::time::Instant {
     }
 }
 
-async fn set_work_state(app: &tauri::AppHandle, update: ui::WorkState) -> Result<(), Error> {
+fn update_timer_transitions(
+    app: &tauri::AppHandle,
+    update: &ui::WorkState,
+) -> Option<tokio::task::AbortHandle> {
     const WARN_SECS_BEFORE_BREAK_TO_WORKING: u64 = 60;
+    const WARN_SECS_BEFORE_WORKING_TO_BREAK: u64 = 60;
     const WARN_SECS_MIN_DUR_TO_NOTIFY: u64 = 60;
-    let state = app.state::<AppState>();
-    let mut current_state = state.work_state.write().await;
-    let current_state = current_state.deref_mut();
-    if current_state == &update {
-        // no update necessary
-        return Ok(());
-    }
-    use ui::WorkState::*;
-    // The main goal here is to start scheduling tasks
-    match (&current_state, &update) {
-        (Break { .. }, Break { .. }) | (Working { .. }, Working { .. }) | (Planning, Planning) => {
-            // no window changes
+    match &update {
+        ui::WorkState::Planning => {
+            // no scheduling necessary
+            None
         }
-        (
-            Planning | Working { .. },
-            Break {
-                ends_at_unix,
-                started_at_unix: _,
-            },
-        ) => {
+        ui::WorkState::Break {
+            ends_at_unix,
+            started_at_unix: _,
+        } => {
             let ends_at_unix = *ends_at_unix;
             let app = app.app_handle();
             // start a break
-            let mut prev_timer_opt = state.work_state_timer.lock().await.replace(
+            Some(
                 tokio::spawn(async move {
                     let start_working_at = unix_to_instant(ends_at_unix);
                     let notify_to_start_working_again =
@@ -385,30 +369,80 @@ async fn set_work_state(app: &tauri::AppHandle, update: ui::WorkState) -> Result
 
                     tokio::time::sleep_until(start_working_at).await;
                     tracing::warn!("TODO: wait to know that the user is active");
-                    app
+                    continue_working(app).await.expect("continue working");
                 })
                 .abort_handle(),
-            );
-            if let Some(timer) = prev_timer_opt.take() {
-                timer.abort();
-            }
+            )
         }
-        (
-            Planning | Break { .. },
-            Working {
-                ends_at_unix: _,
-                started_at_unix: _,
-            },
-        ) => {
-            // start working
+        ui::WorkState::Working {
+            ends_at_unix,
+            started_at_unix: _,
+        } => {
+            let ends_at_unix = *ends_at_unix;
+            let app = app.app_handle();
+            // start work session
+            Some(
+                tokio::spawn(async move {
+                    let start_working_at = unix_to_instant(ends_at_unix);
+                    let notify_to_take_break =
+                        unix_to_instant(ends_at_unix - WARN_SECS_BEFORE_WORKING_TO_BREAK);
+
+                    let should_notify_upcoming_break = notify_to_take_break
+                        .checked_duration_since(start_working_at)
+                        .map(|dur| WARN_SECS_MIN_DUR_TO_NOTIFY < dur.as_secs())
+                        .unwrap_or(false);
+
+                    if should_notify_upcoming_break {
+                        tokio::time::sleep_until(notify_to_take_break).await;
+                        tracing::warn!("TODO: Make a sound to return to working");
+                    }
+
+                    tokio::time::sleep_until(start_working_at).await;
+                    tracing::warn!("TODO: wait to know that the user is active");
+                    take_a_break(app).await.expect("taking a break");
+                })
+                .abort_handle(),
+            )
+        }
+    }
+}
+
+async fn set_work_state(app: &tauri::AppHandle, update: ui::WorkState) -> Result<(), Error> {
+    let state = app.state::<AppState>();
+    let mut current_state = state.work_state.write().await;
+    let current_state = current_state.deref_mut();
+    if current_state == &update {
+        // no update necessary
+        return Ok(());
+    }
+    use ui::WorkState::*;
+    // The main goal here is to start scheduling tasks
+    match (&current_state, &update) {
+        (Break { .. }, Break { .. }) | (Working { .. }, Working { .. }) | (Planning, Planning) => {
+            // no window changes
+        }
+        (Planning | Working { .. }, Break { .. }) => {
+            // TODO: Notify to have a great break?
+        }
+        (Planning | Break { .. }, Working { .. }) => {
+            // TODO: Notify to have a great session?
         }
         (Break { .. } | Working { .. }, Planning) => {
             // start planning
         }
     }
 
-    state.work_state_stored.write(&update).await?;
+    {
+        let mut timer_lock = state.work_state_timer.lock().await;
+        if let Some(timer_abort) = timer_lock.take() {
+            timer_abort.abort();
+        }
+        if let Some(abort_handle) = update_timer_transitions(app, &update) {
+            let _ = timer_lock.insert(abort_handle);
+        }
+    }
 
+    state.work_state_stored.write(&update).await?;
     *current_state = update;
 
     Ok(())
