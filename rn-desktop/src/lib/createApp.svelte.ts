@@ -117,13 +117,11 @@ function memoize<K, T>(fn: (key: K) => T): (key: K) => T {
   };
 }
 
-let lastOrd = Math.random();
-
 export function createApp(ctx: AppCtx): AppState {
   const rootPool = new DisposePool();
-  const inputTraversalNav = createInputTraversal(() => [...todos, addTodo]);
-  let todos = $state<ITodo[]>([]);
-  let todosSorted = $derived(todos.toSorted((a, b) => a.ord - b.ord));
+  const inputTraversalNav = createInputTraversal(() => [...todos.flatMap((a) => [a, a.timeEstimate]), addTodo]);
+  let sourceTodos = $state<ITodo[]>([]);
+  const todos = $derived(sourceTodos.toSorted((a, b) => a.ord - b.ord));
   let isReady = $state(false);
   let workState: ui.WorkState = $state(ui.WorkState.Planning());
   const memoTodoAndCache = memoize((uid: string) => {
@@ -152,11 +150,11 @@ export function createApp(ctx: AppCtx): AppState {
         const { cached, vm } = memoTodoAndCache(todo.uid);
         cached.updateUnchecked({ value: todo });
         if (!todos.find((a) => a.id === vm.id)) {
-          todos = [...todos, vm];
+          sourceTodos = [...todos, vm];
         }
       },
       RemoveTodo(uid) {
-        todos = todos.filter((a) => a.id !== uid);
+        sourceTodos = todos.filter((a) => a.id !== uid);
       },
       UpdateTodo([uid, update]) {
         const { cached } = memoTodoAndCache(uid);
@@ -185,7 +183,7 @@ export function createApp(ctx: AppCtx): AppState {
     }
   });
   function loadTodos(allTodos: ui.Todo[]) {
-    todos = allTodos.map((serverTodo) => {
+    sourceTodos = allTodos.map((serverTodo) => {
       const { cached, vm } = memoTodoAndCache(serverTodo.uid);
       cached.updateUnchecked({ value: serverTodo });
       return vm;
@@ -217,11 +215,11 @@ export function createApp(ctx: AppCtx): AppState {
     },
     htmlInputElement: null,
     add() {
-      const added = newTodo(addTodoText);
-      todos = [...todos, added];
+      const added = newTodo(addTodoText, { position: "last" });
+      sourceTodos = [...todos, added];
       addTodoText = "";
     },
-    inputTraversal: inputTraversalNav.getEscapeInput(() => addTodo),
+    inputTraversal: inputTraversalNav.getEscapeInput(() => addTodo, { up: -2 }),
   };
 
   function toggleBig(big: boolean) {
@@ -236,9 +234,9 @@ export function createApp(ctx: AppCtx): AppState {
 
   return {
     get todos() {
-      if (visibilityFilter === "SHOW_COMPLETED") return todosSorted.filter((todo) => todo.completed);
-      if (visibilityFilter === "SHOW_ACTIVE") return todosSorted.filter((todo) => !todo.completed);
-      return todosSorted;
+      if (visibilityFilter === "SHOW_COMPLETED") return todos.filter((todo) => todo.completed);
+      if (visibilityFilter === "SHOW_ACTIVE") return todos.filter((todo) => !todo.completed);
+      return todos;
     },
     get isReady() {
       return isReady;
@@ -329,9 +327,18 @@ export function createApp(ctx: AppCtx): AppState {
     },
   };
 
-  function newTodo(initText: string, initDone = false): ITodo {
+  function newTodo(
+    initText: string,
+    options: { position: "last" | "first" | [ITodo, ITodo]; initDone?: boolean },
+  ): ITodo {
     const uid = "T" + Date.now().toString(36) + Math.random().toString(36).slice(1);
-    const ord = ++lastOrd;
+    const ord =
+      options.position === "first"
+        ? (todos[0]?.ord ?? 1) - saltyHalf() * 10
+        : options.position === "last"
+          ? (todos[todos.length - 1]?.ord ?? 1) + saltyHalf() * 10
+          : lerp(options.position[0].ord, options.position[1].ord, saltyHalf());
+
     const fields: ui.TodoFields = { mvp_tags: [], time_estimate_mins: 25, title: initText };
     call(async () => {
       await ctx.rn.add_todo({
@@ -340,7 +347,7 @@ export function createApp(ctx: AppCtx): AppState {
         ord,
         template: false,
       });
-      if (initDone) {
+      if (options.initDone) {
         await ctx.rn.update_todo_completed({ uid, completed: true });
       }
     });
@@ -409,7 +416,7 @@ export function createApp(ctx: AppCtx): AppState {
           await ctx.rn.update_todo_completed({ uid: init.uid, completed });
         });
       },
-      inputTraversal: inputTraversalNav.getEscapeInput(() => self),
+      inputTraversal: inputTraversalNav.getEscapeInput(() => self, { up: -2, down: 2 }),
       timeEstimate: createTimeEstimate(),
       delete() {
         const input = self.htmlInputElement;
@@ -420,7 +427,7 @@ export function createApp(ctx: AppCtx): AppState {
           }
         }
         const prev = todos;
-        todos = todos.filter((todo) => todo.id !== self.id);
+        sourceTodos = todos.filter((todo) => todo.id !== self.id);
         call(async () => {
           try {
             await ctx.rn.delete_todo({
@@ -429,23 +436,25 @@ export function createApp(ctx: AppCtx): AppState {
             });
           } catch (error) {
             ctx.notify.reportError("Failed to delete todo", { error });
-            todos = prev;
+            sourceTodos = prev;
           }
         });
       },
       addTodoAfter(text) {
         const indexOfSelf = todos.indexOf(self);
-        const added = newTodo(text);
-        todos = [...todos.slice(0, indexOfSelf + 1), added, ...todos.slice(indexOfSelf + 1)];
+        const afterSelf = todos[indexOfSelf + 1];
+        const added = newTodo(text, { position: afterSelf ? [self, afterSelf] : "last" });
+        sourceTodos = [...todos.slice(0, indexOfSelf + 1), added, ...todos.slice(indexOfSelf + 1)];
         attemptToFocusOnInput(added, 0);
       },
       joinTodoBackwards() {
         const before = todos.indexOf(self) - 1;
+
         if (before >= 0) {
           const beforeTodo = todos[before];
           const originalLength = beforeTodo.text.length;
           beforeTodo.text += self.text;
-          todos = [...todos.slice(0, before + 1), ...todos.slice(before + 2)];
+          self.delete();
           attemptToFocusOnInput(beforeTodo, originalLength);
         }
       },
@@ -472,7 +481,7 @@ export function createApp(ctx: AppCtx): AppState {
         },
         htmlInputElement: null,
         // pretend we're the input and we'll snap to the nearby inputs?
-        inputTraversal: inputTraversalNav.getEscapeInput(() => self),
+        inputTraversal: inputTraversalNav.getEscapeInput(() => est, { up: -2, down: 2 }),
         get text() {
           return currentEditing ?? `${totalMinuteEstimate}m`;
         },
@@ -490,6 +499,15 @@ export function createApp(ctx: AppCtx): AppState {
 
     return self;
   }
+}
+
+/* Random number between 0.4 and 0.6 for ordering mostly */
+function saltyHalf() {
+  return Math.random() * 0.2 + 0.4;
+}
+
+function lerp(a: number, b: number, t: number) {
+  return a + (b - a) * t;
 }
 
 function humanParseDuration(input: string): undefined | { minutes: number } {

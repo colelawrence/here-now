@@ -37,23 +37,23 @@ export function createInputTraversal(getInputs: () => HasHtmlInput[]) {
   }
 
   return {
-    getEscapeInput(getSelf: () => HasHtmlInput): InputTraversal {
+    getEscapeInput(getSelf: () => HasHtmlInput, { down = 1, up = -1, start = -1, end = 1 } = {}): InputTraversal {
       return {
         down() {
           const self = getSelf();
-          attemptToFocusOnInput(getRelativeInput(self, 1), currentSelectionOr(self) ?? 0);
+          attemptToFocusOnInput(getRelativeInput(self, down), currentSelectionOr(self) ?? 0);
         },
         up() {
           const self = getSelf();
-          attemptToFocusOnInput(getRelativeInput(self, -1), currentSelectionOr(self) ?? Infinity);
+          attemptToFocusOnInput(getRelativeInput(self, up), currentSelectionOr(self) ?? Infinity);
         },
         exitFromStart() {
           const self = getSelf();
-          attemptToFocusOnInput(getRelativeInput(self, -1), Infinity);
+          attemptToFocusOnInput(getRelativeInput(self, start), Infinity);
         },
         exitFromEnd() {
           const self = getSelf();
-          attemptToFocusOnInput(getRelativeInput(self, 1), 0);
+          attemptToFocusOnInput(getRelativeInput(self, end), 0);
         },
       };
     },
