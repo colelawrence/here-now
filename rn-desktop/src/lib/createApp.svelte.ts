@@ -87,6 +87,7 @@ export type AppState = {
 export type IAppStateFilters = {
   visibilityFilter: VisibilityFilter;
   readonly filters: IFilter[];
+  readonly canDisableAll: boolean;
   disableAll(): void;
 };
 
@@ -307,6 +308,9 @@ export function createApp(ctx: AppCtx): AppState {
       },
       get filters() {
         return filters;
+      },
+      get canDisableAll() {
+        return enabledFilters.length > 0;
       },
       disableAll() {
         enabledFilters = [];

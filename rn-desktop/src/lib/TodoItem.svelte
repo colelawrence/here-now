@@ -4,6 +4,7 @@
   import type { ITodo } from "./createApp.svelte";
   import TodoItemCheckbox from "./TodoItemCheckbox.svelte";
   import TodoTimeEstimate from "./TodoTimeEstimate.svelte";
+  import DevInfo from "./DevInfo.svelte";
 
   const { todo, nonEditableText } = $props<{
     todo: ITodo;
@@ -54,5 +55,9 @@
     />
     <TodoTimeEstimate bind:estimate={todo.timeEstimate} />
     <button on:click={todo.delete}><Trash /></button>
+  </div>
+  <div class="hidden">
+    <!-- Svelte 5 alpha 19: This needs to be present for other dependents on tagsInText to work across app -->
+    <DevInfo info={todo.tagsInText} />
   </div>
 {/key}

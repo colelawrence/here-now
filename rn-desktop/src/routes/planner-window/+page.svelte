@@ -75,19 +75,26 @@
     </div> -->
   </div>
 
-  <div class="flex flex-wrap">
+  <div class="flex flex-wrap gap-2 p-2">
     {#each app.todoFilters.filters as filter (filter.display)}
-      <button
-        class="opacity-50 p-2 rounded-md hover:opacity-80"
-        class:opacity-100={filter.enabled}
-        on:click={filter.toggle}
-      >
+      <button class="filter-button" class:selected={filter.enabled} on:click={filter.toggle}>
         {filter.display}
       </button>
     {/each}
+    {#if app.todoFilters.canDisableAll}
+      <button class="filter-button" on:click={app.todoFilters.disableAll}>
+        <X />
+      </button>
+    {/if}
   </div>
-  <button class="opacity-50 p-2 rounded-md hover:opacity-80" on:click={app.todoFilters.disableAll}>
-    <X />
-  </button>
-  <DevInfo info={app.dev} />
+  <!-- <DevInfo info={app.dev} /> -->
 </main>
+
+<style lang="postcss">
+  .filter-button {
+    @apply p-2 rounded-md opacity-50 hover:opacity-80 bg-transparent;
+  }
+  .filter-button.selected {
+    @apply opacity-100 outline outline-sys-primary-container;
+  }
+</style>
