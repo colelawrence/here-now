@@ -43,7 +43,7 @@
       </button>
     {:else if app.workState.state === "working"}
       <div class="flex flex-grow justify-center" data-tauri-drag-region>
-        <Timer info={app.workState.timer} />
+        <Timer info={app.workState.timer} popoverPlacement="bottom" />
       </div>
       <div class="flex gap-1">
         <button on:click={app.workState.stopSession}>

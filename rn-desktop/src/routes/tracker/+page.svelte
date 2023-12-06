@@ -31,7 +31,7 @@
     {/key}
 
     {#if app.workState.state === "working" || app.workState.state === "break"}
-      <Timer info={app.workState.timer} />
+      <Timer info={app.workState.timer} popoverPlacement="left-start" />
       <button on:click={app.workState.stopSession}>
         <Stop />
       </button>
