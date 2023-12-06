@@ -11,18 +11,17 @@ use tauri_plugin_autostart::MacosLauncher;
 
 use hn_app::_result_::*;
 use hn_app::_tracing_::*;
-use sea_orm::Database;
-use sea_orm::DatabaseConnection;
+// use sea_orm::Database;
+// use sea_orm::DatabaseConnection;
+// mod state;
 mod prelude {
     #![allow(unused)]
     pub use anyhow::Context;
     pub type Result<T = (), E = anyhow::Error> = std::result::Result<T, E>;
 }
 
-mod db_gen;
 mod macos_title_bar;
 mod rn_todos_plugin;
-mod state;
 mod ui;
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
@@ -31,28 +30,28 @@ fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
 }
 
-#[instrument]
-async fn run_migrations(db_url: &str) -> Result<()> {
-    let pool = sqlx::SqlitePool::connect(db_url)
-        .await
-        .context("connect to sqlite")?;
+// #[instrument]
+// async fn run_migrations(db_url: &str) -> Result<()> {
+//     let pool = sqlx::SqlitePool::connect(db_url)
+//         .await
+//         .context("connect to sqlite")?;
 
-    // let db = pool.acquire().await.expect("acquired connection");
-    sqlx::migrate!("./migrations")
-        .run(&pool)
-        .await
-        .context("migrate (from ./migrations)")?;
+//     // let db = pool.acquire().await.expect("acquired connection");
+//     sqlx::migrate!("./migrations")
+//         .run(&pool)
+//         .await
+//         .context("migrate (from ./migrations)")?;
 
-    Ok(())
-}
+//     Ok(())
+// }
 
-#[instrument]
-async fn db_setup(db_url: &str) -> Result<DatabaseConnection> {
-    run_migrations(db_url).await.context("run migrations")?;
-    Database::connect(db_url)
-        .await
-        .context("connect to database")
-}
+// #[instrument]
+// async fn db_setup(db_url: &str) -> Result<DatabaseConnection> {
+//     run_migrations(db_url).await.context("run migrations")?;
+//     Database::connect(db_url)
+//         .await
+//         .context("connect to database")
+// }
 
 #[tauri::command]
 fn report_error(window: tauri::Window, error: serde_json::Value) {
@@ -135,7 +134,7 @@ async fn main() -> Result<()> {
         .plugin(rn_todos_plugin::init(&app_dir).await)
         .invoke_handler(tauri::generate_handler![greet, report_error,])
         // Probably based on gitlight, I don't know what this does for us, though.
-        // .enable_macos_default_menu(false)
+        .enable_macos_default_menu(false)
         .on_system_tray_event(|app, event| {
             tauri_plugin_positioner::on_tray_event(app, &event);
             rn_todos_plugin::on_tray_event(app, &event);

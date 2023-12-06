@@ -381,6 +381,7 @@ fn right_now_dev_cmd(no_jaeger: bool) {
     Cmd::new("pnpm")
         .args("tauri dev".split(' '))
         .root_dir("./rn-desktop")
+        .env("RUST_BACKTRACE", "1")
         .env(
             "RIGHTNOW_APP_DATA_DIR",
             get_project_root_dir().join("rn-desktop/dev-app-data"),

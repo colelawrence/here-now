@@ -68,7 +68,7 @@ pub fn ensure_tray_window<R: tauri::Runtime>(
     .always_on_top(true)
     .hidden_title(true)
     .decorations(decorations)
-    .resizable(false)
+    .resizable(true)
     .visible(false)
     .focused(false)
     .build()?;
@@ -124,10 +124,12 @@ pub fn ensure_tracker_window(app_handle: &tauri::AppHandle) -> tauri::Result<tau
         tauri::WindowUrl::App("/tracker".into()),
     )
     .always_on_top(true)
-    .closable(false)
     .decorations(false)
     .title("Right Now Tracker")
     .hidden_title(true)
+    .maximizable(false)
+    .closable(false)
+    .minimizable(false)
     .max_inner_size(TRACKER_MAX_WIDTH, TRACKER_HEIGHT)
     .min_inner_size(TRACKER_MIN_WIDTH, TRACKER_HEIGHT)
     .build()

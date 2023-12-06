@@ -33,7 +33,7 @@
 
 <main class="flex flex-col items-stretch select-none" data-tauri-drag-region>
   <div class="flex justify-stretch cursor-default" data-tauri-drag-region>
-    <div>
+    <div class="h-4">
       <!-- placeholder for window buttons -->
     </div>
     {#if app.workState.state === "planning"}
@@ -57,7 +57,7 @@
   </div>
   <TodoList {app} />
   <div class="flex flex-col gap-2 justify-center items-center">
-    <AddTodoForm addTodo={app.addTodo} />
+    <AddTodoForm bind:addTodo={app.addTodo} />
     <!-- 
     <div class="flex gap-1">
       <button

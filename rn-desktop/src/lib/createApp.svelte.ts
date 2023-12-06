@@ -46,8 +46,12 @@ export type AddTodo = HasHtmlInput &
 export type TimerInfo = {
   /** Unix seconds since EPOCH */
   readonly endsAtUnix: number;
+  /** e.g. "Time until break" */
+  readonly labelCountingDown: string;
   /** Unix seconds since EPOCH */
   readonly startedAtUnix: number;
+  /** e.g. "Time working" */
+  readonly labelCountingUp: string;
 };
 
 export type WorkStateWorking = {
@@ -73,15 +77,15 @@ export type WorkStateBreak = {
 
 export type AppState = {
   readonly todos: ITodo[];
-  visibilityFilter: VisibilityFilter;
+  readonly todoFilters: IAppStateFilters;
   readonly addTodo: AddTodo;
   readonly isReady: boolean;
   readonly workState: WorkStatePlanning | WorkStateWorking | WorkStateBreak;
-  readonly todoFilters: IAppStateFilters;
   readonly dev: unknown;
 };
 
 export type IAppStateFilters = {
+  visibilityFilter: VisibilityFilter;
   readonly filters: IFilter[];
   disableAll(): void;
 };
@@ -166,7 +170,6 @@ export function createApp(ctx: AppCtx): AppState {
         loadTodos(inner.todos);
       },
       UpdateWorkState(update) {
-        console.debug("UpdateWorkState", update);
         workState = update;
       },
       AddTodo(todo) {
@@ -294,14 +297,14 @@ export function createApp(ctx: AppCtx): AppState {
     get isReady() {
       return isReady;
     },
-    get visibilityFilter() {
-      return visibilityFilter;
-    },
-    set visibilityFilter(updatedFilter) {
-      visibilityFilter = updatedFilter;
-    },
     addTodo,
     todoFilters: {
+      get visibilityFilter() {
+        return visibilityFilter;
+      },
+      set visibilityFilter(updatedFilter) {
+        visibilityFilter = updatedFilter;
+      },
       get filters() {
         return filters;
       },
@@ -327,7 +330,9 @@ export function createApp(ctx: AppCtx): AppState {
         Break: (inner): WorkStateBreak => ({
           state: "break",
           timer: {
+            labelCountingDown: "Time until end of break",
             endsAtUnix: inner.ends_at_unix,
+            labelCountingUp: "Time on break",
             startedAtUnix: inner.started_at_unix,
           },
           continueWorking() {
@@ -354,7 +359,9 @@ export function createApp(ctx: AppCtx): AppState {
         Working: (inner): WorkStateWorking => ({
           state: "working",
           timer: {
+            labelCountingDown: "Time until break",
             endsAtUnix: inner.ends_at_unix,
+            labelCountingUp: "Time working",
             startedAtUnix: inner.started_at_unix,
           },
           stopSession() {

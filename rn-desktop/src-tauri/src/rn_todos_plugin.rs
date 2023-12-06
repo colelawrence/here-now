@@ -263,6 +263,30 @@ async fn start_session(app: tauri::AppHandle) -> Result<(), Error> {
     Ok(())
 }
 
+async fn self_heal_work_state_timers(app: tauri::AppHandle, reason: &str) -> Result<(), Error> {
+    let state = app.state::<AppState>();
+    let work_state = state.work_state.read().await.clone();
+    let now_secs = now_unix();
+    match work_state {
+        ui::WorkState::Planning => {
+            // nothing to do
+        }
+        ui::WorkState::Break { ends_at_unix, .. } => {
+            if now_secs >= ends_at_unix {
+                tracing::info!(?reason, "continuing working via seal heal");
+                continue_working(app).await.expect("continue working");
+            }
+        }
+        ui::WorkState::Working { ends_at_unix, .. } => {
+            if now_secs >= ends_at_unix {
+                tracing::info!(?reason, "taking a break via seal heal");
+                take_a_break(app).await.expect("take a break");
+            }
+        }
+    }
+    Ok(())
+}
+
 #[ui_command]
 async fn continue_working(app: tauri::AppHandle) -> Result<(), Error> {
     start_session(app).await?;
@@ -335,10 +359,12 @@ fn unix_to_instant(unix: u64) -> tokio::time::Instant {
 fn update_timer_transitions(
     app: &tauri::AppHandle,
     update: &ui::WorkState,
+    reason: &str,
 ) -> Option<tokio::task::AbortHandle> {
     const WARN_SECS_BEFORE_BREAK_TO_WORKING: u64 = 60;
     const WARN_SECS_BEFORE_WORKING_TO_BREAK: u64 = 60;
     const WARN_SECS_MIN_DUR_TO_NOTIFY: u64 = 60;
+    tracing::debug!(?reason, "updating timer transitions");
     match &update {
         ui::WorkState::Planning => {
             // no scheduling necessary
@@ -369,7 +395,9 @@ fn update_timer_transitions(
 
                     tokio::time::sleep_until(start_working_at).await;
                     tracing::warn!("TODO: wait to know that the user is active");
-                    continue_working(app).await.expect("continue working");
+                    self_heal_work_state_timers(app, "slept until end of break")
+                        .await
+                        .unwrap();
                 })
                 .abort_handle(),
             )
@@ -399,7 +427,9 @@ fn update_timer_transitions(
 
                     tokio::time::sleep_until(start_working_at).await;
                     tracing::warn!("TODO: wait to know that the user is active");
-                    take_a_break(app).await.expect("taking a break");
+                    self_heal_work_state_timers(app, "slept until end of work session")
+                        .await
+                        .unwrap();
                 })
                 .abort_handle(),
             )
@@ -437,13 +467,14 @@ async fn set_work_state(app: &tauri::AppHandle, update: ui::WorkState) -> Result
         if let Some(timer_abort) = timer_lock.take() {
             timer_abort.abort();
         }
-        if let Some(abort_handle) = update_timer_transitions(app, &update) {
+        if let Some(abort_handle) = update_timer_transitions(app, &update, "changed work state") {
             let _ = timer_lock.insert(abort_handle);
         }
     }
 
     state.work_state_stored.write(&update).await?;
     *current_state = update;
+    tracing::info!(?current_state, "updated work state");
 
     Ok(())
 }
@@ -562,6 +593,12 @@ pub async fn init(save_dir: &Path) -> TauriPlugin<tauri::Wry> {
                 tauri::WindowEvent::Focused(focused) => {
                     if *focused {
                         reload_window(app, label.as_str(), "focused");
+                        let app = app.clone();
+                        tokio::spawn(async move {
+                            self_heal_work_state_timers(app, "focused on a window")
+                                .await
+                                .unwrap();
+                        });
                     } else {
                         // store all data
                         let app = app.clone();

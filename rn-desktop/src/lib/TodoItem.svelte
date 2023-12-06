@@ -52,7 +52,7 @@
         }
       }}
     />
-    <TodoTimeEstimate estimate={todo.timeEstimate} />
+    <TodoTimeEstimate bind:estimate={todo.timeEstimate} />
     <button on:click={todo.delete}><Trash /></button>
   </div>
 {/key}

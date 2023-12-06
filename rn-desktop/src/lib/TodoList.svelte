@@ -52,8 +52,7 @@
 
     {#each app.todos as todo, idx (todo.id)}
       <div
-        class="flex items-center justify-stretch"
-        class="drag-item"
+        class="flex items-center justify-stretch drag-item"
         class:opacity-50={currentDraggedItem?.id === todo.id}
         role="listitem"
         on:dragstart|self={() => {
@@ -76,7 +75,7 @@
         draggable="true"
       >
         <DotsSixVertical />
-        <TodoItem {todo} />
+        <TodoItem bind:todo />
       </div>
       {#if currentDndTarget === todo.id && todo.id !== currentDraggedItem?.id}
         <div class="h-2 bg-sys-primary-container rounded-md -my-1" />

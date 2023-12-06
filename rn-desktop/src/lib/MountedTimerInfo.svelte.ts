@@ -1,12 +1,17 @@
+import type { TimerInfo } from "./createApp.svelte";
+
 export type MountedTimerInfo = {
   /** e.g. "0:20" or "+2:00" */
-  timeDisplay: string;
+  readonly timeDisplay: string;
+  /** e.g. "Time worked" */
+  readonly label: string;
 };
 
 export function timeUnixNow(): number {
   return (Date.now() * 0.001) | 0;
 }
-export function mountTimerDisplay(value: { endsAtUnix: number }): MountedTimerInfo {
+
+export function mountTimerDisplay(options: { readonly info: TimerInfo; readonly countUp: boolean }): MountedTimerInfo {
   let nowUnix = $state(timeUnixNow());
   $effect(() => {
     nowUnix = timeUnixNow();
@@ -17,9 +22,20 @@ export function mountTimerDisplay(value: { endsAtUnix: number }): MountedTimerIn
   });
   return {
     get timeDisplay() {
-      const timeLeft = value.endsAtUnix - nowUnix;
-      if (timeLeft < 0) return `+${formatTimeLeft(-timeLeft)}`;
-      return formatTimeLeft(timeLeft);
+      if (options.countUp) {
+        return formatTimeLeft(nowUnix - options.info.startedAtUnix);
+      } else {
+        const timeLeft = options.info.endsAtUnix - nowUnix;
+        if (timeLeft < 0) return `+${formatTimeLeft(-timeLeft)}`;
+        return formatTimeLeft(timeLeft);
+      }
+    },
+    get label() {
+      if (options.countUp) {
+        return options.info.labelCountingUp;
+      } else {
+        return options.info.labelCountingDown;
+      }
     },
   };
 }

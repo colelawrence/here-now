@@ -17,18 +17,18 @@ hn-app.workspace = true
 hn-keys.workspace = true
 hn-tracing.workspace = true
 i-rn-desktop-proc = { path = "./proc" }
-sea-orm = { version = "0.12.7", features = [
-  "sqlx-sqlite",
-  "macros",
-  "runtime-tokio",
-  "with-json",
-] }
-# so we can directly enable runtime-tokio feature since sea-orm doesn't enable it
-sqlx = { version = "0.7.3", default-features = false, features = [
-  "runtime-tokio",
-  "macros",
-  "migrate",
-] }
+# sea-orm = { version = "0.12.7", features = [
+#   "sqlx-sqlite",
+#   "macros",
+#   "runtime-tokio",
+#   "with-json",
+# ] }
+# # so we can directly enable runtime-tokio feature since sea-orm doesn't enable it
+# sqlx = { version = "0.7.3", default-features = false, features = [
+#   "runtime-tokio",
+#   "macros",
+#   "migrate",
+# ] }
 shipyard.workspace = true
 shipyard_app.workspace = true
 workspace-hack = { version = "0.1", path = "../../workspace-hack" }
