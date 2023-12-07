@@ -8,7 +8,6 @@
     "editor.defaultFormatter": "mtxr.sqltools",
     "editor.indentSize": 4
   },
-  "deno.enable": false,
   "files.associations": {
     "*.css": "tailwindcss"
   },

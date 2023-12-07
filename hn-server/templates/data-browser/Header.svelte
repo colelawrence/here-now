@@ -10,7 +10,7 @@
 </svelte:head>
 
 <p class="dev-links">
-  <a href="/"><img src="/duckyhn.png" type="image/png" /> Config</a>
+  <a href="/"><img src="/duckyhn.png" /> Config</a>
   <a href="/dev/docs/hn_server/index.html" target="_blank">📦 Cargo Docs</a>
   <a href="/dev/traces/search?service=hn-server" target="_blank"
     ><img src="/dev/traces/static/jaeger-logo-ab11f618.svg" /> Traces</a
@@ -35,8 +35,18 @@
 
 <style>
   :root {
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell,
-      "Open Sans", "Helvetica Neue", sans-serif;
+    font-family:
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      Roboto,
+      Oxygen,
+      Ubuntu,
+      Cantarell,
+      "Open Sans",
+      "Helvetica Neue",
+      sans-serif;
     max-width: 480px;
     margin: 0 auto 2rem;
   }
