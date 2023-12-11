@@ -1,14 +1,16 @@
 use tauri::{Manager, Runtime, Window};
 
+use crate::macos_title_bar;
+
 const PLANNER_WINDOW_LABEL: &str = "planner";
 const TRACKER_WINDOW_LABEL: &str = "tracker";
 const TRAY_WINDOW_LABEL: &str = "tray";
 
 // in logical sizes
 const TRACKER_MIN_WIDTH: f64 = 400f64;
-const TRACKER_MAX_WIDTH: f64 = 1200f64;
+const TRACKER_MAX_WIDTH: f64 = 2000f64;
 // TODO: make configurable
-const TRACKER_HEIGHT: f64 = 58f64;
+const TRACKER_HEIGHT: f64 = 44f64;
 
 pub fn get_planner_window<R: Runtime>(
     app_handle: &tauri::AppHandle<R>,
@@ -23,19 +25,23 @@ pub fn ensure_planner_window<R: tauri::Runtime>(
         return Ok(existing);
     }
 
-    tauri::WindowBuilder::new(
+    let mut builder = tauri::WindowBuilder::new(
         app_handle,
         PLANNER_WINDOW_LABEL,
         tauri::WindowUrl::App("/planner-window".into()),
     )
     .title("Right Now Planner")
     .hidden_title(true)
-    .title_bar_style(tauri::TitleBarStyle::Overlay)
-    // .max_inner_size(1000, 4000)
     .inner_size(450f64, 350f64)
     .min_inner_size(250f64, 200f64)
-    .center()
-    .build()
+    .center();
+
+    #[cfg(target_os = "macos")]
+    {
+        builder = builder.title_bar_style(tauri::TitleBarStyle::Overlay);
+    }
+
+    builder.build()
 }
 
 pub fn get_tray_window<R: Runtime>(
@@ -57,24 +63,29 @@ pub fn ensure_tray_window<R: tauri::Runtime>(
     #[cfg(not(target_os = "macos"))]
     let decorations = false;
 
-    let window = tauri::WindowBuilder::new(
+    let mut builder = tauri::WindowBuilder::new(
         app_handle,
         TRAY_WINDOW_LABEL,
         tauri::WindowUrl::App("/tray".into()),
     )
     .title("Right Now Planner")
     .inner_size(400f64, 400f64)
-    .title_bar_style(tauri::TitleBarStyle::Transparent)
     .always_on_top(true)
     .hidden_title(true)
     .decorations(decorations)
     .resizable(true)
     .visible(false)
-    .focused(false)
-    .build()?;
+    .focused(false);
 
     #[cfg(target_os = "macos")]
-    crate::macos_title_bar::hide_window_buttons(&window);
+    {
+        builder = builder.title_bar_style(tauri::TitleBarStyle::Overlay);
+    }
+
+    let window = builder.build()?;
+
+    #[cfg(target_os = "macos")]
+    crate::macos_title_bar::hide_window_buttons_each(&window, false, true, true);
 
     Ok(window)
 }
@@ -83,6 +94,38 @@ pub fn get_tracker_window<R: Runtime>(
     app_handle: &tauri::AppHandle<R>,
 ) -> tauri::Result<Option<tauri::Window<R>>> {
     Ok(app_handle.get_window(TRACKER_WINDOW_LABEL))
+}
+
+pub fn ensure_tracker_window(app_handle: &tauri::AppHandle) -> tauri::Result<tauri::Window> {
+    if let Some(existing) = get_tracker_window(app_handle)? {
+        return Ok(existing);
+    }
+
+    let mut builder = tauri::WindowBuilder::new(
+        app_handle,
+        TRACKER_WINDOW_LABEL,
+        tauri::WindowUrl::App("/tracker".into()),
+    )
+    .always_on_top(true)
+    .title_bar_style(tauri::TitleBarStyle::Overlay)
+    .title("Right Now Tracker")
+    .hidden_title(true)
+    .maximizable(true)
+    .closable(true)
+    .minimizable(false)
+    .max_inner_size(TRACKER_MAX_WIDTH, TRACKER_HEIGHT)
+    .min_inner_size(TRACKER_MIN_WIDTH, TRACKER_HEIGHT);
+
+    #[cfg(target_os = "macos")]
+    {
+        builder = builder.title_bar_style(tauri::TitleBarStyle::Overlay);
+    }
+    let window = builder.build()?;
+
+    #[cfg(target_os = "macos")]
+    macos_title_bar::hide_window_buttons_each(&window, false, true, true);
+
+    Ok(window)
 }
 
 /// Use the reference to position the tracker at the bottom of the reference window
@@ -111,26 +154,4 @@ pub fn ensure_tracker_window_below(
     })?;
 
     Ok(tracker_window)
-}
-
-pub fn ensure_tracker_window(app_handle: &tauri::AppHandle) -> tauri::Result<tauri::Window> {
-    if let Some(existing) = get_tracker_window(app_handle)? {
-        return Ok(existing);
-    }
-
-    tauri::WindowBuilder::new(
-        app_handle,
-        TRACKER_WINDOW_LABEL,
-        tauri::WindowUrl::App("/tracker".into()),
-    )
-    .always_on_top(true)
-    .decorations(false)
-    .title("Right Now Tracker")
-    .hidden_title(true)
-    .maximizable(false)
-    .closable(false)
-    .minimizable(false)
-    .max_inner_size(TRACKER_MAX_WIDTH, TRACKER_HEIGHT)
-    .min_inner_size(TRACKER_MIN_WIDTH, TRACKER_HEIGHT)
-    .build()
 }

@@ -70,6 +70,11 @@ button {
   box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
 }
 
+.tracker input,
+.tracker button {
+  padding: 0.15em 0.4em;
+}
+
 button {
   cursor: pointer;
 }

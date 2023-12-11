@@ -22,13 +22,6 @@
   // t.on("drag:stop", function () {
   //   u.default.Single.play("cubeDown"), (n = !1);
   // }),
-  // t.on("collidable:in", function (e) {
-  //   var t = e.collidingElement;
-  //   u.default.Single.play("cubeCollide"), t.classList.add("isColliding");
-  // }),
-  // t.on("collidable:out", function (e) {
-  //   e.collidingElement.classList.remove("isColliding");
-  // });
 </script>
 
 <main class="flex flex-col items-stretch select-none" data-tauri-drag-region>
@@ -48,6 +41,18 @@
       <div class="flex gap-1">
         <button on:click={app.workState.stopSession}>
           <Stop />
+        </button>
+        <button on:click={app.workState.collapseIntoTracker}>
+          <ArrowDown />
+        </button>
+      </div>
+    {:else if app.workState.state === "break"}
+      <div class="flex flex-grow justify-center" data-tauri-drag-region>
+        <Timer info={app.workState.timer} popoverPlacement="bottom" />
+      </div>
+      <div class="flex gap-1">
+        <button on:click={app.workState.continueWorking}>
+          <Play />
         </button>
         <button on:click={app.workState.collapseIntoTracker}>
           <ArrowDown />

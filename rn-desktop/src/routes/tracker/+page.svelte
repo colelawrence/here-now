@@ -12,14 +12,14 @@
   const nextTodo = $derived(app.todos[0]);
 </script>
 
-<main class="p-2 grow flex gap-2 justify-stretch rounded-lg shadow-sm" data-tauri-drag-region>
+<main class="tracker p-1 pl-8 grow flex gap-2 justify-stretch rounded-lg shadow-sm" data-tauri-drag-region>
   {#key nextTodo?.id}
     {#if nextTodo != null}
-      <div class="flex grow gap-4 items-center" data-tauri-drag-region>
+      <div class="flex grow gap-4 items-center justify-stretch" data-tauri-drag-region>
         <TodoItemCheckbox todo={nextTodo} />
-        <label for={nextTodo.htmlCheckboxId} class="text-lg font-medium pointer-events-none select-none"
-          >{nextTodo.text}</label
-        >
+        <div class="grow overflow-x-auto">
+          <label for={nextTodo.htmlCheckboxId} class="todo-label">{nextTodo.text}</label>
+        </div>
       </div>
     {:else}
       <div class="grow text-sys-on-primary text-opacity-50" data-tauri-drag-region>All done.</div>
@@ -47,3 +47,10 @@
     </button>
   {/if}
 </main>
+
+<style lang="postcss">
+  .todo-label {
+    @apply text-ui-sm font-medium pointer-events-none select-none;
+    @apply overflow-x-auto whitespace-nowrap flex-grow;
+  }
+</style>

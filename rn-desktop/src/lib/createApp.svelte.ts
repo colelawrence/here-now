@@ -23,11 +23,19 @@ export type TodoTimeEstimate = HasHtmlInput &
 export type ITodo = HasHtmlInput &
   HasInputTraversal & {
     readonly id: string;
+    /** For linking a label to the checkbox input */
     readonly htmlCheckboxId: string;
     readonly timeEstimate: TodoTimeEstimate;
     /** e.g. #bucket, [[Right Now]] */
     readonly tagsInText: string[];
+    /**
+     * Fractional index for the ordering of this Todo item in the list.
+     *
+     * Future: It would probably be better if this wasn't exposed to the view at all
+     * and instead we exposed functions for reordering operations on the {@link AppState}
+     */
     ord: number;
+    /** Notice this is not readonly, as it should be used in an `<input bind:value={app.addTodo.text}>`  */
     text: string;
     completed: boolean;
     delete(): void;
@@ -39,6 +47,7 @@ export type VisibilityFilter = "SHOW_ALL" | "SHOW_COMPLETED" | "SHOW_ACTIVE";
 
 export type AddTodo = HasHtmlInput &
   HasInputTraversal & {
+    /** Notice this is not readonly, as it should be used in an `<input bind:value={app.addTodo.text}>`  */
     text: string;
     add(): void;
   };
@@ -71,6 +80,8 @@ export type WorkStatePlanning = {
 export type WorkStateBreak = {
   readonly state: "break";
   readonly timer: TimerInfo;
+  collapseIntoTracker(): void;
+  expandIntoPlanner(): void;
   continueWorking(): void;
   stopSession(): void;
 };
@@ -338,6 +349,12 @@ export function createApp(ctx: AppCtx): AppState {
             endsAtUnix: inner.ends_at_unix,
             labelCountingUp: "Time on break",
             startedAtUnix: inner.started_at_unix,
+          },
+          collapseIntoTracker() {
+            toggleBig(false);
+          },
+          expandIntoPlanner() {
+            toggleBig(true);
           },
           continueWorking() {
             call(async () => {
