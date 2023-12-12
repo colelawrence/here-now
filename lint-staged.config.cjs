@@ -15,11 +15,7 @@ module.exports = {
     }
     return [
       ...(crates.size > 0
-        ? [
-            `cargo clippy --fix --allow-staged --color always ${[...crates]
-              .map((a) => `--package ${a}`)
-              .join(" ")} --no-deps`,
-          ]
+        ? [`cargo clippy --fix --allow-staged ${[...crates].map((a) => `--package ${a}`).join(" ")} --no-deps`]
         : []),
       ...files.map((filepath) => `rustfmt --edition 2021 "${filepath}"`),
     ];
