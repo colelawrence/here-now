@@ -245,6 +245,7 @@ fn jaeger(docker: bool, no_proxy: bool) -> CmdHandle {
 #[instrument]
 fn web_build(watch: bool) {
     eprintln!("Building web dependencies, watch={watch:?}");
+    design_tool_prerequisites_cmd();
 
     let typescript = Cmd::new("npx")
         .args("tsc -p ./design-tools/tsconfig.json".split(' '))
@@ -386,6 +387,18 @@ fn right_now_prerequisites_cmd() {
             .root_dir("./rn-desktop")
             .run_it("install rn-desktop Tauri program dependencies");
     }
+    design_tool_prerequisites_cmd();
+}
+
+#[instrument]
+fn design_tool_prerequisites_cmd() {
+    if !get_project_root_dir().join("node_modules").exists() {
+        eprintln!("Installing node_modules for design tools like tailwind config to work");
+        Cmd::new("pnpm")
+            .arg("install")
+            .root_dir(".")
+            .run_it("install design tool styling dependencies");
+    }
 }
 
 #[instrument]
@@ -471,6 +484,7 @@ fn desktop_cmd(no_jaeger: bool, build: bool, watch: bool, timings: bool, label: 
         )
         .run_it("build or run hn-desktop Rust program");
 
+    // record build timings
     if !watch && build && timings {
         // get last in list of in directory
         let mut file_names =
