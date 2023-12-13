@@ -1,4 +1,10 @@
-# <img src="./hn-server/templates/public/favicon.png" height="24px" /> Here Now
+## <img src="./rn-desktop/src-tauri/icons/app-icon.png" height="24px" /> Right Now
+
+This is an offline-first desktop app for tracking todos with timers.
+
+![Screen capture of Right Now in macOS tray](rn-desktop/screenshots/2023-12-13-Screen-capture-of-Right-Now.png)
+
+## <img src="./hn-server/templates/public/favicon.png" height="24px" /> Here Now
 
 [Tentative plans for "Here Now"](./README-here-now.md).
 
