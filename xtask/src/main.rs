@@ -375,9 +375,24 @@ fn right_now_rust_code_gen_thread(watch: bool, postpone: bool) -> CmdHandle {
 }
 
 #[instrument]
+fn right_now_prerequisites_cmd() {
+    if !get_project_root_dir()
+        .join("rn-desktop/node_modules")
+        .exists()
+    {
+        eprintln!("Installing rn-desktop node_modules with pnpm");
+        Cmd::new("pnpm")
+            .arg("install")
+            .root_dir("./rn-desktop")
+            .run_it("install rn-desktop Tauri program dependencies");
+    }
+}
+
+#[instrument]
 fn right_now_dev_cmd(no_jaeger: bool) {
     // drop on exiting
     let codegen = right_now_rust_code_gen_thread(true, true);
+    right_now_prerequisites_cmd();
     Cmd::new("pnpm")
         .args("tauri dev".split(' '))
         .root_dir("./rn-desktop")
