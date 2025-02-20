@@ -359,6 +359,7 @@ export function createApp(ctx: AppCtx): AppState {
           continueWorking() {
             call(async () => {
               try {
+                ctx.rn.update_todo_fields()
                 await ctx.rn.continue_working();
                 await ctx.rn.toggle_size({ big: false });
               } catch (error) {

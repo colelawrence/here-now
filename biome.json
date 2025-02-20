@@ -1,0 +1,83 @@
+{
+  "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+  "formatter": {
+    "enabled": true,
+    "indentWidth": 2,
+    "indentStyle": "space",
+    "lineWidth": 120
+  },
+  "files": {
+    "include": [
+      "**/*.ts",
+      "**/*.tsx",
+      "**/*.js",
+      "**/*.jsx",
+      "**/*.mts",
+      "**/*.cts",
+      "**/*.mjs",
+      "**/*.cjs",
+      "**/*.css",
+      "**/*.json"
+    ],
+    "ignore": ["**/node_modules/**", "**/target/**"]
+  },
+  "organizeImports": {
+    "enabled": true
+  },
+  "vcs": {
+    "enabled": true,
+    "useIgnoreFile": true,
+    "defaultBranch": "main",
+    "clientKind": "git"
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": false,
+      "style": {
+        "noNonNullAssertion": { "level": "info" },
+        "noParameterAssign": { "level": "off" },
+        "useImportType": { "level": "info" }
+      },
+      "suspicious": {
+        "noArrayIndexKey": { "level": "off" },
+        "noAssignInExpressions": { "level": "off" },
+        "noExplicitAny": { "level": "off" }
+      },
+      "correctness": {
+        "noUnsafeFinally": { "level": "warn" },
+        "useHookAtTopLevel": { "level": "info", "options": {} },
+        "useIsNan": { "level": "warn" },
+        "noUnusedImports": { "level": "info" },
+        "useExhaustiveDependencies": {
+          "level": "warn",
+          "options": {
+            "hooks": [
+              {
+                "closureIndex": 0,
+                "name": "useEffect",
+                "dependenciesIndex": 1,
+                "stableResult": true
+              }
+            ]
+          }
+        }
+      },
+      "security": {
+        "noDangerouslySetInnerHtml": { "level": "warn" }
+      },
+      "complexity": {
+        "noBannedTypes": { "level": "off" },
+        "noForEach": { "level": "warn" },
+        "noExcessiveNestedTestSuites": { "level": "warn" },
+        "noMultipleSpacesInRegularExpressionLiterals": { "level": "warn" }
+      },
+      "a11y": { "all": false }
+    }
+  },
+  "json": {
+    "parser": {
+      "allowComments": true
+    }
+  }
+}

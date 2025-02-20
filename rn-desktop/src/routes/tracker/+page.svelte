@@ -17,7 +17,7 @@
     {#if nextTodo != null}
       <div class="flex grow gap-4 items-center justify-stretch" data-tauri-drag-region>
         <TodoItemCheckbox todo={nextTodo} />
-        <div class="grow overflow-x-auto">
+        <div class="grow overflow-x-auto leading-tight">
           <label for={nextTodo.htmlCheckboxId} class="todo-label">{nextTodo.text}</label>
         </div>
       </div>

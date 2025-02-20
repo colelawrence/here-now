@@ -1,7 +1,7 @@
 # Where the public interface binds like `127.0.0.1`.
 public_bind_address = "0.0.0.0:9000"
 # Where the public interface will be accessed on the internet.
-public_host_base_url = "https://herenow.covalent.team"
+public_host_base_url = "https://a041-2001-8a0-6a69-ea00-315e-de5c-303-449c.ngrok-free.app"
 # Where this interface binds.
 config_server_bind_address = "0.0.0.0:3000"
 # Whether or not to enable dev features of the server.

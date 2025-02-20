@@ -23,6 +23,7 @@ exclude = [
   "vendor/tracing-opentelemetry",
   "vendor/bonsaidb",
   "vendor/slint",
+  "rn-desktop-2/src-tauri",
 ]
 resolver = "2"
 
