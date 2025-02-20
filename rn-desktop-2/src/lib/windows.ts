@@ -1,11 +1,11 @@
-import { LogicalSize, Window } from "@tauri-apps/api/window";
-import { TrayIcon } from "@tauri-apps/api/tray";
-import { Menu, MenuItem } from "@tauri-apps/api/menu";
-import { Image } from "@tauri-apps/api/image";
 import { path } from "@tauri-apps/api";
-import { withError } from "./withError";
-import { atom, getDefaultStore } from "jotai";
+import { Image } from "@tauri-apps/api/image";
+import { Menu, MenuItem } from "@tauri-apps/api/menu";
+import { TrayIcon } from "@tauri-apps/api/tray";
+import { LogicalSize, Window } from "@tauri-apps/api/window";
 import { exit } from "@tauri-apps/plugin-process";
+import { atom, getDefaultStore } from "jotai";
+import { withError } from "./withError";
 
 const res = (resPath: `resources/${string}`) => path.resolveResource(resPath);
 
@@ -49,15 +49,14 @@ export class AppWindows {
     const miniHeight = 40;
     await Promise.all([
       w.setAlwaysOnTop(mini),
-      w.setSize(mini ? new LogicalSize(400, miniHeight) : new LogicalSize(600, 400)),
-      w.setMaximizable(!mini),
-      w.setSizeConstraints(
-        mini ? { maxHeight: miniHeight, minHeight: miniHeight, minWidth: 300, maxWidth: 3000 } : undefined,
-      ),
-      w.setDecorations(mini ? false : true),
       w.setTitleBarStyle(mini ? "transparent" : "visible"),
+      w.setMaximizable(!mini),
+      w.setDecorations(mini ? false : true),
       w.setSkipTaskbar(!mini),
     ]);
+    await w.setSize(mini ? new LogicalSize(400, miniHeight) : new LogicalSize(600, 400));
+    await w.setMaxSize(mini ? new LogicalSize(3000, miniHeight) : undefined);
+    await w.setMinSize(mini ? new LogicalSize(300, miniHeight) : new LogicalSize(300, 300));
     // Ensure window is visible when interacting with it
     await w.setFocus();
   }
