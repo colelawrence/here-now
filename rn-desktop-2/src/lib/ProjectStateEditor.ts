@@ -1,10 +1,26 @@
 import matter from "gray-matter";
 
+const TASK_RE = /^(\s*[-\*]?\s*)\[([xX\s])\]\s+(.*)$/;
+function parseTaskLine(line: string): { prefix: string; complete: string | false; name: string } | null {
+  const match = line.match(TASK_RE);
+  if (!match) return null;
+  return {
+    prefix: match[1],
+    complete: match[2].trim() || false,
+    name: match[3],
+  };
+}
+function parseHeadingLine(line: string): { level: number; text: string } | null {
+  const match = line.match(/^(#{1,6})\s+(.*)$/);
+  if (!match) return null;
+  return { level: match[1].length, text: match[2] };
+}
+
 /**
  * The ProjectMarkdown type you mentioned:
  */
 export type ProjectMarkdown =
-  | { type: "task"; name: string; details: string | null, complete: string | false, prefix: string }
+  | { type: "task"; name: string; details: string | null; complete: string | false; prefix: string }
   | { type: "heading"; level: number; text: string }
   | { type: "unrecognized"; markdown: string };
 
@@ -93,7 +109,7 @@ export namespace ProjectStateEditor {
 /**
  * Parse the body (Markdown after frontmatter) into an array of ProjectMarkdown blocks:
  * - `heading`: lines matching /^#{1,6}\s+/
- * - `task`: lines matching /^-\s\[[x\s]\]\s+/
+ * - `task`: lines matching {@link parseTaskLine}
  *           plus subsequent lines as "details" until the next heading/task or EOF
  * - `unrecognized`: everything else, aggregated to preserve original format
  */
@@ -118,32 +134,20 @@ function parseBody(body: string): ProjectMarkdown[] {
     const line = lines[i];
 
     // 1. Check for a heading: e.g., "## My heading"
-    const headingMatch = line.match(/^(#{1,6})\s+(.*)$/);
+    const headingMatch = parseHeadingLine(line);
     if (headingMatch) {
       // Flush any unrecognized content before this heading
       flushUnrecognized();
-      const level = headingMatch[1].length; // number of '#' is the level
-      const text = headingMatch[2];
-
-      blocks.push({
-        type: "heading",
-        level,
-        text,
-      });
-
+      blocks.push({ type: "heading", ...headingMatch });
       i += 1;
       continue;
     }
 
     // 2. Check for a task: e.g., "- [ ] My task"
-    const taskMatch = line.match(/^(\s*[-\*]?\s*)\[([xX\s])\]\s+(.*)$/);
+    const taskMatch = parseTaskLine(line);
     if (taskMatch) {
       // Flush any unrecognized content before this task
       flushUnrecognized();
-      const prefix = taskMatch[1]
-      const complete = taskMatch[2].trim() ?? false;
-      const taskName = taskMatch[3].trim();
-
       // Gather subsequent lines until the next heading/task (or EOF)
       let detailsLines: string[] = [];
       let j = i + 1;
@@ -161,10 +165,8 @@ function parseBody(body: string): ProjectMarkdown[] {
       // Add the "task" block
       blocks.push({
         type: "task",
-        prefix,
-        name: taskName,
+        ...taskMatch,
         details: detailsLines.length > 0 ? detailsLines.join("\n") : null,
-        complete
       });
 
       // Advance i to skip over details
@@ -187,14 +189,14 @@ function parseBody(body: string): ProjectMarkdown[] {
  * Helper function to detect if a line is a heading
  */
 function isHeading(line: string) {
-  return /^(#{1,6})\s+/.test(line);
+  return parseHeadingLine(line) != null;
 }
 
 /**
  * Helper function to detect if a line is a task
  */
 function isTask(line: string) {
-  return /^-\s\[[xX\s]\]\s+/.test(line);
+  return parseTaskLine(line) != null;
 }
 
 /**

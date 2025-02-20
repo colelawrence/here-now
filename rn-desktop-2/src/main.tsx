@@ -1,12 +1,14 @@
 import { Buffer } from "buffer";
 import React from "react";
 import ReactDOM from "react-dom/client";
+import { Provider as JotaiProvider } from "jotai/react";
 
 import "./styles.css";
 import AppReady from "./App";
 import { ProjectStore } from "./lib/store";
 import { ProjectManager } from "./lib/project";
 import { AppWindows } from "./lib/windows";
+import { getDefaultStore } from "jotai";
 
 if (typeof globalThis.Buffer === "undefined") {
   globalThis.Buffer = Buffer;
@@ -50,7 +52,6 @@ async function initializeApp() {
         (a): a is typeof a & { type: "task" } => a.type === "task" && !a.complete,
       );
       await appWindows.setTitle(currentTask?.name ?? null);
-
       // Set initial window state based on project state
       if (project.workState === "planning") {
         await appWindows.expandToPlanner();
@@ -73,7 +74,9 @@ async function initializeApp() {
   // Render React app with controllers or error
   ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
     <React.StrictMode>
-      <AppReady controllers={controllers} startupError={error} />
+      <JotaiProvider store={getDefaultStore()}>
+        <AppReady controllers={controllers} startupError={error} />
+      </JotaiProvider>
     </React.StrictMode>,
   );
 }

@@ -5,7 +5,9 @@ import { Timer } from "./components/Timer";
 import { StateControls } from "./components/StateControls";
 import { openPath } from "@tauri-apps/plugin-opener";
 import type { ProjectMarkdown } from "./lib/ProjectStateEditor";
-import { IconEdit } from "@tabler/icons-react";
+import { IconEdit, IconCheck } from "@tabler/icons-react";
+import { TaskList } from "./components/TaskList";
+import { useAtom } from "jotai";
 
 interface AppControllers {
   projectManager: ProjectManager;
@@ -65,7 +67,26 @@ function AppReady({ controllers }: { controllers: AppControllers }) {
   const { projectManager, appWindows, store } = controllers;
   const loaded = useLoadedProject(projectManager);
   const project = loaded?.project;
-  const [isCompact, setIsCompact] = useState(project?.workState !== "planning");
+  const [isCompact, setIsCompact] = useAtom(appWindows.currentlyMiniAtom);
+
+  const handleCompleteTask = (task: ProjectMarkdown & { type: "task" }, draft: ProjectState) => {
+    // Find the completion mark style from other completed tasks
+    const completionMark =
+      draft.markdown.find((m: ProjectMarkdown): m is ProjectMarkdown & { type: "task" } =>
+        Boolean(m.type === "task" && m.complete),
+      )?.complete || "x";
+
+    // Find and update the task
+    const taskToComplete = draft.markdown.find(
+      (m: ProjectMarkdown): m is ProjectMarkdown & { type: "task" } => m.type === "task" && m.name === task.name,
+    );
+
+    if (taskToComplete) {
+      taskToComplete.complete = taskToComplete.complete ? false : completionMark;
+      return true;
+    }
+    return false;
+  };
 
   const handleStateChange = async (newState: ProjectState["workState"]) => {
     let shouldCollapse = false;
@@ -125,6 +146,9 @@ function AppReady({ controllers }: { controllers: AppControllers }) {
     onStateChange: handleStateChange,
     onTimeAdjust: handleTimeAdjust,
     onOpenProject: () => projectManager.openProject(),
+    onCompleteTask: async (task: ProjectMarkdown & { type: "task" }) => {
+      await projectManager.updateProject((draft) => handleCompleteTask(task, draft));
+    },
   };
 
   return isCompact ? <AppCompact {...commonProps} /> : <AppPlanner {...commonProps} />;
@@ -137,6 +161,7 @@ interface AppViewProps {
   onStateChange: (newState: ProjectState["workState"]) => void;
   onTimeAdjust: (ms: number) => void;
   onOpenProject: () => void;
+  onCompleteTask: (task: ProjectMarkdown & { type: "task" }) => void;
 }
 
 function useCurrentTask(project: ProjectState) {
@@ -150,41 +175,76 @@ function useCurrentTask(project: ProjectState) {
   return currentTask;
 }
 
-function AppCompact({ project, loaded, endTime, onStateChange, onTimeAdjust, onOpenProject }: AppViewProps) {
+function AppCompact({ project, loaded, endTime, onStateChange, onTimeAdjust, onCompleteTask }: AppViewProps) {
   const currentTask = useCurrentTask(project);
-  const workingOnTask = project.workState === "working" && currentTask != null
-  const colors = workingOnTask ? "bg-amber-100 border-amber-300 text-blue-900" : "bg-slate-50 border-blue-400 text-slate-900"
+  const workingOnTask = project.workState === "working" && currentTask != null;
+  const colors = workingOnTask
+    ? "bg-amber-100 border-amber-300 text-blue-900"
+    : "bg-slate-50 border-blue-400 text-slate-900";
+
+  const handleCompleteTask = () => {
+    if (!currentTask) return;
+    onCompleteTask(currentTask);
+  };
+
   return (
     <main data-tauri-drag-region className={`h-screen flex items-center px-2 border-4 ${colors}`}>
-      <div data-tauri-drag-region className="flex-1 flex items-center gap-4">
-        <div data-tauri-drag-region className="ml-auto flex items-center gap-2">
+      <div data-tauri-drag-region className="flex-1 flex items-center gap-4 min-w-0">
+        <div data-tauri-drag-region className="flex items-center gap-2 shrink-0">
           {loaded?.fullPath && (
             <button
               onClick={() => loaded.fullPath && openPath(loaded.fullPath)}
-              className="text-xs p-1.5 text-gray-600 hover:bg-gray-200 rounded flex-1"
+              className="text-xs p-1.5 text-gray-600 hover:bg-gray-200 rounded"
               title="Open project file in default application"
             >
               <IconEdit size={16} />
             </button>
           )}
         </div>
-        <div className="text-lg tracking-wide font-medium truncate flex-grow" data-tauri-drag-region>
-          {currentTask?.name || "No task selected"}
+        <div className="flex items-center gap-2 min-w-0 flex-1">
+          <div
+            className="text-lg tracking-wide font-medium truncate flex-1 min-w-0"
+            data-tauri-drag-region
+            title={currentTask?.name || "No task selected"}
+          >
+            {currentTask?.name || "No task selected"}
+          </div>
+          {currentTask && (
+            <button
+              onClick={handleCompleteTask}
+              className="shrink-0 p-1.5 text-gray-600 hover:bg-gray-200 rounded"
+              title="Complete current task"
+            >
+              <IconCheck size={16} />
+            </button>
+          )}
         </div>
-        {currentTask?.details?.trim() && <div className="absolute top-full left-0 right-0">{currentTask?.details}</div>}
-        <Timer
-          startTime={project.stateTransitions.startedAt}
-          endTime={endTime}
-          className="text-sm font-mono shrink-0"
-          onAdjustTime={onTimeAdjust}
-        />
-        <StateControls project={project} onStateChange={onStateChange} compact />
+        {currentTask?.details?.trim() && (
+          <div className="absolute top-full left-0 right-0 bg-white/90 p-2 text-sm">{currentTask?.details}</div>
+        )}
+        <div className="flex items-center gap-2 shrink-0">
+          <Timer
+            startTime={project.stateTransitions.startedAt}
+            endTime={endTime}
+            className="text-sm font-mono"
+            onAdjustTime={onTimeAdjust}
+          />
+          <StateControls project={project} onStateChange={onStateChange} compact />
+        </div>
       </div>
     </main>
   );
 }
 
-function AppPlanner({ project, loaded, endTime, onStateChange, onTimeAdjust, onOpenProject }: AppViewProps) {
+function AppPlanner({
+  project,
+  loaded,
+  endTime,
+  onStateChange,
+  onTimeAdjust,
+  onCompleteTask,
+  onOpenProject,
+}: AppViewProps) {
   return (
     <main className="h-screen flex flex-col bg-white">
       <header data-tauri-drag-region className="flex items-center justify-between border-b px-4 py-2 bg-gray-50">
@@ -221,7 +281,7 @@ function AppPlanner({ project, loaded, endTime, onStateChange, onTimeAdjust, onO
       </header>
 
       <div className="flex-1 overflow-auto p-4">
-        <pre className="text-xs font-mono bg-gray-50 p-2 rounded">{JSON.stringify(project, null, 2)}</pre>
+        <TaskList tasks={project.markdown} onCompleteTask={onCompleteTask} />
       </div>
 
       <footer className="border-t px-4 py-2 bg-gray-50">

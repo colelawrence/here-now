@@ -72,7 +72,7 @@ export class ProjectManager {
     return () => void this.changeListeners.delete(callback);
   }
 
-  async updateProject(fn: (project: ProjectState) => void | false) {
+  async updateProject(fn: (project: ProjectState) => void | boolean) {
     if (!this.currentFile) return;
     const project = structuredClone(this.currentFile.project);
     if (fn(project) === false) return;
